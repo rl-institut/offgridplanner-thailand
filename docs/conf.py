@@ -28,8 +28,8 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = "Offgridplanner-Django"
-copyright = """2025, Daniel Roy Greenfeld"""
-author = "Daniel Roy Greenfeld"
+copyright = """2025, Reiner Lemoine Institute"""
+author = "Reiner Lemoine Institute"
 
 
 # -- General configuration ---------------------------------------------------
