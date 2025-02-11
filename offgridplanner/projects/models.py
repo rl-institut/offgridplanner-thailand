@@ -11,15 +11,22 @@ def default_start_date():
     return datetime.datetime(current_year - 1, 1, 1)
 
 
+class Options(models.Model):
+    email_notification = models.BooleanField(default=False)
+    do_demand_estimation = models.BooleanField(default=True)
+    do_grid_optimization = models.BooleanField(default=True)
+    do_es_design_optimization = models.BooleanField(default=True)
+
+
 class Project(models.Model):
     def __str__(self):
-        return f"Project {self.id} - {self.project_id}: {self.project_name}"
+        return f"Project {self.id} -: {self.name}"
 
     # id = models.PositiveSmallIntegerField(db_index=True)
     name = models.CharField(max_length=51, null=True, blank=True)
     description = models.CharField(max_length=201, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
     interest_rate = models.FloatField(validators=[MinValueValidator(0.0)], blank=False)
     lifetime = models.PositiveSmallIntegerField(
         default=25,
@@ -40,10 +47,3 @@ class Project(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
-
-
-class Options(models.Model):
-    email_notification = models.BooleanField(default=False)
-    do_demand_estimation = models.BooleanField(default=True)
-    do_grid_optimization = models.BooleanField(default=True)
-    do_es_design_optimization = models.BooleanField(default=True)
