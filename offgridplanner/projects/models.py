@@ -10,7 +10,6 @@ def default_start_date():
     current_year = datetime.datetime.now().year
     return datetime.datetime(current_year - 1, 1, 1)
 
-
 class Options(models.Model):
     email_notification = models.BooleanField(default=False)
     do_demand_estimation = models.BooleanField(default=True)
@@ -48,6 +47,17 @@ class Project(models.Model):
         null=True,
     )
 
+class CustomDemand(models.Model):
+    # Corresponds to class Demand in tier_spatial planning, removed fields id (obsolete), use_custom_demand and use_custom_shares
+    # (one or both of them should just be None in database if not used), and household_option (not sure what it is used for)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    very_low = models.FloatField(default=0.663)
+    low = models.FloatField(default=0.215)
+    middle = models.FloatField(default=0.076)
+    high = models.FloatField(default=0.031)
+    very_high = models.FloatField(default=0.015)
+    annual_total_consumption = models.FloatField(blank=True, null=True)
+    annual_peak_consumption = models.FloatField(blank=True, null=True)
 
 class Nodes(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
