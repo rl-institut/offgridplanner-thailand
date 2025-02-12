@@ -6,17 +6,6 @@
  * - Fetches and plots time series data for demand profiles using Plotly.
  */
 
-document.getElementById('toggleswitch').addEventListener('change', function (event) {
-    const accordionItem2 = new bootstrap.Collapse(document.getElementById('collapseTwo'), {
-        toggle: false
-    });
-    if (event.target.checked) {
-        accordionItem2.show();
-
-    } else {
-        accordionItem2.hide();
-    }
-});
 
 function debounce(func, wait) {
     let timeout;
@@ -27,47 +16,21 @@ function debounce(func, wait) {
     };
 }
 
-
-
-document.getElementById('toggleswitch2').addEventListener('change', function (event) {
-    const accordionItem1 = new bootstrap.Collapse(document.getElementById('collapseOne'), {toggle: false});
-    const accordionItem2 = document.getElementById('collapseTwo').closest('.accordion-item');
-    const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {toggle: false});
-    const accordionItem3_all = document.getElementById('collapseThree').closest('.accordion-item');
-    if (event.target.checked) {
-        accordionItem1.hide();
-        accordionItem2.style.display = 'none';
-        accordionItem3.show();
-        accordionItem3_all.style.display = 'block';
-        if (steps) {
-            steps[0] = false;
-        }
-    } else {
-        accordionItem1.show();
-        accordionItem2.style.display = 'block';
-        accordionItem3.hide();
-        accordionItem3_all.style.display = 'none';
-        if (steps) {
-            steps[0] = true;
-        }
-    }
-});
-
 // Adjust input fields based on radio button selection
 document.addEventListener('DOMContentLoaded', function () {
     const option7Radio = document.getElementById('option7');
     const option8Radio = document.getElementById('option8');
-    const averageDailyEnergyInput = document.getElementById('average_daily_energy');
-    const maximumPeakLoadInput = document.getElementById('maximum_peak_load');
+    const totalEnergyInput = document.getElementById('id_annual_total_consumption');
+    const maximumPeakLoadInput = document.getElementById('id_annual_peak_consumption');
 
     function handleOptions2Change() {
         if (option7Radio.checked) {
-            averageDailyEnergyInput.disabled = false;
+            totalEnergyInput.disabled = false;
             maximumPeakLoadInput.disabled = true;
             maximumPeakLoadInput.value = '';
         } else {
-            averageDailyEnergyInput.disabled = true;
-            averageDailyEnergyInput.value = '';
+            totalEnergyInput.disabled = true;
+            totalEnergyInput.value = '';
             maximumPeakLoadInput.disabled = false;
         }
     }
@@ -79,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     handleOptions2Change();
 });
 
+
+// TODO don't think this is needed
 // Store selected value from radio buttons with name 'options'
 const radioButtons = document.getElementsByName("options");
 let selectedValue = -1; // Default value if no selection is made
@@ -93,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// TODO should be done in view instead of javascript
 function demand_ts(project_id) {
     const url = 'get_demand_plot_data/' + project_id;
     let plotElement = document.getElementById("demand_plot");
