@@ -18,11 +18,13 @@ function debounce(func, wait) {
 
 // Adjust input fields based on radio button selection
 document.addEventListener('DOMContentLoaded', function () {
+    // TODO this seems to trip if changing multipl times fast, might be related to the content loading
     const option7Radio = document.getElementById('option7');
     const option8Radio = document.getElementById('option8');
     const totalEnergyInput = document.getElementById('id_annual_total_consumption');
     const maximumPeakLoadInput = document.getElementById('id_annual_peak_consumption');
 
+    // TODO if the calibration button is unselected the values should also be removed from the form
     function handleOptions2Change() {
         if (option7Radio.checked) {
             totalEnergyInput.disabled = false;
@@ -104,6 +106,8 @@ function demand_ts(project_id) {
         })
         .then(data => {
             // Extract data
+            // TODO all that is needed to plot the demand should be households, enterprises and public ts from view
+            // TODO recalculate those values when calibration values are changed - this still needs to happen in js
             let {
                 'x': x,
                 'Very High Consumption': Very_High,
