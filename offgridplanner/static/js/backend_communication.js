@@ -141,25 +141,29 @@ async function plot_results(sequential = false) {
 
 
 
-async function db_links_to_js(project_id) {
-    const url = "db_links_to_js/" + project_id;
-
-    try {
-        const response = await fetch(url);
+function db_links_to_js() {
+    fetch(dbLinksToJsUrl)
+        .then(response => response.json())
+        .then(links => {
+            removeLinksFromMap(map);
+            put_links_on_map(links);
+        });
+     /*  const response = await fetch(dbLinksToJsUrl);
         if (!response.ok) {
             throw new Error("Failed to fetch data");
         }
         const links = await response.json();
-        removeLinksFromMap(map);
-        put_links_on_map(links);
+
+   try {
+
     } catch (error) {
         console.error("Error fetching data:", error);
-    }
+    }*/
 }
 
 
-async function db_nodes_to_js(project_id, markers_only) {
-    fetch("/db_nodes_to_js/" + project_id + '/' + markers_only)
+async function db_nodes_to_js(markers_only) {
+    fetch(dbNodesToJsUrl + '/' + markers_only)
         .then(response => response.json())
         .then(data => {
             if (data !== null) {
@@ -179,11 +183,13 @@ async function db_nodes_to_js(project_id, markers_only) {
 
 async function file_nodes_to_js(formData) {
     try {
-        const response = await fetch('/file_nodes_to_js', {
+        const response = await fetch(fileNodesToJsUrl, {
+            headers: {'X-CSRFToken': csrfToken },
             method: 'POST',
             body: formData
         });
         if (response.ok) {
+            // todo check what this was supposed to do ...
             document.getElementById('responseMsg').innerHTML = '';
             document.getElementById('msgBox').style.display = 'none';
             const result = await response.json();
@@ -229,10 +235,9 @@ async function file_demand_to_db(formData) {
 
 async function consumer_to_db(href, file_type = "db") {
     update_map_elements();
-    const url = "/consumer_to_db/" + project_id;
-    const response = await fetch(url, {
+    const response = await fetch(consumerToDBUrl , {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
         body: JSON.stringify({map_elements: map_elements, file_type: file_type})
     });
 
@@ -274,9 +279,9 @@ async function consumer_to_db(href, file_type = "db") {
 
 function add_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
-    fetch("/add_buildings_inside_boundary", {
+    fetch(addBuildingsUrl, {
         method: "POST",
-        headers: {"Content-Type": "application/json",},
+        headers: {"Content-Type": "application/json",'X-CSRFToken': csrfToken},
         body: JSON.stringify({boundary_coordinates: boundariesCoordinates, map_elements: map_elements,}),
     })
         .then((response) => {
@@ -308,10 +313,11 @@ async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
 
     try {
-        const response = await fetch("/remove_buildings_inside_boundary", {
+        const response = await fetch(removeBuildingsUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken,
             },
             body: JSON.stringify({
                 boundary_coordinates: boundariesCoordinates,
@@ -429,7 +435,8 @@ async function save_energy_system_design(href) {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify(data),
         });
@@ -516,7 +523,7 @@ async function load_results(project_id) {
             document.getElementById('epc_battery').innerText = results['epc_battery'];
             document.getElementById('epc_total').innerText = results['epc_total'];
             document.getElementById('LCOE2').innerHTML = results['lcoe'].toString() + " Cent<sub class='sub'>USD</sub>/kWh";
-            await db_nodes_to_js(project_id, false);
+            await db_nodes_to_js(markers_only=false);
             if (results['do_grid_optimization'] === false) {
                 await hide_grid_results();
             }
@@ -550,7 +557,8 @@ async function load_results(project_id) {
             const res = await fetch("has_pending_task/" + project_id, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
                 }
             });
 
@@ -599,6 +607,7 @@ async function add_user_to_db() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({
                     'email': userEmail2.value,
@@ -634,6 +643,7 @@ async function change_email() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify({
                     email: userEmail1.value,
@@ -677,6 +687,7 @@ async function change_pw() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
                     new_password: newUserPassword1.value,
@@ -715,6 +726,7 @@ async function delete_account() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 password: Password.value
@@ -748,7 +760,8 @@ async function login() {
         const response = await fetch("login/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 email: userEmail.value,
@@ -782,7 +795,8 @@ async function renewToken() {
     const response = await fetch('/renew_token', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         }
     });
     if (response.ok) {
@@ -799,7 +813,8 @@ async function consent_cookie() {
         const response = await fetch("consent_cookie/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -820,7 +835,8 @@ async function anonymous_login() {
         const response = await fetch("anonymous_login/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 'captcha_input': captcha_input3.value,
@@ -848,7 +864,8 @@ async function logout() {
         const response = await fetch("logout/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
         });
 
@@ -902,7 +919,8 @@ async function save_project_setup(href) {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify(data),
         });
@@ -938,7 +956,8 @@ async function save_grid_design(href) {
         await fetch("save_grid_design/" + project_id, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 grid_design: {
@@ -984,7 +1003,8 @@ function save_demand_estimation(href) {
         fetch("save_demand_estimation/" + project_id, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 demand_estimation: {
@@ -1202,7 +1222,7 @@ async function show_email_and_project_in_navbar(project_id = null) {
     try {
         const response = await fetch("query_account_data/", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
             body: JSON.stringify({'project_id': project_id}),
         });
         if (!response.ok) {
@@ -1231,7 +1251,8 @@ async function redirect_if_cookie_is_missing(access_token, consent_cookie) {
         const response = await fetch("has_cookie/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 'access_token': has_access_token,
@@ -1258,7 +1279,7 @@ async function toggleDropdownMenuItems() {
     try {
         const response = await fetch("has_cookie/", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
             body: JSON.stringify({
                 'access_token': true,
                 'consent_cookie': false
@@ -1300,7 +1321,8 @@ async function remove_project(project_id) {
         const response = await fetch("remove_project/" + project_id, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -1328,7 +1350,8 @@ async function wait_for_results(project_id, task_id, time, model) {
             const response = await fetch("waiting_for_results/", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({'project_id': project_id, 'task_id': task_id, 'time': time, 'model': model})
             });
@@ -1361,7 +1384,9 @@ async function forward_if_no_task_is_pending(project_id) {
         const response = await fetch("forward_if_no_task_is_pending/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
+
             },
         });
 
@@ -1387,7 +1412,8 @@ async function revoke_users_task() {
         const response = await fetch("revoke_users_task/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -1407,6 +1433,7 @@ function start_calculation(project_id) {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            'X-CSRFToken': csrfToken
         }
     })
         .then(response => response.json())
@@ -1450,7 +1477,8 @@ async function forward_if_consumer_selection_exists(project_id) {
         const response = await fetch("forward_if_consumer_selection_exists/" + project_id, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -1485,7 +1513,8 @@ async function send_email_notification(project_id, is_active) {
         const response = await fetch("/set_email_notification/" + project_id + '/' + is_active, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             }
         });
 
@@ -1503,7 +1532,8 @@ async function show_cookie_consent() {
         const response = await fetch("has_cookie/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({'access_token': false, 'consent_cookie': true})
         });
@@ -1527,7 +1557,8 @@ async function send_reset_password_email() {
         const response = await fetch("send_reset_password_email/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 'email': userEmail4.value,
@@ -1568,7 +1599,8 @@ function reset_pw(guid) {
     fetch("reset_password", {
         method: "POST",
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
             guid: guid,
@@ -1640,7 +1672,7 @@ function copyProject(url) {
         });
 }
 
-
+// TODO what does this do?
 document.addEventListener('DOMContentLoaded', function () {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('.icon[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -1695,7 +1727,8 @@ async function sendMail() {
         const response = await fetch("/send_mail_route/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify(mail)
         });
