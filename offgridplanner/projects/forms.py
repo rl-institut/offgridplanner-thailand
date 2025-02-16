@@ -73,11 +73,19 @@ class ProjectForm(ModelForm):
         #
         #         self.fields[field].label = self.fields[field].label + question_icon
 
+
 OPTIONS_LABELS = {
-    "do_demand_estimation" : _("Demand estimation"), # TODO when set False then display warning If you keep the demand estimation option enabled, you can choose later between estimating demand or using a custom demand time series. If the demand estimation function is not used, a corresponding time series must be uploaded later in the 'Demand Estimation' section.
-    "do_grid_optimization" : _("Spatial Grid Optimization"), # TODO if set False then disable step 'grid_design' and display warning A demand is required for the design optimization of energy converters. Demand estimation requires information about consumers, which is defined in the 'Consumer Selection' section using the integrated mapping system. Therefore, even if grid planning is not carried out, consumers must still be specified unless a custom demand time series is uploaded in the 'Demand Estimation' section. In that case, also deactivate 'Demand Estimation' to skip the consumer definition step.
-    "do_es_design_optimization" : _("Energy Converter Design Optimization"), # TODO if set False then disable step 'energy_system_design'
+    "do_demand_estimation": _(
+        "Demand estimation"
+    ),  # TODO when set False then display warning If you keep the demand estimation option enabled, you can choose later between estimating demand or using a custom demand time series. If the demand estimation function is not used, a corresponding time series must be uploaded later in the 'Demand Estimation' section.
+    "do_grid_optimization": _(
+        "Spatial Grid Optimization"
+    ),  # TODO if set False then disable step 'grid_design' and display warning A demand is required for the design optimization of energy converters. Demand estimation requires information about consumers, which is defined in the 'Consumer Selection' section using the integrated mapping system. Therefore, even if grid planning is not carried out, consumers must still be specified unless a custom demand time series is uploaded in the 'Demand Estimation' section. In that case, also deactivate 'Demand Estimation' to skip the consumer definition step.
+    "do_es_design_optimization": _(
+        "Energy Converter Design Optimization"
+    ),  # TODO if set False then disable step 'energy_system_design'
 }
+
 
 class OptionForm(ModelForm):
     class Meta:

@@ -47,3 +47,8 @@ class Project(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
+
+
+class Nodes(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    data = models.JSONField()
