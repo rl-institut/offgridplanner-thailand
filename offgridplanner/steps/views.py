@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from offgridplanner.projects.forms import ProjectForm, OptionForm
+from offgridplanner.projects.models import Project, Nodes
 
 
 @require_http_methods(["GET"])
@@ -41,8 +42,86 @@ def project_setup(request, proj_id=None):
 
 # @login_required()
 @require_http_methods(["GET"])
-def consumer_selection(request):
-    return render(request, "pages/consumer_selection.html")
+def consumer_selection(request, proj_id=None):
+    form = ProjectForm()
+    opts = OptionForm()
+
+    public_service_list = {
+        "group1": "Health_Health Centre",
+        "group2": "Health_Clinic",
+        "group3": "Health_CHPS",
+        "group4": "Education_School",
+        "group5": "Education_School_noICT",
+    }
+
+    enterprise_list = {
+        "group1": "Food_Groceries",
+        "group2": "Food_Restaurant",
+        "group3": "Food_Bar",
+        "group4": "Food_Drinks",
+        "group5": "Food_Fruits or vegetables",
+        "group6": "Trades_Tailoring",
+        "group7": "Trades_Beauty or Hair",
+        "group8": "Trades_Metalworks",
+        "group9": "Trades_Car or Motorbike Repair",
+        "group10": "Trades_Carpentry",
+        "group11": "Trades_Laundry",
+        "group12": "Trades_Cycle Repair",
+        "group13": "Trades_Shoemaking",
+        "group14": "Retail_Medical",
+        "group15": "Retail_Clothes and accessories",
+        "group16": "Retail_Electronics",
+        "group17": "Retail_Other",
+        "group18": "Retail_Agricultural",
+        "group19": "Digital_Mobile or Electronics Repair",
+        "group20": "Digital_Digital Other",
+        "group21": "Digital_Cybercafé",
+        "group22": "Digital_Cinema or Betting",
+        "group23": "Digital_Photostudio",
+        "group24": "Agricultural_Mill or Thresher or Grater",
+        "group25": "Agricultural_Other",
+    }
+
+    enterpise_option = ""
+
+    large_load_list = {
+        "group1": "Milling Machine (7.5kW)",
+        "group2": "Crop Dryer (8kW)",
+        "group3": "Thresher (8kW)",
+        "group4": "Grinder (5.2kW)",
+        "group5": "Sawmill (2.25kW)",
+        "group6": "Circular Wood Saw (1.5kW)",
+        "group7": "Jigsaw (0.4kW)",
+        "group8": "Drill (0.4kW)",
+        "group9": "Welder (5.25kW)",
+        "group10": "Angle Grinder (2kW)",
+    }
+    large_load_type = "group1"
+
+    option_load = ""
+
+    context = {
+        "form": form,
+        "opts_form": opts,
+        "public_service_list": public_service_list,
+        "enterprise_list": enterprise_list,
+        "large_load_list": large_load_list,
+        "large_load_type": large_load_type,
+        "enterpise_option": enterpise_option,
+        "option_load": option_load,
+    }
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+        context["proj_id"] = project.id
+    else:
+        project = Project.objects.first()
+        context["proj_id"] = project.id
+
+    # _wizard.js contains info for the POST function set when clicking on next or on another step
+
+    return render(request, "pages/consumer_selection.html", context)
 
 
 # @login_required()
