@@ -10,3 +10,11 @@ add options as foreign key to Project
 email_notification, do_demand_estimation, do_grid_optimization, do_es_design_optimization --> moved into a new table called Settings
 
 New table Options
+
+Nodes.id --> did not keep
+Nodes.project_id --> OneToOne relation with Project
+Links.id --> did not keep
+Links.project_id --> OneToOne relation with Project
+
+# TODO rename Links --> Link and same with Nodes
+# TODO replace accordionItem and heading2 in js/html code
