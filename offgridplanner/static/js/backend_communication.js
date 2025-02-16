@@ -140,7 +140,7 @@ async function plot_results(sequential = false) {
 }
 
 
-
+// customer_selection
 function db_links_to_js() {
     fetch(dbLinksToJsUrl)
         .then(response => response.json())
@@ -148,20 +148,9 @@ function db_links_to_js() {
             removeLinksFromMap(map);
             put_links_on_map(links);
         });
-     /*  const response = await fetch(dbLinksToJsUrl);
-        if (!response.ok) {
-            throw new Error("Failed to fetch data");
-        }
-        const links = await response.json();
-
-   try {
-
-    } catch (error) {
-        console.error("Error fetching data:", error);
-    }*/
 }
 
-
+// customer_selection
 async function db_nodes_to_js(markers_only) {
     fetch(dbNodesToJsUrl + '/' + markers_only)
         .then(response => response.json())
@@ -181,6 +170,7 @@ async function db_nodes_to_js(markers_only) {
         });
 }
 
+// customer_selection
 async function file_nodes_to_js(formData) {
     try {
         const response = await fetch(fileNodesToJsUrl, {
@@ -233,6 +223,7 @@ async function file_demand_to_db(formData) {
     }
 }
 
+// customer_selection
 async function consumer_to_db(href, file_type = "db") {
     update_map_elements();
     const response = await fetch(consumerToDBUrl , {
@@ -276,7 +267,7 @@ async function consumer_to_db(href, file_type = "db") {
     }
 }
 
-
+// customer_selection
 function add_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
     fetch(addBuildingsUrl, {
@@ -308,7 +299,7 @@ function add_buildings_inside_boundary({boundariesCoordinates} = {}) {
         });
 }
 
-
+// customer_selection
 async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
 
