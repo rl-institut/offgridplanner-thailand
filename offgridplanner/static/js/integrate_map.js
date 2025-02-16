@@ -174,7 +174,7 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 //        }
     }
 }
-
+initializeMap();
 
 function zoomAll(map) {
     let latLonList = map_elements.map(obj => L.latLng(obj.latitude, obj.longitude));
