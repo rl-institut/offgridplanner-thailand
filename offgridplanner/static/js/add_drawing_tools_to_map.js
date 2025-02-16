@@ -30,7 +30,6 @@
  *   valuable insights at a glance.
  */
 
-
 var polygonDrawer = new L.Draw.Polygon(map, {
     shapeOptions: {
         color: '#1F567D80'
@@ -108,13 +107,13 @@ var myCustomMarker = L.Icon.extend({
         shadowUrl: null,
         iconAnchor: new L.Point(12, 12),
         iconSize: new L.Point(24, 24),
-        iconUrl: "fastapi_app/files/public/media_files/icons/i_consumer.svg"
+        iconUrl: "/static/icons/i_consumer.svg"
     }
 });
 
 
 const iconB = L.icon({
-    iconUrl: "fastapi_app/files/public/media_files/icons/i_power_house.svg",
+    iconUrl: "/static/icons/i_power_house.svg",
     iconSize: [12, 12], // size of the icon
     iconAnchor: [12, 12], // point of the icon which will correspond to marker's location
     popupAnchor: [1, -12] // point from which the popup should open relative to the iconAnchor
@@ -159,7 +158,7 @@ const CustomMarkerControl = L.Control.extend({
 
         // add an image inside the link
         const image = L.DomUtil.create('img', 'my-marker-icon', link);
-        image.src = 'fastapi_app/files/public/media_files/icons/i_power_house_grey.svg';
+        image.src = '/static/icons/i_power_house_grey.svg';
         image.alt = 'Marker';
         image.style.width = '12px';
         image.style.height = '12px';
@@ -233,7 +232,7 @@ function remove_marker_from_map() {
             map.removeLayer(layer);
         }
     });
-    document.getElementById("n_consumers").innerText = 0;
+    //document.getElementById("n_consumers").innerText = 0;
 }
 
 L.Control.Trashbin = L.Control.extend({
@@ -406,5 +405,3 @@ function count_consumers(first_update = true) {
         document.getElementById("n_public_services").innerText = num_public_services;
     }
 }
-
-
