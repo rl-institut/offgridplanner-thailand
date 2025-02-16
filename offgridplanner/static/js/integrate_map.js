@@ -167,9 +167,11 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 
         map.addControl(new zoomAllControl());
         load_legend();
-        if (typeof loadDrawingToolsJS === 'function') {
-            loadDrawingToolsJS();
-        }
+        // TODO this is replaced by end_body script
+//        if (typeof loadDrawingToolsJS === 'function') {
+//            console.log("load drawing tools")
+//            loadDrawingToolsJS();
+//        }
     }
 }
 
@@ -273,9 +275,10 @@ async function put_markers_on_map(array, markers_only) {
     }
 
     zoomAll(map);
-    if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
-        db_links_to_js(project_id);
-    }
+    // TODO: Links seems like an old unused thing
+    //if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
+        // db_links_to_js();
+    //}
 }
 
 
