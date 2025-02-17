@@ -29,7 +29,7 @@ def project_setup(request, proj_id=None):
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        context = {"form": form, "project_id": project.id, "max_days": max_days}
+        context = {"opts_form": form, "project_id": project.id, "max_days": max_days}
 
     # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
     # or step 'demand_estimation'

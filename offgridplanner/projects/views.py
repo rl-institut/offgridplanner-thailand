@@ -178,7 +178,7 @@ def consumer_to_db(request, proj_id=None):
             return
         df = df.drop_duplicates(subset=['latitude', 'longitude'])
         drop_index = df[df['node_type'] == 'power-house'].index
-        if drop_index.__len__() > 1:
+        if len(drop_index) > 1:
             df = df.drop(index=drop_index[1:])
         if df.empty is True:
             Nodes.objects.filter(project=project).delete()

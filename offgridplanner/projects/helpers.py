@@ -32,7 +32,6 @@ def check_imported_consumer_data(df):
     df["shs_options"] = (
         df["shs_options"].fillna(0) if "shs_options" in df.columns else 0
     )
-    df["shs_options"] = df["shs_options"].fillna(0)
     allowed_values = ["household", "enterprise", "public_service"]
     falsy_values = set(df["consumer_type"].unique()) - set(allowed_values)
     if len(falsy_values) > 0:
