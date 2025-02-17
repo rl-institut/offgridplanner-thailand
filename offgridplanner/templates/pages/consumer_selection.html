@@ -44,11 +44,11 @@
                   <span style="flex-grow: 1;">Set Consumer Properties</span>
                 </button>
               </h2>
-              <div aria-labelledby="headingTwo"
-                   class="accordion-collapse"
-                   data-bs-parent="#accordionExample"
-                   id="collapseTwo">
-                <div class="accordion-body" style="border-bottom: none;">
+              <span aria-labelledby="headingTwo"
+                    class="accordion-collapse"
+                    data-bs-parent="#accordionExample"
+                    id="collapseTwo">
+                <span class="accordion-body" style="border-bottom: none;">
                   <table style="border-top: none; color: var(--ccb); border-spacing: 0;">
                     <tr>
                       <th style="vertical-align: top; padding: 5px;">Consumer Type</th>
@@ -156,7 +156,7 @@
                   </div>
                   <hr />
                   <p>
-                    <span>
+                    <div>
                       <p style="display: flex;
                                 justify-content: space-between;
                                 align-items: center;
@@ -278,35 +278,69 @@
                            style="min-height: 700px;
                                   min-width: 1000px;
                                   margin-bottom: 10px"></div>
-                    </section>
-                    <div class="modal"
-                         id="videoTutorial"
-                         style="background-color: rgba(0,0,0,0.5);
-                                z-index: 999;
-                                text-align: left">
-                      <form class="modal-content" style="width: 700px; height: 520px;">
-                        <div class="container">
-                          <h1 style="margin-bottom: 0;">Video Tutorial</h1>
-                          <div style="padding: 15px;">
-                            <video controls height="360" id="tutorialVideo" width="568">
-                              <source src="{% static 'videos/tut_consumer_selection.mp4' %}"
-                                      type="video/mp4" />
-                              Your browser does not support the video tag.
-                            </video>
-                          </div>
-                          <button class="deletebtn"
-                                  onclick="stopVideo(); document.getElementById('videoTutorial').style.display='none'"
-                                  type="button">OK</button>
-                          <button class="cancelbtn"
-                                  onclick="stopVideo(); document.getElementById('videoTutorial').style.display='none'; deactivate_video_tutorial();"
-                                  type="button">Don't Show Again</button>
-                        </div>
-                      </form>
                     </div>
-                  </main>
-                {% endblock content %}
-                {% block end_body_scripts %}
-                  <script src="{% static 'js/integrate_map.js' %}"></script>
-                  <script src="{% static 'js/pages/consumer_selection.js' %}"></script>
-                  <script src="{% static 'js/backend_communication.js' %}"></script>
-                {% endblock end_body_scripts %}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div id="msgBox"
+           class="modal"
+           style="background-color: rgba(0,0,0,0.5);
+                  z-index: 999;
+                  text-align: left">
+        <form class="modal-content" style="max-width: 24rem">
+          <div class="container">
+            <h1>Warning</h1>
+            <p id="responseMsg"></p>
+            <button onclick="document.getElementById('msgBox').style.display='none'"
+                    type="button"
+                    class="deletebtn">OK</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal"
+           id="videoTutorial"
+           style="background-color: rgba(0,0,0,0.5);
+                  z-index: 999;
+                  text-align: left">
+        <form class="modal-content" style="width: 700px; height: 520px;">
+          <div class="container">
+            <h1 style="margin-bottom: 0;">Video Tutorial</h1>
+            <div style="padding: 15px;">
+              <video controls height="360" id="tutorialVideo" width="568">
+                <source src="{% static 'videos/tut_consumer_selection.mp4' %}"
+                        type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <button class="deletebtn"
+                    onclick="stopVideo(); document.getElementById('videoTutorial').style.display='none'"
+                    type="button">OK</button>
+            <button class="cancelbtn"
+                    onclick="stopVideo(); document.getElementById('videoTutorial').style.display='none'; deactivate_video_tutorial();"
+                    type="button">Don't Show Again</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  {% endblock content %}
+  {% block end_body_scripts %}
+    <script>
+      // url of API urls
+      const csrfToken = '{{ csrf_token }}';
+      //const project_id = {{ proj_id }};
+      const dbNodesToJsUrl = `{% url 'projects:db_nodes_to_js' proj_id %}`;
+      const dbLinksToJsUrl = `{% url 'projects:db_links_to_js' proj_id %}`;
+      const fileNodesToJsUrl = `{% url 'projects:file_nodes_to_js' %}`;
+      const consumerToDBUrl = `{% url 'projects:consumer_to_db' proj_id %}`;
+      const addBuildingsUrl = `{% url 'projects:add_buildings_inside_boundary' proj_id  %}`;
+      const removeBuildingsUrl = `{% url 'projects:remove_buildings_inside_boundary' proj_id  %}`;
+    </script>
+    <script src="{% static 'js/integrate_map.js' %}"></script>
+    <script src="{% static 'js/add_drawing_tools_to_map.js' %}"></script>
+    <script src="{% static 'js/pages/consumer_selection.js' %}"></script>
+    <script src="{% static 'js/backend_communication.js' %}"></script>
+  {% endblock end_body_scripts %}

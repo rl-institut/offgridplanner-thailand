@@ -38,37 +38,37 @@ let polygonCoordinates = [];
 let map_elements = [];
 
 var markerConsumer = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_consumer.svg",
+    iconUrl: "/static/assets/icons/i_consumer.svg",
     iconSize: [18, 18],
 });
 
 
 var markerEnterprise = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_enterprise.svg",
+    iconUrl: "/static/assets/icons/i_enterprise.svg",
     iconSize: [18, 18],
 });
 
 
 var markerPublicservice = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/icons/i_public_service.svg",
+    iconUrl: "/static/icons/i_public_service.svg",
     iconSize: [18, 18],
 });
 
 
 var markerPowerHouse = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_power_house.svg",
+    iconUrl: "/static/assets/icons/i_power_house.svg",
     iconSize: [12, 12],
 });
 
 
 var markerPole = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_pole.svg",
+    iconUrl: "/static/assets/icons/i_pole.svg",
     iconSize: [10, 10],
 });
 
 
 var markerShs = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_shs.svg",
+    iconUrl: "/static/assets/icons/i_shs.svg",
     iconSize: [16, 16],
 });
 
@@ -80,14 +80,14 @@ var icons = {
     'shs': markerShs,
 };
 var image = [
-    "fastapi_app/files/public/media_files/icons/i_power_house.svg",
-    "fastapi_app/files/public/media_files/icons/i_consumer.svg",
-    "fastapi_app/files/public/media_files/icons/i_enterprise.svg",
-    "fastapi_app/files/public/media_files/icons/i_public_service.svg",
-    "fastapi_app/files/public/media_files/icons/i_pole.svg",
-    "fastapi_app/files/public/media_files/assets/icons/i_shs.svg",
-    "fastapi_app/files/public/media_files/assets/icons/i_distribution.svg",
-    "fastapi_app/files/public/media_files/assets/icons/i_connection.svg",
+    "/static/icons/i_power_house.svg",
+    "/static/icons/i_consumer.svg",
+    "/static/icons/i_enterprise.svg",
+    "/static/icons/i_public_service.svg",
+    "/static/icons/i_pole.svg",
+    "/static/assets/icons/i_shs.svg",
+    "/static/assets/icons/i_distribution.svg",
+    "/static/assets/icons/i_connection.svg",
 ];
 
 const drawnItems = new L.FeatureGroup();
@@ -150,7 +150,7 @@ function initializeMap(center = null, zoom = null, bounds = null) {
             onAdd: function (map) {
                 var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
                 let baseUrl = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-                let address = "url(" + baseUrl + "/fastapi_app/files/public/media_files/images/imgZoomToAll.png)"
+                let address = "url(" + baseUrl + "//static/images/imgZoomToAll.png)"
                 container.style.backgroundColor = 'white';
                 container.style.backgroundImage = address;
                 container.style.backgroundSize = "28px 28px";
@@ -167,12 +167,14 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 
         map.addControl(new zoomAllControl());
         load_legend();
-        if (typeof loadDrawingToolsJS === 'function') {
-            loadDrawingToolsJS();
-        }
+        // TODO this is replaced by end_body script
+//        if (typeof loadDrawingToolsJS === 'function') {
+//            console.log("load drawing tools")
+//            loadDrawingToolsJS();
+//        }
     }
 }
-
+initializeMap();
 
 function zoomAll(map) {
     let latLonList = map_elements.map(obj => L.latLng(obj.latitude, obj.longitude));
@@ -273,9 +275,10 @@ async function put_markers_on_map(array, markers_only) {
     }
 
     zoomAll(map);
-    if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
-        db_links_to_js(project_id);
-    }
+    // TODO: Links seems like an old unused thing
+    //if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
+        // db_links_to_js();
+    //}
 }
 
 

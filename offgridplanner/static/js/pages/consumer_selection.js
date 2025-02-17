@@ -139,12 +139,12 @@ document.getElementById('shs_options').value = '';
 
 
 let markerConsumerSelected = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_consumer_selected.svg",
+    iconUrl: "/static/assets/icons/i_consumer_selected.svg",
     iconSize: [12, 12],
 });
 
 let markerPowerHouseSelected = new L.Icon({
-    iconUrl: "fastapi_app/files/public/media_files/assets/icons/i_power_house_selected.svg",
+    iconUrl: "/static/assets/icons/i_power_house_selected.svg",
     iconSize: [12, 12],
 });
 
@@ -156,7 +156,7 @@ function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
 }
 
-
+// TODO this can stay
 function markerOnClick(e) {
     L.DomEvent.stopPropagation(e);
     if (marker) {
@@ -223,7 +223,6 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     let key2 = getKeyByValue(public_service_list, marker.consumer_detail);
                     document.getElementById('enterprise').value = key2;
-                    console.log(key2);
                     deactivate_large_loads()
                 }
                 if (marker.node_type !== 'power-house') {
@@ -342,7 +341,6 @@ function move_marker() {
     });
 }
 
-
 document.getElementById('latitude').addEventListener('change', move_marker);
 document.getElementById('longitude').addEventListener('change', move_marker);
 
@@ -420,7 +418,7 @@ function addElementToLargeLoadList(customText) {
     }
 };
 
-
+// TODO just use boostraps action attributes for this
 function expandAccordionItem2() {
     const accordion = new bootstrap.Collapse(document.getElementById('collapseTwo'), {
         toggle: false
