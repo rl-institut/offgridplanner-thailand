@@ -1,5 +1,7 @@
 import datetime
+from io import StringIO
 
+import pandas as pd
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
@@ -59,6 +61,44 @@ class CustomDemand(models.Model):
     annual_total_consumption = models.FloatField(blank=True, null=True)
     annual_peak_consumption = models.FloatField(blank=True, null=True)
 
+    @property
+    def calibration_option(self):
+        if self.annual_total_consumption is None and self.annual_peak_consumption is None:
+            return None
+
+        calibration_option = "annual_total_consumption" if self.annual_total_consumption is not None else "annual_peak_consumption"
+        return calibration_option
+
+
 class Nodes(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     data = models.JSONField()
+
+    @property
+    def node_df(self):
+        return pd.read_json(StringIO(self.data))
+
+    def filter_consumers(self, consumer_type):
+        """
+        Parameters:
+            consumer_type (str): One of "household", "enterprise", "public_service"
+        """
+        nodes = self.node_df
+        consumer_type_df = nodes[
+            (nodes['consumer_type'] == consumer_type)
+            & (nodes['is_connected'] == True)
+            ]
+        return consumer_type_df
+
+    @property
+    def counts(self):
+        counts = self.node_df.groupby(['consumer_type', 'consumer_detail']).size()
+        return counts
+
+    @property
+    def have_custom_machinery(self):
+        machinery = self.node_df.groupby(['consumer_type', 'consumer_detail']).agg({'custom_specification': ';'.join}).custom_specification.loc["enterprise"]
+        if not machinery.eq("").all():
+            return True
+        else:
+            return False
