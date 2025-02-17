@@ -4,8 +4,11 @@ import json
 from collections import defaultdict
 
 import numpy as np
+
+from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, StreamingHttpResponse
+from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
@@ -20,7 +23,97 @@ from offgridplanner.projects import identify_consumers_on_map
 # @login_required
 @require_http_methods(["GET"])
 def projects_list(request, proj_id=None):
-    return render(request, "pages/user_projects.html")
+    projects= Project.objects.all()
+    # projects = (
+    #     Project.objects.filter(
+    #         Q(user=request.user) | Q(viewers__user__email=request.user.email)
+    #     )
+    #     .distinct()
+    #     .order_by("date_created")
+    #     .reverse()
+    # )
+    for project in projects:
+        # TODO this should not be useful
+        # project.created_at = project.created_at.date()
+        # project.updated_at = project.updated_at.date()
+        if bool(os.environ.get('DOCKERIZED')):
+            status = "pending"  #TODO connect this to the worker
+            # status = worker.AsyncResult(user.task_id).status.lower()
+        else:
+            status = 'success'
+        if status in ['success', 'failure', 'revoked']:
+            # TODO this is not useful
+            # user.task_id = ''
+            # user.project_id = None
+            if status == 'success':
+                # TODO Here I am not sure we should use the status of the project rather the one of the simulation
+                project.status = "finished"
+            else:
+                project.status = status
+            # TODO this is not useful
+            # user.task_id = ''
+            # user.project_id = None
+
+    return render(request, "pages/user_projects.html", {"projects": projects})
+
+
+@require_http_methods(["POST"])
+def project_duplicate(request, proj_id):
+    proj_id = None  # TODO remove this when project is fixed
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+    else:
+        project = Project.objects.first()  # TODO remove this when project is fixed
+
+    # TODO check user rights to the project
+    new_proj_id = load_project_from_dict(dm, user=request.user)
+
+    # for model_class in [sa_tables.Nodes, sa_tables.Links, sa_tables.Results, sa_tables.DemandCoverage,
+    #                     sa_tables.EnergyFlow,
+    #                     sa_tables.Emissions, sa_tables.DurationCurve, sa_tables.ProjectSetup,
+    #                     sa_tables.EnergySystemDesign,
+    #                     sa_tables.GridDesign, sa_tables.Demand]:
+    #     model_instance = await get_model_instance(model_class, user_from_id, project_from_id, 'all')
+    #     if model_class == sa_tables.ProjectSetup:
+    #         time_now = datetime.datetime.now()
+    #         time_now \
+    #             = datetime.datetime(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.minute)
+    #         model_instance[0].created_at = time_now
+    #         model_instance[0].updated_at = time_now
+    #         model_instance[0].project_name = 'Copy of {}'.format(
+    #             model_instance[0].project_name.replace("Exmaple", "Example"))
+    #         if model_instance[0].project_name == "Copy of Example Project":
+    #             model_instance[0].project_name = "Example Project"
+    #     for e in model_instance:
+    #         data = {key: value for key, value in e.__dict__.items() if not key.startswith('_')}
+    #         new_e = model_class(**data)
+    #         new_e.id = user_to_id
+    #         new_e.project_id = project_to_id
+    #         await merge_model(new_e)
+    return JsonResponse({'success': True},status=200)
+    # if user is not None and project_id is not None:
+    #     # TODO copy project here
+    #     return JSONResponse(status_code=200, content={'success': True})
+    # else:
+    #     return JSONResponse(status_code=400, content={'success': False})
+    #return HttpResponseRedirect(reverse("projects_list", args=[new_proj_id]))
+
+@require_http_methods(["POST"])
+def project_delete(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+
+    if project.user != request.user:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        project.delete()
+        messages.success(request, "Project successfully deleted!")
+
+    return HttpResponseRedirect(reverse("projects_list"))
+
+
 
 
 # TODO should be used as AJAX from map

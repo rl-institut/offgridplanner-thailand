@@ -35,34 +35,43 @@
                   {% if projects|length > 0 %}
                     {% for project in projects %}
                       <tr>
-                        <td>{{ project.project_id }}</td>
+                        <td>{{ project.id }}</td>
                         <td>{{ project.project_name }}</td>
-                        <td>{{ project.created_at }}</td>
-                        <td>{{ project.updated_at }}</td>
+                        <td>{{ project.date_created }}</td>
+                        <td>{{ project.date_updated }}</td>
                         <td>{{ project.status }}</td>
                         <td>
-                          <span style="float:right;"><a>&nbsp;
-                            <a href="javascript:void(0);" class="grey_button">Duplicate Project</a>
-                          </a>
+
+
+
+                          <span style="float:right;">
+                            <form action="{% url 'projects:project_duplicate' project.id %}" method="POST">
+                                {% csrf_token %}
+                                <button style="color:#1F567D;padding:4px;" class="grey_button" type="submit" value="Duplicate">
+                                    Duplicate Project
+                                </button>
+                            </form>
+                          </span>
+                      </td>
+                      <td>
                         </span>
                       </td>
                       <td>
-                        <span style="float:right;"><a>&nbsp;
-                          <a onclick="document.getElementById('projectID{{ project.project_id }}').style.display='block'"
+                        <span style="float:right;">
+                          <a onclick="document.getElementById('projectID{{ project.id }}').style.display='block'"
                              class="grey_button"
                              style="color:white">Delete Project</a>
-                        </a></span>
+                        </span>
                       </td>
                       <td>
-                        <span style="float:right;"><a>&nbsp;
-                          <a href="{% url 'steps:project_setup' %}" class="grey_button">Edit Project</a>
-                        </a></span>
+                        <span style="float:right;">
+                          <a href="{% url 'steps:project_setup' project.id %}" class="grey_button">Edit Project</a>
+                        </span>
                       </td>
                       <td>
-                        <span style="float:right;"><a>&nbsp;
-                          <a href="{% url 'steps:simulation_results' %}
-                          class="grey_button">Show Results</a>
-                        </a></span>
+                        <span style="float:right;">
+                          <a href="{% url 'steps:simulation_results' %}" class="grey_button">Show Results</a>
+                        </span>
                       </td>
                     </tr>
                   {% endfor %}
@@ -88,16 +97,17 @@
 </section>
 {% if projects|length > 0 %}
   {% for project in projects %}
-    <div id=projectID{{ project.project_id }} class="modal">
-      <form class="modal-content" action="/action_page.php">
+    <div id=projectID{{ project.id }} class="modal">
+      <form class="modal-content" action="{% url 'projects:project_delete' project.id %}" method="POST">
+        {% csrf_token %}
         <div class="container">
           <h1>Delete Project</h1>
           <p>Are you sure you want to delete the project?</p>
           <div class="clearfix">
-            <button onclick="remove_project({{ project.project_id }})"
-                    type="button"
-                    class="deletebtn">Delete</button>
-            <button onclick="document.getElementById('projectID{{ project.project_id }}').style.display='none'"
+            <button style="margin-top:0.25rem;" class="deletebtn" type="submit">
+                                     Delete
+            </button>
+            <button onclick="document.getElementById('projectID{{ project.id }}').style.display='none'"
                     type="button"
                     class="cancelbtn">Cancel</button>
           </div>
@@ -125,3 +135,8 @@
 </main>
 </body>
 {% endblock content %}
+
+  {% block end_body_scripts %}
+    <script src="{% static 'js/pages/user_projects.js' %}"></script>
+    <script src="{% static 'js/backend_communication.js' %}"></script>
+  {% endblock end_body_scripts %}
