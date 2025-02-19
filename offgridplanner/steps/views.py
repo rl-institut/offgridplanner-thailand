@@ -11,8 +11,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
-from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
-from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options, Energysystemdesign
+from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, GridDesignForm
+from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
@@ -187,8 +187,21 @@ def demand_estimation(request, proj_id=None):
 
 # @login_required()
 @require_http_methods(["GET"])
-def grid_design(request):
-    return render(request, "pages/grid_design.html")
+def grid_design(request, proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+    # TODO delete
+    else:
+        project = Project.objects.first()
+        proj_id = project.id
+
+    grid_design, _ = GridDesign.objects.get_or_create(project__id=proj_id)
+    form = GridDesignForm(instance=grid_design)
+
+    context = {"form": form, "proj_id": proj_id}
+    return render(request, "pages/grid_design.html", context)
 
 
 # @login_required()
