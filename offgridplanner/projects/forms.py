@@ -92,3 +92,46 @@ class OptionForm(ModelForm):
         model = Options
         fields = [k for k in OPTIONS_LABELS.keys()]
         labels = OPTIONS_LABELS
+
+class CustomDemandForm(ModelForm):
+    percentage_fields = ["very_low", "low", "middle", "high", "very_high"]
+
+    class Meta:
+        model = CustomDemand
+        exclude = ["project"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        initial = kwargs.get("initial", {})
+
+        for field in self.fields:
+            if field in self.percentage_fields:
+                # Serve number to user in 0-100 format
+                self.fields[field].initial = self.change_percentage_format(self.fields[field].initial, upper_limit=100)
+
+        kwargs["initial"] = initial
+
+    def clean(self):
+        cleaned_data = super().clean()
+        total = round(sum(cleaned_data.values(), 0))
+        if total != 1:
+            raise ValidationError("The sum of all shares must equal 100%.")
+
+        for field, value in self.cleaned_data.items():
+            if field in self.percentage_fields:
+                # Save number to database in 0-1 format
+                self.cleaned_data[field] = self.change_percentage_format(value, upper_limit=1)
+
+        return cleaned_data
+
+    @staticmethod
+    def change_percentage_format(value, upper_limit=1):
+        # Changes the value from a percentage range 0-1 to 0-100 and viceversa
+        if upper_limit == 1:
+            value /= 100.0
+        elif upper_limit == 100:
+            value *= 100
+        else:
+            raise ValueError("Upper limit must be either 1 or 100")
+
+        return value

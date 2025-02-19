@@ -57,6 +57,10 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Demand data
+DEMAND_DIR = os.path.join(APPS_DIR, "static", "parquet")
+FULL_PATH_PROFILES = os.path.join(DEMAND_DIR, "1-hour_mean_365_days_all_users.parquet")
+
 # URLS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf

@@ -1,13 +1,18 @@
+import json
 import os
 
+import numpy as np
+import pandas as pd
+
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.projects.forms import ProjectForm, OptionForm
-from offgridplanner.projects.models import Project, Nodes
+from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
+from offgridplanner.projects.models import Project, CustomDemand, Nodes
+from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
 
 @require_http_methods(["GET"])
@@ -126,8 +131,25 @@ def consumer_selection(request, proj_id=None):
 
 # @login_required()
 @require_http_methods(["GET"])
-def demand_estimation(request):
-    return render(request, "pages/demand_estimation.html")
+def demand_estimation(request, proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+    # TODO delete
+    else:
+        project = Project.objects.first()
+        proj_id = project.id
+
+    custom_demand, _ = CustomDemand.objects.get_or_create(project__id=proj_id)
+
+    form = CustomDemandForm(instance=custom_demand)
+    context = {"form": form, "proj_id": proj_id}
+
+    # nodes = project.nodes
+    # demand_timeseries = get_demand_timeseries(nodes, custom_demand)
+
+    return render(request, "pages/demand_estimation.html", context)
 
 
 # @login_required()

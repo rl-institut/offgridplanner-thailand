@@ -105,9 +105,16 @@ def check_imported_consumer_data(df):
             f"Allowed values of column 'consumer_detail' are {valid_consumer_details}. Falsy values passed: {list(falsy_values_consumer_detail)}.",
         )
 
-    custom_loads = df[df["custom_specification"] != ""]["custom_specification"].unique()
+    custom_loads = df[df["custom_specification"] != ""]["custom_specification"].unique().tolist()
     processed_loads = []
     non_matching_values = []
+    for load in custom_loads:
+        # If multiple custom loads separated by ";", split and append each
+        if ";" in load:
+            split_loads = load.split(";")
+            custom_loads.extend(split_loads)
+            custom_loads.remove(load)
+
     for load in custom_loads:
         if load[0].isdigit() and " x " in load:
             processed_loads.append(load.split(" x ", 1)[1])

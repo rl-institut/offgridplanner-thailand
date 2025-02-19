@@ -2,6 +2,8 @@ import os
 import io
 import json
 from collections import defaultdict
+
+import numpy as np
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -9,8 +11,10 @@ from django.views.decorators.http import require_http_methods
 
 # from jsonview.decorators import json_view
 import pandas as pd
+
+from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file
-from offgridplanner.projects.models import Project, Nodes
+from offgridplanner.projects.models import Project, Nodes, CustomDemand
 from offgridplanner.projects import identify_consumers_on_map
 
 # @login_required
@@ -260,3 +264,29 @@ def file_nodes_to_js(request):  # UploadFile = File(...)
             )
     except Exception as e:
         raise HttpResponse(status=500, reason=f"Failed to process the file: {e}")
+
+
+def load_demand_plot_data(request, proj_id=None):
+    # if is_ajax(request):
+    time_range = range(0, 24)
+    nodes = Nodes.objects.get(project__id=proj_id)
+    custom_demand = CustomDemand.objects.get(project__id=proj_id)
+    demand_df = get_demand_timeseries(nodes, custom_demand, time_range=time_range)
+    load_profiles = LOAD_PROFILES.iloc[time_range].copy()
+
+    timeseries = {
+        'x': demand_df.index.tolist(),
+        'households': demand_df.household.tolist(),
+        'enterprises': demand_df.enterprise.tolist(),
+        'public_services': demand_df.public_service.tolist(),
+        'Average': np.zeros(len(time_range))
+    }
+
+    for tier in ["very_low", "low", "middle","high", "very_high"]:
+        tier_verbose = f"{tier.title().replace('_', ' ')} Consumption"
+        profile_col = f"Household_Distribution_Based_{tier_verbose}"
+        timeseries[tier_verbose] = load_profiles[profile_col].values.tolist()
+        timeseries["Average"] = np.add(getattr(custom_demand, tier) * np.array(load_profiles[profile_col].values.tolist()), timeseries["Average"])
+
+    timeseries["Average"] = timeseries["Average"].tolist()
+    return JsonResponse({"timeseries": timeseries}, status=200)
