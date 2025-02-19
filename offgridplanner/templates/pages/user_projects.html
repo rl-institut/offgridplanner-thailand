@@ -41,19 +41,19 @@
                         <td>{{ project.date_updated }}</td>
                         <td>{{ project.status }}</td>
                         <td>
-
-
-
                           <span style="float:right;">
-                            <form action="{% url 'projects:project_duplicate' project.id %}" method="POST">
-                                {% csrf_token %}
-                                <button style="color:#1F567D;padding:4px;" class="grey_button" type="submit" value="Duplicate">
-                                    Duplicate Project
-                                </button>
+                            <form action="{% url 'projects:project_duplicate' project.id %}"
+                                  method="POST">
+                              {% csrf_token %}
+                              <button style="color:#1F567D;
+                                             padding:4px"
+                                      class="grey_button"
+                                      type="submit"
+                                      value="Duplicate">Duplicate Project</button>
                             </form>
                           </span>
-                      </td>
-                      <td>
+                        </td>
+                        <td>
                         </span>
                       </td>
                       <td>
@@ -98,15 +98,15 @@
 {% if projects|length > 0 %}
   {% for project in projects %}
     <div id=projectID{{ project.id }} class="modal">
-      <form class="modal-content" action="{% url 'projects:project_delete' project.id %}" method="POST">
+      <form class="modal-content"
+            action="{% url 'projects:project_delete' project.id %}"
+            method="POST">
         {% csrf_token %}
         <div class="container">
           <h1>Delete Project</h1>
           <p>Are you sure you want to delete the project?</p>
           <div class="clearfix">
-            <button style="margin-top:0.25rem;" class="deletebtn" type="submit">
-                                     Delete
-            </button>
+            <button style="margin-top:0.25rem;" class="deletebtn" type="submit">Delete</button>
             <button onclick="document.getElementById('projectID{{ project.id }}').style.display='none'"
                     type="button"
                     class="cancelbtn">Cancel</button>
@@ -135,8 +135,7 @@
 </main>
 </body>
 {% endblock content %}
-
-  {% block end_body_scripts %}
-    <script src="{% static 'js/pages/user_projects.js' %}"></script>
-    <script src="{% static 'js/backend_communication.js' %}"></script>
-  {% endblock end_body_scripts %}
+{% block end_body_scripts %}
+  <script src="{% static 'js/pages/user_projects.js' %}"></script>
+  <script src="{% static 'js/backend_communication.js' %}"></script>
+{% endblock end_body_scripts %}

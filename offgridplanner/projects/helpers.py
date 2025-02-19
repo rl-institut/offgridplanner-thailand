@@ -2,7 +2,31 @@ import os
 import io
 import numpy as np
 import pandas as pd
+from offgridplanner.projects.models import Project, Options
 
+
+def load_project_from_dict(model_data, user=None):
+    """Create a new project for a user
+
+    Parameters
+    ----------
+    model_data: dict
+        output produced by the export() method of the Project model
+    user: users.models.CustomUser
+        the user which loads the scenario
+    """
+    options_data_dm = model_data.pop("options_data", None)
+
+
+    model_data["user"] = user
+    if options_data_dm is not None:
+        options_data = Options(**options_data_dm)
+        options_data.save()
+        model_data["options"] = options_data
+    project = Project(**model_data)
+    project.save()
+
+    return project.id
 
 def check_imported_consumer_data(df):
     if df.empty:

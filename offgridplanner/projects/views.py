@@ -11,13 +11,15 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, Stream
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from django.contrib import messages
 
 # from jsonview.decorators import json_view
 import pandas as pd
-
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
-from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file
+from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
+
 from offgridplanner.projects.models import Project, Nodes, CustomDemand
+from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
 
 # @login_required
@@ -57,9 +59,9 @@ def projects_list(request, proj_id=None):
     return render(request, "pages/user_projects.html", {"projects": projects})
 
 
-@require_http_methods(["POST"])
+@require_http_methods(["GET","POST"])
 def project_duplicate(request, proj_id):
-    proj_id = None  # TODO remove this when project is fixed
+    # proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -68,7 +70,11 @@ def project_duplicate(request, proj_id):
         project = Project.objects.first()  # TODO remove this when project is fixed
 
     # TODO check user rights to the project
-    new_proj_id = load_project_from_dict(dm, user=request.user)
+    dm = project.export()
+    user = User.objects.get(email=request.user.email)
+    # TODO must find user from its email address
+    new_proj_id = load_project_from_dict(dm, user=user)
+
 
     # for model_class in [sa_tables.Nodes, sa_tables.Links, sa_tables.Results, sa_tables.DemandCoverage,
     #                     sa_tables.EnergyFlow,
@@ -92,13 +98,14 @@ def project_duplicate(request, proj_id):
     #         new_e.id = user_to_id
     #         new_e.project_id = project_to_id
     #         await merge_model(new_e)
-    return JsonResponse({'success': True},status=200)
+    # return JsonResponse({'success': True},status=200)
     # if user is not None and project_id is not None:
     #     # TODO copy project here
     #     return JSONResponse(status_code=200, content={'success': True})
     # else:
     #     return JSONResponse(status_code=400, content={'success': False})
-    #return HttpResponseRedirect(reverse("projects_list", args=[new_proj_id]))
+    return HttpResponseRedirect(reverse("projects:projects_list"))
+    # return HttpResponseRedirect(reverse("projects:projects_list", args=[new_proj_id]))
 
 @require_http_methods(["POST"])
 def project_delete(request, proj_id):
@@ -109,9 +116,10 @@ def project_delete(request, proj_id):
 
     if request.method == "POST":
         project.delete()
+        # message not defined
         messages.success(request, "Project successfully deleted!")
 
-    return HttpResponseRedirect(reverse("projects_list"))
+    return HttpResponseRedirect(reverse("projects:projects_list"))
 
 
 
