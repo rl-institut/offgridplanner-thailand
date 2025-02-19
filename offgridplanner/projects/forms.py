@@ -13,7 +13,7 @@ class TooltipModelForm(ModelForm):
         for fieldname, field in self.fields.items():
             set_parameter_info(fieldname, field)
 
-
+# TODO put these in a .csv file with all other values that have default parameters and help texts (see github issue #27)
 PROJECT_LABELS = {
     "name": _("Project Name"),
     "description": _("Project Description"),
@@ -135,3 +135,8 @@ class CustomDemandForm(ModelForm):
             raise ValueError("Upper limit must be either 1 or 100")
 
         return value
+
+class GridDesignForm(ModelForm):
+    class Meta:
+        model = GridDesign
+        exclude = ["project"]
