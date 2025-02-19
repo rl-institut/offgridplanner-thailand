@@ -25,15 +25,14 @@ from offgridplanner.projects import identify_consumers_on_map
 # @login_required
 @require_http_methods(["GET"])
 def projects_list(request, proj_id=None):
-    projects= Project.objects.all()
-    # projects = (
-    #     Project.objects.filter(
-    #         Q(user=request.user) | Q(viewers__user__email=request.user.email)
-    #     )
-    #     .distinct()
-    #     .order_by("date_created")
-    #     .reverse()
-    # )
+    projects = (
+        Project.objects.filter(
+            Q(user=request.user)
+        )
+        .distinct()
+        .order_by("date_created")
+        .reverse()
+    )
     for project in projects:
         # TODO this should not be useful
         # project.created_at = project.created_at.date()
