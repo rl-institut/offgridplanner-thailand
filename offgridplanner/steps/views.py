@@ -12,12 +12,17 @@ from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
-from offgridplanner.projects.models import Project, CustomDemand, Nodes
+from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options
+from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
+
+
 
 
 @require_http_methods(["GET"])
 def home(request):
+
+
     return render(
         request,
         "pages/landing_page.html",
@@ -26,16 +31,26 @@ def home(request):
 
 
 # @login_required()
-@require_http_methods(["GET"])
-    form = ProjectForm()
-    context = {"form": form}
+@require_http_methods(["GET", "POST"])
 def project_setup(request, proj_id=None, step_id=1):
     if proj_id is not None:
-        max_days = int(os.environ.get("MAX_DAYS", 365))
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        context = {"opts_form": form, "project_id": project.id, "max_days": max_days}
+    else:
+        project = None
+    if request.method == "GET":
+        max_days = int(os.environ.get("MAX_DAYS", 365))
+
+        context = {}
+        if project is not None:
+            form = ProjectForm(instance=project)
+            opts = OptionForm(instance=project.options)
+            context.update({"proj_id": project.id})
+        else:
+            form = ProjectForm()
+            opts = OptionForm()
+        context.update({"form": form, "opts_form": opts, "max_days": max_days, "step_id": step_id, "step_list": STEPS.keys()})
 
     # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
     # or step 'demand_estimation'
@@ -43,8 +58,23 @@ def project_setup(request, proj_id=None, step_id=1):
     # const demandEstimationHref = `demand_estimation?project_id =${project_id}`;
     # If Consumer Selection is hidden (in raw html), go to demand_estimation
 
-    return render(request, "pages/project_setup.html", context)
+        return render(request, "pages/project_setup.html", context)
+    elif request.method == "POST":
+        if project is None:
+            form = ProjectForm(request.POST)
+            opts_form  = OptionForm(request.POST)
+        else:
+            form = ProjectForm(request.POST, instance=project)
+            opts_form = OptionForm(request.POST, instance=project.options)
+        if form.is_valid() and opts_form.is_valid():
+            opts = opts_form.save()
+            if project is None:
+                project = form.save(commit=False)
+                project.user = User.objects.get(email=request.user.email)
+                project.options = opts
+            project.save()
 
+        return HttpResponseRedirect(reverse("steps:consumer_selection",args=[project.id]))
 
 # @login_required()
 @require_http_methods(["GET"])
@@ -105,6 +135,8 @@ def consumer_selection(request, proj_id=None, step_id=2):
     large_load_type = "group1"
 
     option_load = ""
+
+    print(opts)
 
     context = {
         "form": form,
