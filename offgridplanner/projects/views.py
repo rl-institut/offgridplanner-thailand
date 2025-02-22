@@ -2,7 +2,7 @@ import os
 import io
 import json
 from collections import defaultdict
-
+from io import StringIO
 import numpy as np
 
 from django.db.models import Q
@@ -266,15 +266,16 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
 @require_http_methods(["POST"])
 # async def consumer_to_db(request, proj_id):
 def consumer_to_db(request, proj_id=None):
-    proj_id = None # TODO remove this when project is fixed
+
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first() # TODO remove this when project is fixed
+
         data = json.loads(request.body)
         print(data["map_elements"])
+        print(data["file_type"])
+        # TODO I need to continue here
 
         df = pd.DataFrame.from_records(data["map_elements"])
         if df.empty is True:
@@ -307,8 +308,7 @@ def consumer_to_db(request, proj_id=None):
         df.latitude = df.latitude.map(lambda x: "%.6f" % x)
         df.longitude = df.longitude.map(lambda x: "%.6f" % x)
         if data["file_type"] == 'db':
-            nodes = Nodes()
-            nodes.project = project
+            nodes,_ = Nodes.objects.get_or_create(project=project)
             nodes.data=df.reset_index(drop=True).to_json()
             nodes.save()
 

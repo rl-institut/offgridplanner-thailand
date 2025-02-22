@@ -79,8 +79,6 @@ def project_setup(request, proj_id=None, step_id=1):
 # @login_required()
 @require_http_methods(["GET"])
 def consumer_selection(request, proj_id=None, step_id=2):
-    form = ProjectForm()
-    opts = OptionForm()
 
     public_service_list = {
         "group1": "Health_Health Centre",
@@ -136,11 +134,7 @@ def consumer_selection(request, proj_id=None, step_id=2):
 
     option_load = ""
 
-    print(opts)
-
     context = {
-        "form": form,
-        "opts_form": opts,
         "public_service_list": public_service_list,
         "enterprise_list": enterprise_list,
         "large_load_list": large_load_list,
@@ -152,7 +146,7 @@ def consumer_selection(request, proj_id=None, step_id=2):
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
-        if project.user != request.user:
+        if project.user.email != request.user.email:
             raise PermissionDenied
         context["proj_id"] = project.id
 
@@ -163,7 +157,7 @@ def consumer_selection(request, proj_id=None, step_id=2):
 
 # @login_required()
 @require_http_methods(["GET"])
-def demand_estimation(request, proj_id=None):
+def demand_estimation(request, proj_id=None, step_id=3):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
