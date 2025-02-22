@@ -347,6 +347,14 @@
       const consumerToDBUrl = `{% url 'projects:consumer_to_db' proj_id %}`;
       const addBuildingsUrl = `{% url 'projects:add_buildings_inside_boundary' proj_id  %}`;
       const removeBuildingsUrl = `{% url 'projects:remove_buildings_inside_boundary' proj_id  %}`;
+      window.onload = function () {
+        //redirect_if_cookie_is_missing(true, true); //for anonymous user --> do it pythonside
+        db_nodes_to_js({{proj_id}}, true);
+        //show_email_and_project_in_navbar({{proj_id}});
+        //TODO reenable video_tutorial
+        //show_video_tutorial();
+        //update_wizards_and_buttons_based_on_planning_step_selection({{proj_id}}, 'consumer_selection');
+      };
     </script>
     <script src="{% static 'js/integrate_map.js' %}"></script>
     <script src="{% static 'js/add_drawing_tools_to_map.js' %}"></script>

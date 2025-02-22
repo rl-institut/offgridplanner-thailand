@@ -945,7 +945,7 @@ function load_previous_data(page_name) {
     }
 }
 
-
+// TODO potentially useless as in django template one can get this information easily
 async function show_email_and_project_in_navbar(project_id = null) {
     try {
         const response = await fetch("query_account_data/", {
@@ -1394,7 +1394,7 @@ async function sendMail() {
     }
 }
 
-
+// TODO could delete this function as this is handeled by django forms
 async function update_wizards_and_buttons_based_on_planning_step_selection(project_id, page_name) {
     const nextButton = document.getElementById("nextButton");
     const prevButton = document.getElementById("prevButton");

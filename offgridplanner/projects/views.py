@@ -60,51 +60,17 @@ def projects_list(request, proj_id=None):
 
 @require_http_methods(["GET","POST"])
 def project_duplicate(request, proj_id):
-    # proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first()  # TODO remove this when project is fixed
+        # TODO check user rights to the project
+        dm = project.export()
+        user = User.objects.get(email=request.user.email)
+        # TODO must find user from its email address
+        new_proj_id = load_project_from_dict(dm, user=user)
 
-    # TODO check user rights to the project
-    dm = project.export()
-    user = User.objects.get(email=request.user.email)
-    # TODO must find user from its email address
-    new_proj_id = load_project_from_dict(dm, user=user)
-
-
-    # for model_class in [sa_tables.Nodes, sa_tables.Links, sa_tables.Results, sa_tables.DemandCoverage,
-    #                     sa_tables.EnergyFlow,
-    #                     sa_tables.Emissions, sa_tables.DurationCurve, sa_tables.ProjectSetup,
-    #                     sa_tables.EnergySystemDesign,
-    #                     sa_tables.GridDesign, sa_tables.Demand]:
-    #     model_instance = await get_model_instance(model_class, user_from_id, project_from_id, 'all')
-    #     if model_class == sa_tables.ProjectSetup:
-    #         time_now = datetime.datetime.now()
-    #         time_now \
-    #             = datetime.datetime(time_now.year, time_now.month, time_now.day, time_now.hour, time_now.minute)
-    #         model_instance[0].created_at = time_now
-    #         model_instance[0].updated_at = time_now
-    #         model_instance[0].project_name = 'Copy of {}'.format(
-    #             model_instance[0].project_name.replace("Exmaple", "Example"))
-    #         if model_instance[0].project_name == "Copy of Example Project":
-    #             model_instance[0].project_name = "Example Project"
-    #     for e in model_instance:
-    #         data = {key: value for key, value in e.__dict__.items() if not key.startswith('_')}
-    #         new_e = model_class(**data)
-    #         new_e.id = user_to_id
-    #         new_e.project_id = project_to_id
-    #         await merge_model(new_e)
-    # return JsonResponse({'success': True},status=200)
-    # if user is not None and project_id is not None:
-    #     # TODO copy project here
-    #     return JSONResponse(status_code=200, content={'success': True})
-    # else:
-    #     return JSONResponse(status_code=400, content={'success': False})
     return HttpResponseRedirect(reverse("projects:projects_list"))
-    # return HttpResponseRedirect(reverse("projects:projects_list", args=[new_proj_id]))
 
 @require_http_methods(["POST"])
 def project_delete(request, proj_id):
@@ -122,17 +88,13 @@ def project_delete(request, proj_id):
 
 
 
-
 # TODO should be used as AJAX from map
 @require_http_methods(["POST"])
 def add_buildings_inside_boundary(request, proj_id):
-    proj_id = None # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first() # TODO remove this when project is fixed
 
     js_data = json.loads(request.body)
     # js_datapydantic_schema.MapData consists of
@@ -199,14 +161,10 @@ def remove_buildings_inside_boundary(request, proj_id=None):  # data: pydantic_s
 # TODO this seems like an old unused view
 @require_http_methods(["GET"])
 def db_links_to_js(request, proj_id):
-    proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project=Project.objects.first()# TODO remove this when project is fixed
-
         # links = Links.objects.filter(project=project).first()
         links = None
         links_json = json.loads(links.data) if links is not None else json.loads('{}')
@@ -216,15 +174,12 @@ def db_links_to_js(request, proj_id):
 # @json_view
 @require_http_methods(["GET"])
 def db_nodes_to_js(request, proj_id=None, markers_only=False):
-    proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first()  # TODO remove this when project is fixed
         nodes = Nodes.objects.get(project=project)
-        df = pd.read_json(nodes.data) if nodes is not None else pd.DataFrame()
+        df = pd.read_json(StringIO(nodes.data)) if nodes is not None else pd.DataFrame()
         if not df.empty:
             df = df[
                 [
@@ -259,8 +214,8 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
             ):
                 is_load_center = False
             return JsonResponse(
+                {"is_load_center": is_load_center, "map_elements": nodes_list},
                 status=200,
-                content={"is_load_center": is_load_center, "map_elements": nodes_list},
             )
 
 @require_http_methods(["POST"])
