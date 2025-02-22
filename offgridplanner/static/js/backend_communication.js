@@ -267,7 +267,7 @@ async function consumer_to_db(href, file_type = "db") {
     }
 }
 
-// customer_selection
+// TODO move this to map related js, customer_selection
 function add_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
     fetch(addBuildingsUrl, {
@@ -299,7 +299,7 @@ function add_buildings_inside_boundary({boundariesCoordinates} = {}) {
         });
 }
 
-// customer_selection
+// TODO move this to map related js, customer_selection
 async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
 
@@ -577,248 +577,6 @@ async function load_results(project_id) {
 }
 
 
-/************************************************************/
-/*                    User Registration                     */
-
-/************************************************************/
-
-
-async function add_user_to_db() {
-    $("*").css('cursor', 'wait');
-
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-    await sleep(3000); // Pause for 3 seconds (3000 milliseconds)
-
-    if (userPassword2.value !== userPassword3.value) {
-        document.getElementById("responseMsg2").innerHTML = 'The passwords do not match';
-        document.getElementById("responseMsg2").style.color = 'red';
-    } else {
-        try {
-            const response = await fetch("add_user_to_db/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({
-                    'email': userEmail2.value,
-                    'password': userPassword2.value,
-                    'captcha_input': captcha_input2.value,
-                    'hashed_captcha': hashedCaptcha
-                }),
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const responseData = await response.json();
-            document.getElementById("responseMsg2").innerHTML = responseData.msg;
-            const fontcolor = responseData.validation ? 'green' : 'red';
-            document.getElementById("responseMsg2").style.color = fontcolor;
-        } catch (error) {
-            console.error("There was a problem with the fetch operation:", error.message);
-        }
-    }
-    $("*").css('cursor', 'auto');
-}
-
-
-async function change_email() {
-    if (userEmail1.value !== userEmail2.value) {
-        document.getElementById("responseMsg1").innerHTML = 'The emails do not match';
-        document.getElementById("responseMsg1").style.color = 'red';
-    } else {
-        $("*").css("cursor", "wait");
-
-        try {
-            const response = await fetch("change_email/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({
-                    email: userEmail1.value,
-                    password: userPassword.value,
-                    remember_me: false
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const responseData = await response.json();
-            document.getElementById("responseMsg1").innerHTML = responseData.msg;
-            const fontcolor = responseData.validation ? 'green' : 'red';
-            document.getElementById("responseMsg1").style.color = fontcolor;
-
-            if (responseData.validation === true) {
-                await new Promise(r => setTimeout(r, 3000));
-                logout();
-            }
-
-        } catch (error) {
-            console.error("There was a problem with the fetch operation:", error.message);
-        } finally {
-            $("*").css("cursor", "auto");
-        }
-    }
-}
-
-
-async function change_pw() {
-    if (newUserPassword1.value != newUserPassword2.value) {
-        document.getElementById("responseMsg2").innerHTML = 'The passwords do not match';
-        document.getElementById("responseMsg2").style.color = 'red';
-    } else {
-        $("*").css("cursor", "wait");
-
-        try {
-            const response = await fetch("change_pw/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    new_password: newUserPassword1.value,
-                    old_password: oldUserPassword.value
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const responseData = await response.json();
-            document.getElementById("responseMsg2").innerHTML = responseData.msg;
-            const fontcolor = responseData.validation ? 'green' : 'red';
-            document.getElementById("responseMsg2").style.color = fontcolor;
-
-            if (responseData.validation === true) {
-                await new Promise(r => setTimeout(r, 3000));
-                await logout();
-            }
-
-        } catch (error) {
-            console.error("There was a problem with the fetch operation:", error.message);
-        } finally {
-            $("*").css("cursor", "auto");
-        }
-    }
-}
-
-
-async function delete_account() {
-    $("*").css("cursor", "wait");
-
-    try {
-        const response = await fetch("delete_account/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                password: Password.value
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const responseData = await response.json();
-        document.getElementById("responseMsg3").innerHTML = responseData.msg;
-        const fontcolor = responseData.validation ? 'green' : 'red';
-        document.getElementById("responseMsg3").style.color = fontcolor;
-
-        if (responseData.validation === true) {
-            await new Promise(r => setTimeout(r, 3000));
-            await logout();
-        }
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    } finally {
-        $("*").css("cursor", "auto");
-    }
-}
-
-
-async function login() {
-    try {
-        const response = await fetch("login/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                email: userEmail.value,
-                password: userPassword.value,
-                remember_me: isEnabled.value
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const responseData = await response.json();
-
-        document.getElementById("userPassword").value = '';
-        if (responseData.validation === true) {
-            document.getElementById("userEmail").value = '';
-            location.reload();
-        } else {
-            document.getElementById("responseMsg").innerHTML = responseData.msg;
-            document.getElementById("responseMsg").style.color = 'red';
-        }
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    }
-}
-
-
-async function renewToken() {
-    const response = await fetch('/renew_token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        }
-    });
-    if (response.ok) {
-        const data = await response.json();
-        if (data && data.access_token) {
-            localStorage.setItem('token', data.access_token);
-        }
-    }
-}
-
-
-async function consent_cookie() {
-    try {
-        const response = await fetch("consent_cookie/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        document.getElementById('consentCookie').style.display = 'none';
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    }
-}
 
 
 async function anonymous_login() {
@@ -849,27 +607,6 @@ async function anonymous_login() {
     }
 }
 
-
-async function logout() {
-    try {
-        const response = await fetch("logout/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            },
-        });
-
-        if (response.ok) {
-            window.location.href = window.location.origin;
-        } else {
-            console.error("Failed to log out");
-        }
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    }
-}
 
 
 async function save_project_setup(href) {
@@ -1234,98 +971,10 @@ async function show_email_and_project_in_navbar(project_id = null) {
 }
 
 
-async function redirect_if_cookie_is_missing(access_token, consent_cookie) {
-    let has_access_token = (access_token === true || access_token === 'true');
-    let has_consent_cookie = (consent_cookie === true || consent_cookie === 'true');
-
-    try {
-        const response = await fetch("has_cookie/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                'access_token': has_access_token,
-                'consent_cookie': has_consent_cookie
-            }),
-        });
-
-        const responseData = await response.json();
-
-        if (!responseData) {
-            await logout();
-            window.location.href = window.location.origin;
-        }
-
-        await renewToken();
-
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    }
-}
-
-
-async function toggleDropdownMenuItems() {
-    try {
-        const response = await fetch("has_cookie/", {
-            method: "POST",
-            headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
-            body: JSON.stringify({
-                'access_token': true,
-                'consent_cookie': false
-            })
-        });
-
-        const responseData = await response.json();
-
-        if (responseData === true) { // Ensuring it's exactly true
-            // Show hidden dropdown menu items
-            const hiddenItems = document.querySelectorAll('.dropdown-menu li[style*="display: none"]');
-            hiddenItems.forEach(item => {
-                item.style.display = 'list-item';
-            });
-
-            // Hide the login button
-            const loginButton = document.getElementById('login_button');
-            if (loginButton) {
-                loginButton.style.display = 'none';
-            }
-
-            // Hide the paragraph with ID 'paragraph_register_suggestion' if it exists
-            const registerSuggestionParagraph = document.getElementById('paragraph_register_suggestion');
-            if (registerSuggestionParagraph) {
-                registerSuggestionParagraph.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error("Error checking login status:", error);
-    }
-}
 
 
 
 
-
-async function remove_project(project_id) {
-    try {
-        const response = await fetch("remove_project/" + project_id, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'X-CSRFToken': csrfToken
-            }
-        });
-
-        if (response.ok) {
-            window.location.href = window.location.origin;
-        } else {
-            console.error("Failed to remove the project. Status:", response.status);
-        }
-    } catch (error) {
-        console.error("There was a problem with the fetch operation:", error.message);
-    }
-}
 
 
 let shouldStop = false;
@@ -1680,7 +1329,7 @@ const img3 = document.getElementById("captcha_img3");
 let hashedCaptcha;
 
 function get_captcha() {
-    fetch("/get_captcha")
+    fetch(getCaptchaUrl)
         .then(response => response.json())
         .then(data => {
             img.src = "data:image/jpeg;base64," + data.img;
