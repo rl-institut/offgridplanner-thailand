@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
 from offgridplanner.projects.models import Project, CustomDemand, Nodes
@@ -26,9 +27,9 @@ def home(request):
 
 # @login_required()
 @require_http_methods(["GET"])
-def project_setup(request, proj_id=None):
     form = ProjectForm()
     context = {"form": form}
+def project_setup(request, proj_id=None, step_id=1):
     if proj_id is not None:
         max_days = int(os.environ.get("MAX_DAYS", 365))
         project = get_object_or_404(Project, id=proj_id)
@@ -47,7 +48,7 @@ def project_setup(request, proj_id=None):
 
 # @login_required()
 @require_http_methods(["GET"])
-def consumer_selection(request, proj_id=None):
+def consumer_selection(request, proj_id=None, step_id=2):
     form = ProjectForm()
     opts = OptionForm()
 
@@ -114,14 +115,13 @@ def consumer_selection(request, proj_id=None):
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
+        "step_id": step_id,
+        "step_list": STEPS.keys()
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        context["proj_id"] = project.id
-    else:
-        project = Project.objects.first()
         context["proj_id"] = project.id
 
     # _wizard.js contains info for the POST function set when clicking on next or on another step
@@ -171,19 +171,19 @@ def simulation_results(request):
 
 
 STEPS = {
-    "project_setup": project_setup,
-    "consumer_selection": consumer_selection,
-    "demand_estimation": demand_estimation,
-    "grid_design": grid_design,
-    "energy_system_design": energy_system_design,
-    "simulation_results": simulation_results,
+    _("project_setup"): project_setup,
+    _("consumer_selection"): consumer_selection,
+    _("demand_estimation"): demand_estimation,
+    _("grid_design"): grid_design,
+    _("energy_system_design"): energy_system_design,
+    _("simulation_results"): simulation_results,
 }
-
+STEPS_LIST = [s for s in STEPS]
 
 # @login_required
 @require_http_methods(["GET", "POST"])
 def steps(request, proj_id, step_id=None):
     if step_id is None:
-        return HttpResponseRedirect(reverse("steps", args=[proj_id, 1]))
+        return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
-    return STEPS[step_id - 1](request, proj_id, step_id)
+    return STEPS[STEPS_LIST[step_id - 1]](request, proj_id, step_id)
