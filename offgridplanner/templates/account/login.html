@@ -15,10 +15,10 @@
                 <form method="post" class="signup-frame__form">
                   {% csrf_token %}
                   {{ form|crispy }}
-                  <div style="text-align: left;">
+                  <!--div style="text-align: left;">
                       <input type="checkbox" class="form-check-input" id="isEnabled"/>
                       <label for="isEnabled" style="margin-left: 5px;"><span>Remember me</span></label>
-                  </div>
+                  </div-->
                   <p style="text-align:left;">&nbsp
                       {% translate "Do you not have an account yet?" %} <a
                       href="{% url 'users:account_signup' %}">{% translate "Sign up" %}</a>

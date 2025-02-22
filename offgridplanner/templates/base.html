@@ -40,7 +40,7 @@
     {% block head_block %}
     {% endblock head_block %}
     {% if DEBUG == True %}
-      {% include "scss.html" %}
+      {#% include "scss.html" %#}
     {% else %}
       <link href="{% static 'css/main.css' %}" rel="stylesheet" type="text/css" />
     {% endif %}
