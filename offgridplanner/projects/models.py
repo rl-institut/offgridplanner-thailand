@@ -90,7 +90,7 @@ class CustomDemand(models.Model):
 
 class Nodes(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    data = models.JSONField()
+    data = models.JSONField(null=True)
 
     @property
     def node_df(self):

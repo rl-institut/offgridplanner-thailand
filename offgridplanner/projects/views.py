@@ -178,7 +178,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        nodes = Nodes.objects.get(project=project)
+        nodes = get_object_or_404(Nodes, project=project)
         df = pd.read_json(StringIO(nodes.data)) if nodes is not None else pd.DataFrame()
         if not df.empty:
             df = df[
