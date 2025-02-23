@@ -16,23 +16,29 @@ from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
-
+STEPS = [
+    _("project_setup"),
+    _("consumer_selection"),
+    _("demand_estimation"),
+    _("grid_design"),
+    _("energy_system_design"),
+    _("simulation_results"),
+]
 
 
 @require_http_methods(["GET"])
 def home(request):
 
-
     return render(
         request,
         "pages/landing_page.html",
-        {"step_list": STEPS.keys()},
+        {"step_list": STEPS},
     )
 
 
 # @login_required()
 @require_http_methods(["GET", "POST"])
-def project_setup(request, proj_id=None, step_id=1):
+def project_setup(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -50,7 +56,7 @@ def project_setup(request, proj_id=None, step_id=1):
         else:
             form = ProjectForm()
             opts = OptionForm()
-        context.update({"form": form, "opts_form": opts, "max_days": max_days, "step_id": step_id, "step_list": STEPS.keys()})
+        context.update({"form": form, "opts_form": opts, "max_days": max_days, "step_id": STEPS.index("project_setup")+1, "step_list": STEPS})
 
     # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
     # or step 'demand_estimation'
@@ -78,7 +84,7 @@ def project_setup(request, proj_id=None, step_id=1):
 
 # @login_required()
 @require_http_methods(["GET"])
-def consumer_selection(request, proj_id=None, step_id=2):
+def consumer_selection(request, proj_id=None):
 
     public_service_list = {
         "group1": "Health_Health Centre",
@@ -141,8 +147,8 @@ def consumer_selection(request, proj_id=None, step_id=2):
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
-        "step_id": step_id,
-        "step_list": STEPS.keys()
+        "step_id": STEPS.index("consumer_selection")+1,
+        "step_list": STEPS
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
@@ -157,7 +163,7 @@ def consumer_selection(request, proj_id=None, step_id=2):
 
 # @login_required()
 @require_http_methods(["GET"])
-def demand_estimation(request, proj_id=None, step_id=3):
+def demand_estimation(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -170,7 +176,8 @@ def demand_estimation(request, proj_id=None, step_id=3):
     custom_demand, _ = CustomDemand.objects.get_or_create(project__id=proj_id)
 
     form = CustomDemandForm(instance=custom_demand)
-    context = {"form": form, "proj_id": proj_id}
+    context = {"form": form, "proj_id": proj_id,         "step_id": STEPS.index("demand_estimation")+1,
+        "step_list": STEPS}
 
     # nodes = project.nodes
     # demand_timeseries = get_demand_timeseries(nodes, custom_demand)
@@ -196,15 +203,7 @@ def simulation_results(request):
     return render(request, "pages/simulation_results.html")
 
 
-STEPS = {
-    _("project_setup"): project_setup,
-    _("consumer_selection"): consumer_selection,
-    _("demand_estimation"): demand_estimation,
-    _("grid_design"): grid_design,
-    _("energy_system_design"): energy_system_design,
-    _("simulation_results"): simulation_results,
-}
-STEPS_LIST = [s for s in STEPS]
+
 
 # @login_required
 @require_http_methods(["GET", "POST"])
@@ -212,4 +211,4 @@ def steps(request, proj_id, step_id=None):
     if step_id is None:
         return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
-    return STEPS[STEPS_LIST[step_id - 1]](request, proj_id, step_id)
+    return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id-1]}", args=[proj_id]))
