@@ -193,8 +193,17 @@ def grid_design(request):
 
 # @login_required()
 @require_http_methods(["GET"])
-def energy_system_design(request):
-    return render(request, "pages/energy_system_design.html")
+def energy_system_design(request,proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+
+    context = {"proj_id": project.id,"step_id": STEPS.index("energy_system_design")+1,"step_list": STEPS}
+
+    # TODO read js/pages/energy-system-design.js
+
+    return render(request, "pages/energy_system_design.html", context)
 
 
 # @login_required()

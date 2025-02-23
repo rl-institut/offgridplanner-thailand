@@ -19,5 +19,6 @@ urlpatterns = [
     path("demand_estimation/<int:proj_id>", demand_estimation, name="demand_estimation"),
     path("grid_design", grid_design, name="grid_design"),
     path("energy_system_design", energy_system_design, name="energy_system_design"),
+    path("energy_system_design/<int:proj_id>", energy_system_design, name="energy_system_design"),
     path("simulation_results", simulation_results, name="simulation_results"),
 ]
