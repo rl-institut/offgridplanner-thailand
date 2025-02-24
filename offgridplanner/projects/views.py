@@ -2,37 +2,100 @@ import os
 import io
 import json
 from collections import defaultdict
-
+from io import StringIO
 import numpy as np
+
+from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, StreamingHttpResponse
+from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from django.contrib import messages
 
 # from jsonview.decorators import json_view
 import pandas as pd
-
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
-from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file
+from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
+
 from offgridplanner.projects.models import Project, Nodes, CustomDemand
+from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
 
 # @login_required
 @require_http_methods(["GET"])
 def projects_list(request, proj_id=None):
-    return render(request, "pages/user_projects.html")
+    projects = (
+        Project.objects.filter(
+            Q(user=request.user)
+        )
+        .distinct()
+        .order_by("date_created")
+        .reverse()
+    )
+    for project in projects:
+        # TODO this should not be useful
+        # project.created_at = project.created_at.date()
+        # project.updated_at = project.updated_at.date()
+        if bool(os.environ.get('DOCKERIZED')):
+            status = "pending"  #TODO connect this to the worker
+            # status = worker.AsyncResult(user.task_id).status.lower()
+        else:
+            status = 'success'
+        if status in ['success', 'failure', 'revoked']:
+            # TODO this is not useful
+            # user.task_id = ''
+            # user.project_id = None
+            if status == 'success':
+                # TODO Here I am not sure we should use the status of the project rather the one of the simulation
+                project.status = "finished"
+            else:
+                project.status = status
+            project.save()
+            # TODO this is not useful
+            # user.task_id = ''
+            # user.project_id = None
+
+    return render(request, "pages/user_projects.html", {"projects": projects})
+
+
+@require_http_methods(["GET","POST"])
+def project_duplicate(request, proj_id):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+        # TODO check user rights to the project
+        dm = project.export()
+        user = User.objects.get(email=request.user.email)
+        # TODO must find user from its email address
+        new_proj_id = load_project_from_dict(dm, user=user)
+
+    return HttpResponseRedirect(reverse("projects:projects_list"))
+
+@require_http_methods(["POST"])
+def project_delete(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+
+    if project.user != request.user:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        project.delete()
+        # message not defined
+        messages.success(request, "Project successfully deleted!")
+
+    return HttpResponseRedirect(reverse("projects:projects_list"))
+
 
 
 # TODO should be used as AJAX from map
 @require_http_methods(["POST"])
 def add_buildings_inside_boundary(request, proj_id):
-    proj_id = None # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first() # TODO remove this when project is fixed
 
     js_data = json.loads(request.body)
     # js_datapydantic_schema.MapData consists of
@@ -99,14 +162,10 @@ def remove_buildings_inside_boundary(request, proj_id=None):  # data: pydantic_s
 # TODO this seems like an old unused view
 @require_http_methods(["GET"])
 def db_links_to_js(request, proj_id):
-    proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project=Project.objects.first()# TODO remove this when project is fixed
-
         # links = Links.objects.filter(project=project).first()
         links = None
         links_json = json.loads(links.data) if links is not None else json.loads('{}')
@@ -116,15 +175,12 @@ def db_links_to_js(request, proj_id):
 # @json_view
 @require_http_methods(["GET"])
 def db_nodes_to_js(request, proj_id=None, markers_only=False):
-    proj_id = None  # TODO remove this when project is fixed
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first()  # TODO remove this when project is fixed
-        nodes = Nodes.objects.get(project=project)
-        df = pd.read_json(nodes.data) if nodes is not None else pd.DataFrame()
+        nodes = get_object_or_404(Nodes, project=project)
+        df = pd.read_json(StringIO(nodes.data)) if nodes is not None else pd.DataFrame()
         if not df.empty:
             df = df[
                 [
@@ -159,22 +215,23 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
             ):
                 is_load_center = False
             return JsonResponse(
+                {"is_load_center": is_load_center, "map_elements": nodes_list},
                 status=200,
-                content={"is_load_center": is_load_center, "map_elements": nodes_list},
             )
 
 @require_http_methods(["POST"])
 # async def consumer_to_db(request, proj_id):
 def consumer_to_db(request, proj_id=None):
-    proj_id = None # TODO remove this when project is fixed
+
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    else:
-        project = Project.objects.first() # TODO remove this when project is fixed
+
         data = json.loads(request.body)
         print(data["map_elements"])
+        print(data["file_type"])
+        # TODO I need to continue here
 
         df = pd.DataFrame.from_records(data["map_elements"])
         if df.empty is True:
@@ -207,8 +264,7 @@ def consumer_to_db(request, proj_id=None):
         df.latitude = df.latitude.map(lambda x: "%.6f" % x)
         df.longitude = df.longitude.map(lambda x: "%.6f" % x)
         if data["file_type"] == 'db':
-            nodes = Nodes()
-            nodes.project = project
+            nodes,_ = Nodes.objects.get_or_create(project=project)
             nodes.data=df.reset_index(drop=True).to_json()
             nodes.save()
 

@@ -9,32 +9,54 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
-from offgridplanner.projects.models import Project, CustomDemand, Nodes
+from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options, Energysystemdesign
+from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
+
+STEPS = [
+    _("project_setup"),
+    _("consumer_selection"),
+    _("demand_estimation"),
+    _("grid_design"),
+    _("energy_system_design"),
+    _("simulation_results"),
+]
 
 
 @require_http_methods(["GET"])
 def home(request):
+
     return render(
         request,
         "pages/landing_page.html",
-        {"step_list": STEPS.keys()},
+        {"step_list": STEPS},
     )
 
 
 # @login_required()
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def project_setup(request, proj_id=None):
-    form = ProjectForm()
-    context = {"form": form}
     if proj_id is not None:
-        max_days = int(os.environ.get("MAX_DAYS", 365))
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        context = {"opts_form": form, "project_id": project.id, "max_days": max_days}
+    else:
+        project = None
+    if request.method == "GET":
+        max_days = int(os.environ.get("MAX_DAYS", 365))
+
+        context = {}
+        if project is not None:
+            form = ProjectForm(instance=project)
+            opts = OptionForm(instance=project.options)
+            context.update({"proj_id": project.id})
+        else:
+            form = ProjectForm()
+            opts = OptionForm()
+        context.update({"form": form, "opts_form": opts, "max_days": max_days, "step_id": STEPS.index("project_setup")+1, "step_list": STEPS})
 
     # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
     # or step 'demand_estimation'
@@ -42,14 +64,27 @@ def project_setup(request, proj_id=None):
     # const demandEstimationHref = `demand_estimation?project_id =${project_id}`;
     # If Consumer Selection is hidden (in raw html), go to demand_estimation
 
-    return render(request, "pages/project_setup.html", context)
+        return render(request, "pages/project_setup.html", context)
+    elif request.method == "POST":
+        if project is None:
+            form = ProjectForm(request.POST)
+            opts_form  = OptionForm(request.POST)
+        else:
+            form = ProjectForm(request.POST, instance=project)
+            opts_form = OptionForm(request.POST, instance=project.options)
+        if form.is_valid() and opts_form.is_valid():
+            opts = opts_form.save()
+            if project is None:
+                project = form.save(commit=False)
+                project.user = User.objects.get(email=request.user.email)
+                project.options = opts
+            project.save()
 
+        return HttpResponseRedirect(reverse("steps:consumer_selection",args=[project.id]))
 
 # @login_required()
 @require_http_methods(["GET"])
 def consumer_selection(request, proj_id=None):
-    form = ProjectForm()
-    opts = OptionForm()
 
     public_service_list = {
         "group1": "Health_Health Centre",
@@ -106,22 +141,19 @@ def consumer_selection(request, proj_id=None):
     option_load = ""
 
     context = {
-        "form": form,
-        "opts_form": opts,
         "public_service_list": public_service_list,
         "enterprise_list": enterprise_list,
         "large_load_list": large_load_list,
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
+        "step_id": STEPS.index("consumer_selection")+1,
+        "step_list": STEPS
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
-        if project.user != request.user:
+        if project.user.email != request.user.email:
             raise PermissionDenied
-        context["proj_id"] = project.id
-    else:
-        project = Project.objects.first()
         context["proj_id"] = project.id
 
     # _wizard.js contains info for the POST function set when clicking on next or on another step
@@ -144,7 +176,8 @@ def demand_estimation(request, proj_id=None):
     custom_demand, _ = CustomDemand.objects.get_or_create(project__id=proj_id)
 
     form = CustomDemandForm(instance=custom_demand)
-    context = {"form": form, "proj_id": proj_id}
+    context = {"form": form, "proj_id": proj_id,         "step_id": STEPS.index("demand_estimation")+1,
+        "step_list": STEPS}
 
     # nodes = project.nodes
     # demand_timeseries = get_demand_timeseries(nodes, custom_demand)
@@ -159,31 +192,44 @@ def grid_design(request):
 
 
 # @login_required()
-@require_http_methods(["GET"])
-def energy_system_design(request):
-    return render(request, "pages/energy_system_design.html")
+@require_http_methods(["GET", "POST"])
+def energy_system_design(request,proj_id=None):
+    step_id = STEPS.index("energy_system_design")+1
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+    if request.method == "GET":
+        context = {"proj_id": project.id,"step_id": step_id,"step_list": STEPS}
+
+        # TODO read js/pages/energy-system-design.js
+        #todo restore using load_previous_data in the first place, then replace with Django forms
+
+
+        return render(request, "pages/energy_system_design.html", context)
+    elif request.method == "POST":
+        data = json.loads(request.body)
+        df = pd.json_normalize(data, sep='_')
+        d_flat = df.to_dict(orient='records')[0]
+        Energysystemdesign.objects.filter(project=project).delete()
+        es= Energysystemdesign(**d_flat)
+        es.project = project
+        es.save()
+        return JsonResponse({"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},status=200)
 
 
 # @login_required()
 @require_http_methods(["GET"])
-def simulation_results(request):
+def simulation_results(request, proj_id=None):
     return render(request, "pages/simulation_results.html")
 
 
-STEPS = {
-    "project_setup": project_setup,
-    "consumer_selection": consumer_selection,
-    "demand_estimation": demand_estimation,
-    "grid_design": grid_design,
-    "energy_system_design": energy_system_design,
-    "simulation_results": simulation_results,
-}
 
 
 # @login_required
 @require_http_methods(["GET", "POST"])
 def steps(request, proj_id, step_id=None):
     if step_id is None:
-        return HttpResponseRedirect(reverse("steps", args=[proj_id, 1]))
+        return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
-    return STEPS[step_id - 1](request, proj_id, step_id)
+    return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id-1]}", args=[proj_id]))

@@ -33,11 +33,6 @@
                target="_blank"
                rel="noreferrer">{% translate "Documentation" %}</a>
           </li>
-          {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'user_feedback' %}">{% translate "Feedback" %}</a>
-            </li>
-          {% endif %}
         {% elif signup %}
           <!--For user signup the nav bar does not display all options-->
         {% endif %}
@@ -71,7 +66,7 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
               <li>
-                <a class="dropdown-item" href="{% url 'user_info' %}">{% translate "Account" %}</a>
+                <a class="dropdown-item" href="{% url 'users:detail' user.id %}">{% translate "Account" %}</a>
               </li>
               <!-- account.html -->
               <li>
@@ -85,7 +80,10 @@
                 <hr class="dropdown-divider" />
               </li>
               <li>
-                <a class="dropdown-item" href="{% url 'logout' %}">{% translate "Log out" %}</a>
+                <form action="{% url 'account_logout' %}" method="POST">
+                  {% csrf_token %}
+                <button class="dropdown-item" type="submit">{% translate "Log out" %}</button>
+                </form>
               </li>
             </ul>
           </li>
@@ -93,11 +91,12 @@
           <li class="nav-item">
             <!-- pages/projects-view-empty.html -->
             <a class="nav-link" href="{% url 'account_login' %}">{% translate "Log in" %}</a>
+            <!--a class="nav-link" href="{# url 'login' #}">{% translate "Log in" %}</a-->
           </li>
           <li class="nav-item">
             <!-- pages/signup.html -->
             <a class="btn btn--small"
-               href="{% url 'account_signup' %}"
+               href="{% url 'users:account_signup' %}"
                role="button">{% translate "Sign up" %}</a>
           </li>
         {% endif %}

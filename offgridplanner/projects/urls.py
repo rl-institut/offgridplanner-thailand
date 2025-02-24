@@ -5,7 +5,12 @@ from .views import *
 app_name = "projects"
 
 urlpatterns = [
-    path("projects_list", projects_list, name="projects_list"),
+
+    path("", projects_list, name="home"),
+    path("", projects_list, name="projects_list"),
+    path("<int:proj_id>", projects_list, name="projects_list"),
+    path("duplicate/<int:proj_id>", project_duplicate, name="project_duplicate"),
+    path("delete/<int:proj_id>", project_delete, name="project_delete"),
     path(
         "add_buildings_inside_boundary/<int:proj_id>",
         add_buildings_inside_boundary,

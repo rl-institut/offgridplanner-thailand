@@ -17,7 +17,7 @@
   <link href="{% static 'css/pages/consumer_selection.css' %}"
         rel="stylesheet" />
 {% endblock head_block %}
-{% block content %}
+{% block progression_content %}
   <main>
     <div id="fixed-symbol" style="position: fixed; bottom: 60px; left: 20px;">
       <img alt="Icon"
@@ -326,7 +326,16 @@
         </form>
       </div>
     </main>
-  {% endblock content %}
+  {% endblock progression_content %}
+
+{% block next_btn %}
+{% url 'steps:demand_estimation' proj_id as demand_estimation_url %}
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:consumer_to_db(href='{{ demand_estimation_url }}', file_type='db');">{% translate "Next" %}</button>
+
+{% endblock next_btn %}
+
   {% block end_body_scripts %}
     <script>
       // url of API urls
@@ -338,6 +347,14 @@
       const consumerToDBUrl = `{% url 'projects:consumer_to_db' proj_id %}`;
       const addBuildingsUrl = `{% url 'projects:add_buildings_inside_boundary' proj_id  %}`;
       const removeBuildingsUrl = `{% url 'projects:remove_buildings_inside_boundary' proj_id  %}`;
+      window.onload = function () {
+        //redirect_if_cookie_is_missing(true, true); //for anonymous user --> do it pythonside
+        db_nodes_to_js({{proj_id}}, true);
+        //show_email_and_project_in_navbar({{proj_id}});
+        //TODO reenable video_tutorial
+        //show_video_tutorial();
+        //update_wizards_and_buttons_based_on_planning_step_selection({{proj_id}}, 'consumer_selection');
+      };
     </script>
     <script src="{% static 'js/integrate_map.js' %}"></script>
     <script src="{% static 'js/add_drawing_tools_to_map.js' %}"></script>

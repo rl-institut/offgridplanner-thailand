@@ -1749,9 +1749,9 @@ nav.navbar .dropdown-menu li {
 }
 
 .wizard {
-    visibility: hidden; /* Keeps the space in the layout */
-    opacity: 0;         /* Makes it invisible */
-    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    //visibility: hidden; /* Keeps the space in the layout */
+    //opacity: 0;         /* Makes it invisible */
+    //transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
     /* This transition ensures visibility changes after opacity, avoiding flickering */
 }
 
