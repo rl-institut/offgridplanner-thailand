@@ -261,10 +261,9 @@
 {% endblock progression_content %}
 
 {% block next_btn %}
-<a id="next-button"
-   class="btn btn--medium"
-   onclick="javascript:document.getElementById('submitFormBtn').click();"
-   href="{% url 'steps:grid_design' proj_id %}">{% translate "Next" %}</a>
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:document.getElementById('submitFormBtn').click();">{% translate "Next" %}</button>
 {% endblock next_btn %}
 
 {% block end_body_scripts %}

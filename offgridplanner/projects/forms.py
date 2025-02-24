@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
@@ -101,21 +102,26 @@ class CustomDemandForm(ModelForm):
         exclude = ["project"]
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
         initial = kwargs.get("initial", {})
+        instance = kwargs.get("instance", None)
 
-        for field in self.fields:
-            if field in self.percentage_fields:
+        if instance is not None:
+            for field in self.percentage_fields:
                 # Serve number to user in 0-100 format
-                self.fields[field].initial = self.change_percentage_format(self.fields[field].initial, upper_limit=100)
+                initial[field] = self.change_percentage_format(getattr(instance, field), upper_limit=100)
 
-        kwargs["initial"] = initial
+            kwargs["initial"] = initial
+        super().__init__(*args, **kwargs)
+
 
     def clean(self):
         cleaned_data = super().clean()
-        total = round(sum(cleaned_data.values(), 0))
+        percentage_values = {field: cleaned_data[field] for field in self.percentage_fields}
+        total = round(sum(percentage_values.values(), 0))
         if total != 1:
-            raise ValidationError("The sum of all shares must equal 100%.")
+            # TODO tbd how we want to handle this
+            # raise ValidationError("The sum of all shares must equal 100%.")
+            print("The sum of all shares does not equal 100%.")
 
         for field, value in self.cleaned_data.items():
             if field in self.percentage_fields:

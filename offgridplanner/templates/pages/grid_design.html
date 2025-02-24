@@ -123,11 +123,7 @@
           <div class="col-md-4">
             <div id="selectShsBox" class="box box--tiny">
               <div class="box__header">
-                <form class="was-validated">
-                  <div class="form-check">
                     {{ form.include_shs | as_crispy_field }}
-                  </div>
-                </form>
               </div>
               <div class="row">
                 <div class="input-group">
@@ -188,14 +184,13 @@
 </main>
 {% endblock progression_content %}
 
-{% block next_btn %}
-<a id="next-button"
-   class="btn btn--medium"
-   onclick="javascript:document.getElementById('submitFormBtn').click();"
-   href="{% url 'steps:energy_system_design' proj_id %}">{% translate "Next" %}</a>
-{% endblock next_btn %}
-
 
 {% block end_body_scripts %}
 <script src="{% static 'js/pages/grid_design.js' %}"></script>
 {% endblock end_body_scripts %}
+
+{% block next_btn %}
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:document.getElementById('submitFormBtn').click();">{% translate "Next" %}</button>
+{% endblock next_btn %}
