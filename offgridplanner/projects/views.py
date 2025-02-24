@@ -18,7 +18,7 @@ import pandas as pd
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
 
-from offgridplanner.projects.models import Project, Nodes, CustomDemand
+from offgridplanner.projects.models import Project, Nodes, CustomDemand, Options, GridDesign, Energysystemdesign
 from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
 
@@ -86,6 +86,19 @@ def project_delete(request, proj_id):
         messages.success(request, "Project successfully deleted!")
 
     return HttpResponseRedirect(reverse("projects:projects_list"))
+
+# TODO maybe link task to project and not to user...
+@require_http_methods(["POST"])
+def forward_if_no_task_is_pending(request,proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+    if user.task_id is not None and len(user.task_id) > 20 and not task_is_finished(user.task_id):
+        res = {'forward': False, 'task_id': user.task_id}
+    else:
+        res = {'forward': True, 'task_id': ''}
+    return JsonResponse(res)
 
 
 
@@ -346,3 +359,105 @@ def load_demand_plot_data(request, proj_id=None):
 
     timeseries["Average"] = timeseries["Average"].tolist()
     return JsonResponse({"timeseries": timeseries}, status=200)
+
+# @app.post("/start_calculation/{project_id}")
+# async def start_calculation(project_id, request: Request):
+#     if project_id is None:
+#         project_id = request.query_params.get('project_id')
+#     user = await handle_user_accounts.get_user_from_cookie(request)
+#     if user is None:
+#         return
+#     forward, redirect = await async_queries.check_data_availability(user.id, project_id)
+#     if forward is False:
+#         return JSONResponse({'task_id': '', 'redirect': redirect})
+#     task_id = await optimization(user.id, project_id)
+#     user.task_id = task_id
+#     user.project_id = int(project_id)
+#     await async_inserts.update_model_by_user_id(user)
+#     return JSONResponse({'task_id': task_id, 'redirect': ''})
+
+# async def check_data_availability(user_id, project_id):
+#     project_setup = await get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
+#     if project_setup is None:
+#         return False, '/project_setup/?project_id=' + str(project_id)
+#     nodes = await get_model_instance(sa_tables.Nodes, user_id, project_id)
+#     nodes_df = pd.read_json(nodes.data) if nodes is not None else None
+#     if nodes_df is None or nodes_df.empty or nodes_df[nodes_df['node_type'] == 'consumer'].index.__len__() == 0:
+#         if project_setup.do_demand_estimation and project_setup.do_es_design_optimization:
+#             return False, '/consumer_selection/?project_id=' + str(project_id)
+#     demand_opt_dict = await get_model_instance(sa_tables.Demand, user_id, project_id)
+#     if demand_opt_dict is None or pd.isna(demand_opt_dict.household_option):
+#         return False, '/demand_estimation/?project_id=' + str(project_id)
+#     if project_setup.do_grid_optimization is True:
+#         grid_design = await get_model_instance(sa_tables.GridDesign, user_id, project_id)
+#         if grid_design is None or pd.isna(grid_design.pole_lifetime):
+#             return False, '/grid_design/?project_id=' + str(project_id)
+#     if project_setup.do_es_design_optimization is True:
+#         energy_system_design = await get_model_instance(sa_tables.EnergySystemDesign, user_id, project_id)
+#         if energy_system_design is None or pd.isna(energy_system_design.battery__parameters__c_rate_in):
+#             return False, '/energy_system_design/?project_id=' + str(project_id)
+#     return True, None
+
+# async def optimization(user_id, project_id):
+#     await async_inserts.remove_results(user_id, project_id)
+#     project_setup = await async_queries.get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
+#     project_setup.status = "queued"
+#     await async_inserts.merge_model(project_setup)
+#     if bool(os.environ.get('DOCKERIZED')):
+#         if project_setup.do_grid_optimization is True:
+#             task = task_grid_opt.delay(user_id, project_id)
+#         else:
+#             task = task_supply_opt.delay(user_id, project_id)
+#         return task.id
+#     else:  # if app is not running in docker, celery isn't available
+#         if project_setup.do_grid_optimization is True:
+#             optimize_grid(user_id, project_id)
+#         if project_setup.do_es_design_optimization is True:
+#             optimize_energy_system(user_id, project_id)
+#         return 'no_celery_id'
+
+
+def get_project_data(project):
+    # TODO in the original function the user is redirected to whatever page has missing data, i would rather do an error message
+    """
+    Checks if all necessary data for the optimization exists
+    :param project:
+    :return:
+    """
+    options = Options.objects.get(project=project)
+
+    model_qs = {
+        "Nodes": Nodes.objects.filter(project=project),
+        "CustomDemand": CustomDemand.objects.filter(project=project),
+        "GridDesign": GridDesign.objects.filter(project=project),
+        "Energysystemdesign": Energysystemdesign.objects.filter(project=project)
+        }
+
+    # TODO check which models are only necessary for the skipped steps and exclude them
+    if options.do_demand_estimation is False:
+        # qs.pop(..)
+        pass
+
+    if options.do_grid_optimization is False:
+        pass
+
+    if options.do_es_design_optimization is False:
+        pass
+
+    missing_qs = [key for key, qs in model_qs.items() if not qs.exists()]
+    if missing_qs:
+        raise ValueError(f"The project does not contain all data required for the optimization."
+                         f" The following models are missing: {missing_qs}")
+    else:
+        proj_data = {key: qs.get() for key, qs in model_qs.items()}
+        return proj_data
+
+
+
+def start_optimization(request, proj_id):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+
+    pass
