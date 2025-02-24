@@ -1,21 +1,28 @@
+const shsDiv = document.getElementById("selectShsBox")
+const shsCheckbox = document.getElementById("id_include_shs")
+const maxGridCostInput = document.getElementById('id_shs_max_grid_cost')
+const shsLifetimeLabel = document.getElementById('shsLifetimeLabel')
+const shsLifetimeUnit = document.getElementById('shsLifetimeUnit')
+
 function stopVideo() {
     var video = document.getElementById("tutorialVideo");
     video.pause();
 }
 
 function change_shs_box_visibility() {
-    if (document.getElementById("selectShs").checked) {
-        document.getElementById('selectShsBox').classList.remove('box--not-selected');
-        document.getElementById('shs_max_grid_cost').disabled = false;
-        document.getElementById('lblShsLifetime').classList.remove('disabled');
-        document.getElementById('shsLifetimeUnit').classList.remove('disabled');
-        if (document.getElementById('shs_max_grid_cost').value === '') {
-            document.getElementById('shs_max_grid_cost').value = '0.6';
-        }
+    if (shsCheckbox.checked) {
+        shsDiv.classList.remove('box--not-selected');
+        maxGridCostInput.disabled = false;
+        shsLifetimeLabel.classList.remove('disabled');
+        shsLifetimeUnit.classList.remove('disabled');
     } else {
-        document.getElementById('selectShsBox').classList.add('box--not-selected');
-        document.getElementById('shs_max_grid_cost').disabled = true;
-        document.getElementById('lblShsLifetime').classList.add('disabled');
-        document.getElementById('shsLifetimeUnit').classList.add('disabled');
+        shsDiv.classList.add('box--not-selected');
+        maxGridCostInput.disabled = true;
+        shsLifetimeLabel.classList.add('disabled');
+        shsLifetimeUnit.classList.add('disabled');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    shsCheckbox.addEventListener("change", change_shs_box_visibility);
+});

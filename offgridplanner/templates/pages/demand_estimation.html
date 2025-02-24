@@ -6,18 +6,21 @@
 {% load i18n %}
 
 {% block head_block %}
-  <link href="{% static 'css/pages/demand_estimation.css' %}" rel="stylesheet">
-  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+<link href="{% static 'css/pages/demand_estimation.css' %}" rel="stylesheet">
+<link href="{% static 'css/main.css' %}" rel="stylesheet">
 {% endblock head_block %}
 
 {% block start_body_scripts %}
 <script>
-    const loadDemandPlotUrl = `{% url 'projects:load_demand_plot_data' proj_id %}`;
+  const loadDemandPlotUrl = `{% url 'projects:load_demand_plot_data' proj_id %}`;
 </script>
 {% endblock start_body_scripts %}
 
-{% block content %}
-  <main>
+{% block progression_content %}
+<main>
+  <form method="post">
+    {% csrf_token %}
+
     <section id="section" class="dashboard" style="height: auto">
       <div class="row" style="height: auto">
         <div class="chart" style="height: auto; padding-bottom: 10px">
@@ -82,22 +85,20 @@
                                   grid-template-columns: auto auto;
                                   grid-row-gap: 10px;
                                   align-items: center">
-                        <form method="post">
-                          {% csrf_token %}
-                          {% for field in form %}
-                            {% if field.name != 'annual_total_consumption' and field.name != 'annual_peak_consumption' %}
-                              <div class="row align-items-center mb-2">
-                                <div class="col-md-3 text-end">
-                                  <label class="form-label">{{ field.label }}</label>
-                                </div>
-                                <div class="col-md-5">{{ field }}</div>
-                                <div class="col-md-2">
-                                  <span class="input-group-text">%</span>
-                                </div>
-                              </div>
-                            {% endif %}
-                          {% endfor %}
-                        </form>
+
+                        {% for field in form %}
+                        {% if field.name != 'annual_total_consumption' and field.name != 'annual_peak_consumption' %}
+                        <div class="row align-items-center mb-2">
+                          <div class="col-md-3 text-end">
+                            <label class="form-label">{{ field.label }}</label>
+                          </div>
+                          <div class="col-md-5">{{ field }}</div>
+                          <div class="col-md-2">
+                            <span class="input-group-text">%</span>
+                          </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
                       </div>
                       <!-- Reset Button -->
                       <a id="resetDefault"
@@ -125,16 +126,16 @@
                   across Nigeria in 2020 in 3 prioritized geopolitical zones. Survey details can
                   be found in the publication here: <a href="https://www.nature.com/articles/s41597-023-02185-0">PeopleSuN
                   (2023) Electricity supply quality and use among rural and peri-urban
-                households and small firms in Nigeria</a>
-              </p>
-              <p>
-                The open-source Remote Area Multi-Energy Profiles simulation software (RAMP) has
-                been used to develop 5 typical non-urban Nigerian household energy consumption
-                categories (from Very Low to Very High). The pre-created default options below
-                represent weighted combinations of each of these consumption categories that
-                match the observed data in each of the geographic zones.
-              </p>
-              <p style="display: flex;
+                  households and small firms in Nigeria</a>
+                </p>
+                <p>
+                  The open-source Remote Area Multi-Energy Profiles simulation software (RAMP) has
+                  been used to develop 5 typical non-urban Nigerian household energy consumption
+                  categories (from Very Low to Very High). The pre-created default options below
+                  represent weighted combinations of each of these consumption categories that
+                  match the observed data in each of the geographic zones.
+                </p>
+                <p style="display: flex;
                         justify-content: space-between;
                         align-items: center;
                         color: var(--ccb)">
@@ -159,7 +160,7 @@
                     <option value="xlsx">File type: XLSX</option>
                   </select>
                 </span>
-                <span style="display: flex; align-items: center; ; margin-right: 10px">
+                  <span style="display: flex; align-items: center; ; margin-right: 10px">
                   <a style="margin-right: 10px;">Activate Custom Calibration</a>
                   <label class="switch">
                     <input type="checkbox"
@@ -169,37 +170,37 @@
                     <span class="slider round"></span>
                   </label>
                 </span>
-              </p>
+                </p>
+              </div>
             </div>
-          </div>
-          <div class="accordion-item" style="border-top: none; padding: 10px">
-            <div id="collapseTwo"
-                 class="accordion-collapse collapse"
-                 aria-labelledby="headingTwo">
-              <div class="accordion-body">
-                <p>
-                  <a>
+            <div class="accordion-item" style="border-top: none; padding: 10px">
+              <div id="collapseTwo"
+                   class="accordion-collapse collapse"
+                   aria-labelledby="headingTwo">
+                <div class="accordion-body">
+                  <p>
+                    <a>
+                      <br>
+                      Set Custom Total Profile Calibration Values (Optional)</a>
+                  </p>
+                  <p>
+                    These options will calibrate the total community demand profile to set value below <b>(including
+                    enterprises and any other non-household demands chosen previously)</b>.
                     <br>
-                  Set Custom Total Profile Calibration Values (Optional)</a>
-                </p>
-                <p>
-                  These options will calibrate the total community demand profile to set value below <b>(including
-                  enterprises and any other non-household demands chosen previously)</b>.
-                  <br>
-                  They can be
-                  calibrated either by total annual mini-grid energy demand OR maximum peak demand over
-                  the year - both cannot be chosen together.
-                  <br>
-                  This is compatible with choosing custom
-                  percentage shares of consumption categories, but the total will be re-scaled
-                  accordingly.
-                </p>
-                <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                  <label for="option7">
-                    <input type="radio" name="options2" id="option7" autocomplete="off" checked>
-                    Set Average Total Annual Energy (kWh/year)
+                    They can be
+                    calibrated either by total annual mini-grid energy demand OR maximum peak demand over
+                    the year - both cannot be chosen together.
+                    <br>
+                    This is compatible with choosing custom
+                    percentage shares of consumption categories, but the total will be re-scaled
+                    accordingly.
+                  </p>
+                  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                    <label for="option7">
+                      <input type="radio" name="options2" id="option7" autocomplete="off" checked>
+                      Set Average Total Annual Energy (kWh/year)
                     </label>
-                  <div class="input-group" style="max-width: 200px">
+                    <div class="input-group" style="max-width: 200px">
                       {{ form.annual_total_consumption }}
                     </div>
                     <div class="col-md-4">
@@ -207,18 +208,18 @@
                     </div>
                   </div>
 
-                <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                  <label for="option8" class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
-                    <input type="radio" name="options2" id="option8" autocomplete="off">
-                    Set Maximum Peak Demand (kW)
+                  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                    <label for="option8" class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
+                      <input type="radio" name="options2" id="option8" autocomplete="off">
+                      Set Maximum Peak Demand (kW)
                     </label>
-                  <div class="input-group" style="max-width: 200px">
+                    <div class="input-group" style="max-width: 200px">
                       {{ form.annual_peak_consumption }}
                     </div>
                     <div class="col-md-4">
                       <span class="input-group-text">kW</span>
                     </div>
-                </div>
+                  </div>
 
                 </div>
               </div>
@@ -253,15 +254,21 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
+    <input type="submit" id="submitFormBtn" hidden>
+  </form>
 </main>
-{% endblock content %}
+{% endblock progression_content %}
+
+{% block next_btn %}
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:document.getElementById('submitFormBtn').click();">{% translate "Next" %}</button>
+{% endblock next_btn %}
 
 {% block end_body_scripts %}
-  <script src="{% static 'js/pages/demand_estimation.js' %}"></script>
-  <script src="{% static 'js/backend_communication.js' %}"></script>
-  <script src="https://cdn.plot.ly/plotly-2.0.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+<script src="{% static 'js/pages/demand_estimation.js' %}"></script>
+<script src="{% static 'js/backend_communication.js' %}"></script>
+<script src="https://cdn.plot.ly/plotly-2.0.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
 {% endblock end_body_scripts %}

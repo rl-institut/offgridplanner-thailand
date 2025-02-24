@@ -121,6 +121,22 @@ class Nodes(models.Model):
         else:
             return False
 
+class GridDesign(models.Model):
+
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    distribution_cable_lifetime = models.PositiveSmallIntegerField(default=25)
+    distribution_cable_capex = models.FloatField(default=10)
+    distribution_cable_max_length = models.FloatField(default=50)
+    connection_cable_lifetime = models.PositiveSmallIntegerField(default=25)
+    connection_cable_capex = models.FloatField(default=4)
+    connection_cable_max_length = models.FloatField(default=20)
+    pole_lifetime = models.PositiveSmallIntegerField(default=25)
+    pole_capex = models.FloatField(default=800)
+    pole_max_n_connections = models.PositiveSmallIntegerField(default=5)
+    mg_connection_cost = models.FloatField(default=140)
+    include_shs = models.BooleanField(default=True)
+    shs_max_grid_cost = models.FloatField(default=0.6, blank=True, null=True)
+
 
 class Energysystemdesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)

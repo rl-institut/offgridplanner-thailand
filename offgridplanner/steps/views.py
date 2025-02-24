@@ -6,13 +6,13 @@ import pandas as pd
 
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
-from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
-from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options, Energysystemdesign
+from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, GridDesignForm
+from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
@@ -85,7 +85,7 @@ def project_setup(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def consumer_selection(request, proj_id=None):
-
+    # TODO replace these with lists from LOAD_PROFILES.columns
     public_service_list = {
         "group1": "Health_Health Centre",
         "group2": "Health_Clinic",
@@ -147,7 +147,7 @@ def consumer_selection(request, proj_id=None):
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
-        "step_id": STEPS.index("consumer_selection")+1,
+        "step_id": STEPS.index("consumer_selection") + 1,
         "step_list": STEPS
     }
     if proj_id is not None:
@@ -162,39 +162,59 @@ def consumer_selection(request, proj_id=None):
 
 
 # @login_required()
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def demand_estimation(request, proj_id=None):
+    # TODO demand import and export from this step still needs to be handled
+    step_id = STEPS.index("demand_estimation") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-    # TODO delete
-    else:
-        project = Project.objects.first()
-        proj_id = project.id
 
-    custom_demand, _ = CustomDemand.objects.get_or_create(project__id=proj_id)
+        custom_demand, _ = CustomDemand.objects.get_or_create(project=project)
+        if request.method == "GET":
+            form = CustomDemandForm(instance=custom_demand)
+            context = {"form": form, "proj_id": proj_id, "step_id": step_id, "step_list": STEPS}
 
-    form = CustomDemandForm(instance=custom_demand)
-    context = {"form": form, "proj_id": proj_id,         "step_id": STEPS.index("demand_estimation")+1,
-        "step_list": STEPS}
+            return render(request, "pages/demand_estimation.html", context)
 
-    # nodes = project.nodes
-    # demand_timeseries = get_demand_timeseries(nodes, custom_demand)
+        elif request.method == "POST":
+            form = CustomDemandForm(request.POST, instance=custom_demand)
+            if form.is_valid():
+                form.save()
 
-    return render(request, "pages/demand_estimation.html", context)
+            return redirect("steps:ogp_steps", proj_id, step_id + 1)
 
 
 # @login_required()
-@require_http_methods(["GET"])
-def grid_design(request):
-    return render(request, "pages/grid_design.html")
+@require_http_methods(["GET", "POST"])
+def grid_design(request, proj_id=None):
+    step_id = STEPS.index("grid_design") + 1
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user != request.user:
+            raise PermissionDenied
+
+        grid_design, _ = GridDesign.objects.get_or_create(project=project)
+        if request.method == "GET":
+            form = GridDesignForm(instance=grid_design)
+
+            context = {"form": form, "proj_id": proj_id, "step_id": step_id, "step_list": STEPS}
+            return render(request, "pages/grid_design.html", context)
+
+        elif request.method == "POST":
+            form = GridDesignForm(request.POST, instance=grid_design)
+            if form.is_valid():
+                form.save()
+
+            return redirect("steps:ogp_steps", proj_id, step_id + 1)
+
 
 
 # @login_required()
 @require_http_methods(["GET", "POST"])
 def energy_system_design(request,proj_id=None):
-    step_id = STEPS.index("energy_system_design")+1
+    step_id = STEPS.index("energy_system_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
