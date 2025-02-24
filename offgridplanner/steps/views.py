@@ -147,7 +147,7 @@ def consumer_selection(request, proj_id=None):
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
-        "step_id": STEPS.index("consumer_selection")+1,
+        "step_id": STEPS.index("consumer_selection") + 1,
         "step_list": STEPS
     }
     if proj_id is not None:
@@ -162,7 +162,7 @@ def consumer_selection(request, proj_id=None):
 
 
 # @login_required()
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def demand_estimation(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
@@ -173,10 +173,10 @@ def demand_estimation(request, proj_id=None):
         project = Project.objects.first()
         proj_id = project.id
 
-    custom_demand, _ = CustomDemand.objects.get_or_create(project__id=proj_id)
+    custom_demand, _ = CustomDemand.objects.get_or_create(project=project)
 
     form = CustomDemandForm(instance=custom_demand)
-    context = {"form": form, "proj_id": proj_id,         "step_id": STEPS.index("demand_estimation")+1,
+    context = {"form": form, "proj_id": proj_id, "step_id": STEPS.index("demand_estimation")+1,
         "step_list": STEPS}
 
     # nodes = project.nodes
@@ -186,8 +186,9 @@ def demand_estimation(request, proj_id=None):
 
 
 # @login_required()
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def grid_design(request, proj_id=None):
+    step_id = STEPS.index("grid_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -200,14 +201,14 @@ def grid_design(request, proj_id=None):
     grid_design, _ = GridDesign.objects.get_or_create(project__id=proj_id)
     form = GridDesignForm(instance=grid_design)
 
-    context = {"form": form, "proj_id": proj_id}
+    context = {"form": form, "proj_id": proj_id, "step_id": step_id, "step_list": STEPS}
     return render(request, "pages/grid_design.html", context)
 
 
 # @login_required()
 @require_http_methods(["GET", "POST"])
 def energy_system_design(request,proj_id=None):
-    step_id = STEPS.index("energy_system_design")+1
+    step_id = STEPS.index("energy_system_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
