@@ -120,3 +120,55 @@ class Nodes(models.Model):
             return True
         else:
             return False
+
+
+class Energysystemdesign(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    battery_settings_is_selected = models.IntegerField(db_column='battery__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_settings_design = models.IntegerField(db_column='battery__settings__design', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_nominal_capacity = models.FloatField(db_column='battery__parameters__nominal_capacity', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_lifetime = models.PositiveIntegerField(db_column='battery__parameters__lifetime', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_capex = models.FloatField(db_column='battery__parameters__capex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_opex = models.FloatField(db_column='battery__parameters__opex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_soc_min = models.FloatField(db_column='battery__parameters__soc_min', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_soc_max = models.FloatField(db_column='battery__parameters__soc_max', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_c_rate_in = models.FloatField(db_column='battery__parameters__c_rate_in', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_c_rate_out = models.FloatField(db_column='battery__parameters__c_rate_out', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    battery_parameters_efficiency = models.FloatField(db_column='battery__parameters__efficiency', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_settings_is_selected = models.IntegerField(db_column='diesel_genset__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_settings_design = models.IntegerField(db_column='diesel_genset__settings__design', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_nominal_capacity = models.FloatField(db_column='diesel_genset__parameters__nominal_capacity', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_lifetime = models.PositiveIntegerField(db_column='diesel_genset__parameters__lifetime', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_capex = models.FloatField(db_column='diesel_genset__parameters__capex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_opex = models.FloatField(db_column='diesel_genset__parameters__opex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_variable_cost = models.FloatField(db_column='diesel_genset__parameters__variable_cost', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_fuel_cost = models.FloatField(db_column='diesel_genset__parameters__fuel_cost', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_fuel_lhv = models.FloatField(db_column='diesel_genset__parameters__fuel_lhv', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_min_load = models.FloatField(db_column='diesel_genset__parameters__min_load', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_max_load = models.FloatField(db_column='diesel_genset__parameters__max_load', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_min_efficiency = models.FloatField(db_column='diesel_genset__parameters__min_efficiency', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    diesel_genset_parameters_max_efficiency = models.FloatField(db_column='diesel_genset__parameters__max_efficiency', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_settings_is_selected = models.IntegerField(db_column='inverter__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_settings_design = models.IntegerField(db_column='inverter__settings__design', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_parameters_nominal_capacity = models.FloatField(db_column='inverter__parameters__nominal_capacity', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_parameters_lifetime = models.PositiveIntegerField(db_column='inverter__parameters__lifetime', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_parameters_capex = models.FloatField(db_column='inverter__parameters__capex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_parameters_opex = models.FloatField(db_column='inverter__parameters__opex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    inverter_parameters_efficiency = models.FloatField(db_column='inverter__parameters__efficiency', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_settings_is_selected = models.IntegerField(db_column='pv__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_settings_design = models.IntegerField(db_column='pv__settings__design', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_parameters_nominal_capacity = models.FloatField(db_column='pv__parameters__nominal_capacity', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_parameters_lifetime = models.PositiveIntegerField(db_column='pv__parameters__lifetime', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_parameters_capex = models.FloatField(db_column='pv__parameters__capex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    pv_parameters_opex = models.FloatField(db_column='pv__parameters__opex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_settings_is_selected = models.IntegerField(db_column='rectifier__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_settings_design = models.IntegerField(db_column='rectifier__settings__design', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_parameters_nominal_capacity = models.FloatField(db_column='rectifier__parameters__nominal_capacity', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_parameters_lifetime = models.PositiveIntegerField(db_column='rectifier__parameters__lifetime', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_parameters_capex = models.FloatField(db_column='rectifier__parameters__capex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_parameters_opex = models.FloatField(db_column='rectifier__parameters__opex', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    rectifier_parameters_efficiency = models.FloatField(db_column='rectifier__parameters__efficiency', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    shortage_settings_is_selected = models.FloatField(db_column='shortage__settings__is_selected', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    shortage_parameters_max_shortage_total = models.FloatField(db_column='shortage__parameters__max_shortage_total', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    shortage_parameters_max_shortage_timestep = models.FloatField(db_column='shortage__parameters__max_shortage_timestep', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+    shortage_parameters_shortage_penalty_cost = models.FloatField(db_column='shortage__parameters__shortage_penalty_cost', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.

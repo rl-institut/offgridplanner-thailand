@@ -333,8 +333,7 @@ async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
 }
 
 
-async function save_energy_system_design(href) {
-    const url = "save_energy_system_design/" + project_id;
+async function save_energy_system_design() {
     const data = {
         pv: {
             'settings': {
@@ -421,9 +420,8 @@ async function save_energy_system_design(href) {
             },
         },
     };
-
     try {
-        const response = await fetch(url, {
+        const response = await fetch(saveEnergySystemDesignUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -436,7 +434,8 @@ async function save_energy_system_design(href) {
             throw new Error("HTTP error " + response.status);
         }
 
-        await response.json(); // Wait for response to be parsed
+        const res_href = await response.json(); // Wait for response to be parsed
+        const href = res_href["href"];
         if (href.length > 0) {
             window.location.href = href; // navigate after fetch request is complete
         }

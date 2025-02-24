@@ -11,8 +11,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
-from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
-from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options
+from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, EnergysystemdesignForm
+from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options, Energysystemdesign
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
@@ -192,23 +192,35 @@ def grid_design(request):
 
 
 # @login_required()
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def energy_system_design(request,proj_id=None):
+    step_id = STEPS.index("energy_system_design")+1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
             raise PermissionDenied
+    if request.method == "GET":
+        context = {"proj_id": project.id,"step_id": step_id,"step_list": STEPS}
 
-    context = {"proj_id": project.id,"step_id": STEPS.index("energy_system_design")+1,"step_list": STEPS}
+        # TODO read js/pages/energy-system-design.js
+        #todo restore using load_previous_data in the first place, then replace with Django forms
 
-    # TODO read js/pages/energy-system-design.js
 
-    return render(request, "pages/energy_system_design.html", context)
+        return render(request, "pages/energy_system_design.html", context)
+    elif request.method == "POST":
+        data = json.loads(request.body)
+        df = pd.json_normalize(data, sep='_')
+        d_flat = df.to_dict(orient='records')[0]
+        Energysystemdesign.objects.filter(project=project).delete()
+        es= Energysystemdesign(**d_flat)
+        es.project = project
+        es.save()
+        return JsonResponse({"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},status=200)
 
 
 # @login_required()
 @require_http_methods(["GET"])
-def simulation_results(request):
+def simulation_results(request, proj_id=None):
     return render(request, "pages/simulation_results.html")
 
 

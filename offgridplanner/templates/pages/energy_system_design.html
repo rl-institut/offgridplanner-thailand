@@ -935,12 +935,28 @@
               </div>
             </div>
           </form>
+          <div id="responseMsg"></div>
         </div>
       </main>
 {% endblock progression_content %}
+{% block next_btn %}
+{% url 'steps:demand_estimation' proj_id as demand_estimation_url %}
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:save_energy_system_design();">{% translate "Next" %}</button>
+
+{% endblock next_btn %}
+
+
+
 
  {% block end_body_scripts %}
-
+    <script>
+      const csrfToken = '{{ csrf_token }}';
+      const project_id = {{ proj_id }};
+      const saveEnergySystemDesignUrl = `{% url 'steps:energy_system_design' proj_id %}`;
+      console.log(saveEnergySystemDesignUrl);
+    </script>
      <script src="{% static 'js/pages/energy-system-design.js' %}"></script>
      <script src="{% static 'js/backend_communication.js' %}"></script>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
