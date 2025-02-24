@@ -772,7 +772,7 @@ function save_demand_estimation(href) {
 
 function load_previous_data(page_name) {
     var xhr = new XMLHttpRequest();
-    url = "load_previous_data/" + page_name;
+    url = "load_previous_data/" + page_name + "/" + project_id;
     xhr.open("GET", url, true);
     xhr.responseType = "json";
     xhr.send();
