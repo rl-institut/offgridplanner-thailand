@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
-from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, EnergysystemdesignForm
+from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm
 from offgridplanner.projects.models import Project, CustomDemand, Nodes, Options, Energysystemdesign
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES

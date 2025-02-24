@@ -51,6 +51,7 @@ def projects_list(request, proj_id=None):
                 project.status = "finished"
             else:
                 project.status = status
+            project.save()
             # TODO this is not useful
             # user.task_id = ''
             # user.project_id = None
