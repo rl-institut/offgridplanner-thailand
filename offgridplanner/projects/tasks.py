@@ -10,31 +10,36 @@ or been revoked. This setup enables efficient, asynchronous processing of comple
 """
 import asyncio
 
-from offgridplanner.opt_models.grid_optimizer import optimize_grid
-from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
-from offgridplanner.task_queue.celery_worker import worker
+from celery import shared_task
 
 
+# from offgridplanner.opt_models.grid_optimizer import optimize_grid
+# from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
+# from offgridplanner.task_queue.celery_worker import worker
 
-@worker.task(name='celery_worker.task_grid_opt',
-             force=True,
-             track_started=True,
-             autoretry_for=(Exception,),
-             retry_kwargs={'max_retries': 1, 'countdown': 10})
-def task_grid_opt(user_id, project_id):
-    result = optimize_grid(user_id, project_id)
-    return result
+@shared_task
+def hello():
+    return 'hello world'
 
-
-@worker.task(name='celery_worker.task_supply_opt',
-             force=True,
-             track_started=True,
-             autoretry_for=(Exception,),
-             retry_kwargs={'max_retries': 1, 'countdown': 10}
-             )
-def task_supply_opt(user_id, project_id):
-    result = optimize_energy_system(user_id, project_id)
-    return result
+# @worker.task(name='celery_worker.task_grid_opt',
+#              force=True,
+#              track_started=True,
+#              autoretry_for=(Exception,),
+#              retry_kwargs={'max_retries': 1, 'countdown': 10})
+# def task_grid_opt(user_id, project_id):
+#     result = optimize_grid(user_id, project_id)
+#     return result
+#
+#
+# @worker.task(name='celery_worker.task_supply_opt',
+#              force=True,
+#              track_started=True,
+#              autoretry_for=(Exception,),
+#              retry_kwargs={'max_retries': 1, 'countdown': 10}
+#              )
+# def task_supply_opt(user_id, project_id):
+#     result = optimize_energy_system(user_id, project_id)
+#     return result
 
 
 # @worker.task(name='celery_worker.task_remove_anonymous_users', force=True, track_started=True)
@@ -51,14 +56,14 @@ def task_supply_opt(user_id, project_id):
 #     return result
 
 
-def get_status_of_task(task_id):
-    status = worker.AsyncResult(task_id).status.lower()
-    return status
-
-
-def task_is_finished(task_id):
-    status = get_status_of_task(task_id)
-    if status in ['success', 'failure', 'revoked']:
-        return True
-    else:
-        return False
+# def get_status_of_task(task_id):
+#     status = worker.AsyncResult(task_id).status.lower()
+#     return status
+#
+#
+# def task_is_finished(task_id):
+#     status = get_status_of_task(task_id)
+#     if status in ['success', 'failure', 'revoked']:
+#         return True
+#     else:
+#         return False
