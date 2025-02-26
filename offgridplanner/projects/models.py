@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from io import StringIO
 
 import pandas as pd
@@ -188,3 +189,19 @@ class Energysystemdesign(models.Model):
     shortage_parameters_max_shortage_total = models.FloatField(db_column='shortage__parameters__max_shortage_total', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
     shortage_parameters_max_shortage_timestep = models.FloatField(db_column='shortage__parameters__max_shortage_timestep', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
     shortage_parameters_shortage_penalty_cost = models.FloatField(db_column='shortage__parameters__shortage_penalty_cost', blank=True, null=True)  # Field renamed because it contained more than one '_' in a row.
+
+    def to_nested_dict(self):
+        nested_dict = lambda: defaultdict(nested_dict)
+        data = nested_dict()
+
+        for field in self._meta.fields:
+            if field.db_column is not None:
+                value = getattr(self, field.name)
+                parts = field.db_column.split("__")
+
+                d = data
+                for part in parts[:-1]:  # Traverse the dictionary except the last key
+                    d = d[part]
+                d[parts[-1]] = value  # Set the final value
+
+        return data
