@@ -94,7 +94,7 @@ class Nodes(models.Model):
     data = models.JSONField(null=True)
 
     @property
-    def node_df(self):
+    def df(self):
         return pd.read_json(StringIO(self.data))
 
     def filter_consumers(self, consumer_type):
@@ -102,7 +102,7 @@ class Nodes(models.Model):
         Parameters:
             consumer_type (str): One of "household", "enterprise", "public_service"
         """
-        nodes = self.node_df
+        nodes = self.df
         consumer_type_df = nodes[
             (nodes['consumer_type'] == consumer_type)
             & (nodes['is_connected'] == True)
@@ -111,16 +111,24 @@ class Nodes(models.Model):
 
     @property
     def counts(self):
-        counts = self.node_df.groupby(['consumer_type', 'consumer_detail']).size()
+        counts = self.df.groupby(['consumer_type', 'consumer_detail']).size()
         return counts
 
     @property
     def have_custom_machinery(self):
-        machinery = self.node_df.groupby(['consumer_type', 'consumer_detail']).agg({'custom_specification': ';'.join}).custom_specification.loc["enterprise"]
+        machinery = self.df.groupby(['consumer_type', 'consumer_detail']).agg({'custom_specification': ';'.join}).custom_specification.loc["enterprise"]
         if not machinery.eq("").all():
             return True
         else:
             return False
+
+class Links(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    data = models.JSONField(null=True)
+
+    @property
+    def df(self):
+        return pd.read_json(StringIO(self.data))
 
 class GridDesign(models.Model):
 
