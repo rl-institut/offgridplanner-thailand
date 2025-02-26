@@ -373,5 +373,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SCHEMA_PATH_PREFIX": "/api/",
 }
-# Your stuff...
+# SIMULATION
 # ------------------------------------------------------------------------------
+SOLVER_NAME = os.environ.get("SOLVER_NAME", "cbc")
+CDS_API_KEY = os.environ.get("CDS_API_KEY")
