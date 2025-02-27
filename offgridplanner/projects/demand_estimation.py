@@ -18,6 +18,7 @@ def get_demand_timeseries(nodes, custom_demand, time_range=None):
     """
     load_profiles = LOAD_PROFILES.iloc[time_range].copy() if time_range is not None else LOAD_PROFILES.copy()
     # TODO change the index to pd.date_range(nodes.project.start_date, nodes.project.start_date + timedelta(nodes.project.n_days), freq='h'))
+    # TODO consider not only n_days but also start_date on time_range
     demand_df = pd.DataFrame(index=load_profiles.index)
     demand_df["household"] = combine_profiles(nodes, "household", load_profiles, custom_demand=custom_demand)
     demand_df["enterprise"] = combine_profiles(nodes, "enterprise", load_profiles)
@@ -56,7 +57,7 @@ def calibrate_profiles(demand_df, custom_demand):
 
 
 def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
-    # TODO careful, logic will need fixing if name formatting in load profiles changes
+    # Logic will need fixing if name formatting in load profiles changes
     """
     Parameters:
         nodes (Nodes): Nodes object
@@ -69,7 +70,6 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
     node_counts = nodes.counts
     consumer_type_counts = node_counts.loc[consumer_type]
 
-    # TODO crop load profiles depending on project.n_days and project.start_date
     if consumer_type == "household":
         custom_demand_parameters = model_to_dict(custom_demand)
         total_demand = compute_household_demand(consumer_type_counts, custom_demand_parameters, load_profiles)
