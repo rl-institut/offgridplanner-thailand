@@ -10,6 +10,7 @@ combined with detailed solar panel and inverter specifications, enables it to ca
 
 import os
 import warnings
+import calendar
 
 import geopandas as gpd
 import numpy as np
@@ -22,6 +23,93 @@ from pvlib.pvsystem import PVSystem
 from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 
 from config.settings.base import CDS_API_KEY
+from offgridplanner.projects.models import WeatherData
+
+# TODO this will no longer be needed, for local try to mode from oginal ogp mySQL
+# originally in sync_queries.py
+# def update_weather_db(country='Nigeria', year=None):
+#     if year is not None and year >= (pd.Timestamp.now() + pd.Timedelta(24 * 7, unit='H')).year:
+#         raise Exception("This function excepts available weather data for a entire year, "
+#                         "but for {} that data is not yet available".format(year))
+#     elif year != 2022:
+#         warnings.warn("Currently, only simulation the year 2022 is possible. Refer to the comments for "
+#                       "detailed explanations.")
+    # year = (pd.Timestamp.now() + pd.Timedelta(24 * 14, unit='H')).year - 1 if year is None else int(year)
+    # year = 2022 # so fast demand data is only available for 2022 and start_date is always 2022-01-01 and max. duration
+    # # is one year (see func 'save_project_setup' in static/js/backend_communications.js )
+    # for month in range(1, 13, 3):  # Increment by 3
+    #     start_date = pd.Timestamp(year=year, month=month, day=1) - pd.Timedelta(25, unit='H')
+    #     end_month = month + 2  # Third month in the interval
+    #     end_month = 12 if end_month > 12 else end_month  # Ensure it does not exceed December
+    #     last_day_of_end_month = calendar.monthrange(year, end_month)[1]
+    #     end_date = pd.Timestamp(year=year, month=end_month, day=last_day_of_end_month) + pd.Timedelta(25, unit='H')
+    #     file_name = 'cfd_weather_data_{}.nc'.format(start_date.strftime('%Y-%m'))
+    #     data_xr = download_weather_data(start_date, end_date, country=country, target_file=file_name).copy()
+    #     df = prepare_weather_data(data_xr)
+    #     df.to_csv("weather_data.csv")
+        # insert_df(WeatherData, df)
+
+
+# def insert_df(model_class, df, user_id=None, project_id=None):
+#     if user_id is not None and project_id is not None:
+#         user_id, project_id = int(user_id), int(project_id)
+#     df = df.dropna(how='all', axis=0)
+#     if not df.empty:
+#         if user_id is not None and project_id is not None:
+#             remove(model_class, user_id, project_id)
+#             df['id'] = int(user_id)
+#             df['project_id'] = int(project_id)
+#         if hasattr(model_class, 'dt') and 'dt' not in df.columns:
+#             df.index.name = 'dt'
+#             df = df.reset_index()
+#         _insert_df(model_class.__name__.lower(), df, if_exists='update')
+
+
+# originally in sync_queries.py
+def get_weather_data(lat, lon, start, end):
+    index = pd.date_range(start, end, freq='1H')
+    ts_changed = False
+
+    if end > pd.to_datetime('2023-03-01'):
+        end = pd.to_datetime('2022-{}-{}'.format(start.month, start.day)) + (end - start)
+        start = pd.to_datetime('2022-{}-{}'.format(start.month, start.day))
+        ts_changed = True
+
+    closest_lat, closest_lon = get_closest_grid_point(lat, lon)
+
+    qs = WeatherData.objects.filter(
+        lat=closest_lat,
+        lon=closest_lon,
+        dt__range=(start, end)
+    )
+    # Convert QuerySet to DataFrame
+    df = pd.DataFrame.from_records(qs.values()).set_index('dt').astype(float)
+
+    if ts_changed:
+        df.index = index
+
+    return df
+
+# originally in sync_queries.py
+def get_closest_grid_point(lat, lon):
+    # TODO handle this in a different way than with these hard-coded coords -
+    #  prone to error and clunky to implement once we expand to other countries
+    lats = pd.Series([14.442, 14.192, 13.942, 13.692, 13.442, 13.192, 12.942, 12.692, 12.442,
+                      12.192, 11.942, 11.692, 11.442, 11.192, 10.942, 10.692, 10.442, 10.192,
+                      9.942, 9.692, 9.442, 9.192, 8.942, 8.692, 8.442, 8.192, 7.942,
+                      7.692, 7.442, 7.192, 6.942, 6.692, 6.442, 6.192, 5.942, 5.692,
+                      5.442, 5.192, 4.942, 4.692, 4.442, 4.192, 3.942, 3.692, 3.442,
+                      3.192, 2.942, 2.691])
+    lons = pd.Series([4.24, 4.490026, 4.740053, 4.990079, 5.240105, 5.490131,
+                      5.740158, 5.990184, 6.240211, 6.490237, 6.740263, 6.99029,
+                      7.240316, 7.490342, 7.740368, 7.990395, 8.240421, 8.490447,
+                      8.740474, 8.9905, 9.240526, 9.490553, 9.740579, 9.990605,
+                      10.240631, 10.490658, 10.740685, 10.99071, 11.240737, 11.490763,
+                      11.740789, 11.990816, 12.240842, 12.490869, 12.740894, 12.990921,
+                      13.240948, 13.490973, 13.741])
+    closest_lat = round(lats.loc[(lats - lat).abs().idxmin()], 3)
+    closest_lon = round(lons.loc[(lons - lon).abs().idxmin()], 3)
+    return closest_lat, closest_lon
 
 def create_cdsapirc_file():
     home_dir = os.path.expanduser('~')
@@ -91,7 +179,7 @@ def retrieve_grid_points(ds):
 
 
 def get_dc_feed_in_sync_db_query(lat, lon, dt_index):
-    weather_df = sync_queries.get_weather_data(lat, lon, dt_index[0], dt_index[-1])
+    weather_df = get_weather_data(lat, lon, dt_index[0], dt_index[-1])
     return _get_dc_feed_in(lat, lon, weather_df)
 
 

@@ -213,3 +213,20 @@ class Energysystemdesign(models.Model):
                 d[parts[-1]] = value  # Set the final value
 
         return data
+
+
+class WeatherData(models.Model):
+    dt = models.DateTimeField()
+    lat = models.DecimalField(max_digits=10, decimal_places=7)
+    lon = models.DecimalField(max_digits=10, decimal_places=7)
+    wind_speed = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    temp_air = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    ghi = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    dni = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    dhi = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('dt', 'lat', 'lon')
+
+    def __str__(self):
+        return f"WeatherData({self.dt}, {self.lat}, {self.lon})"
