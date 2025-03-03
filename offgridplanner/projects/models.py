@@ -23,7 +23,7 @@ class Options(models.Model):
 
 class Project(models.Model):
     def __str__(self):
-        return f"Project {self.id} -: {self.name}"
+        return f"Project {self.id}: {self.name}"
 
     # id = models.PositiveSmallIntegerField(db_index=True)
     name = models.CharField(max_length=51, null=True, blank=True)
@@ -116,7 +116,9 @@ class Nodes(models.Model):
 
     @property
     def have_custom_machinery(self):
-        machinery = self.df.groupby(['consumer_type', 'consumer_detail']).agg({'custom_specification': ';'.join}).custom_specification.loc["enterprise"]
+        enterprises = self.df[self.df.consumer_type == "enterprise"]
+        machinery = enterprises.groupby(['consumer_type', 'consumer_detail']).agg({'custom_specification': ';'.join}).custom_specification.loc["enterprise"]
+        machinery.replace(";", "")
         if not machinery.eq("").all():
             return True
         else:
@@ -217,16 +219,82 @@ class Energysystemdesign(models.Model):
 
 class WeatherData(models.Model):
     dt = models.DateTimeField()
-    lat = models.DecimalField(max_digits=10, decimal_places=7)
-    lon = models.DecimalField(max_digits=10, decimal_places=7)
-    wind_speed = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    temp_air = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    ghi = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    dni = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    dhi = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    lat = models.FloatField()
+    lon = models.FloatField()
+    wind_speed = models.FloatField(null=True, blank=True)
+    temp_air = models.FloatField(null=True, blank=True)
+    ghi = models.FloatField(null=True, blank=True)
+    dni = models.FloatField(null=True, blank=True)
+    dhi = models.FloatField(null=True, blank=True)
 
     class Meta:
         unique_together = ('dt', 'lat', 'lon')
 
     def __str__(self):
         return f"WeatherData({self.dt}, {self.lat}, {self.lon})"
+
+
+from django.db import models
+
+class Results(models.Model):
+    # TODO potentially remove redundant fields that can just be calculated on the fly (e.g. upfront investment)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    n_consumers = models.PositiveSmallIntegerField(null=True, blank=True)
+    n_shs_consumers = models.PositiveSmallIntegerField(null=True, blank=True)
+    n_poles = models.PositiveSmallIntegerField(null=True, blank=True)
+    n_distribution_links = models.PositiveSmallIntegerField(null=True, blank=True)
+    n_connection_links = models.PositiveSmallIntegerField(null=True, blank=True)
+    length_distribution_cable = models.PositiveSmallIntegerField(null=True, blank=True)
+    average_length_distribution_cable = models.FloatField(null=True, blank=True)
+    length_connection_cable = models.PositiveSmallIntegerField(null=True, blank=True)
+    average_length_connection_cable = models.FloatField(null=True, blank=True)
+    cost_grid = models.PositiveIntegerField(null=True, blank=True)
+    cost_shs = models.PositiveIntegerField(null=True, blank=True)
+    lcoe = models.PositiveIntegerField(null=True, blank=True)
+    res = models.FloatField(null=True, blank=True)
+    shortage_total = models.FloatField(null=True, blank=True)
+    surplus_rate = models.FloatField(null=True, blank=True)
+    cost_renewable_assets = models.FloatField(null=True, blank=True)
+    cost_non_renewable_assets = models.FloatField(null=True, blank=True)
+    cost_fuel = models.FloatField(null=True, blank=True)
+    pv_capacity = models.FloatField(null=True, blank=True)
+    battery_capacity = models.FloatField(null=True, blank=True)
+    inverter_capacity = models.FloatField(null=True, blank=True)
+    rectifier_capacity = models.FloatField(null=True, blank=True)
+    diesel_genset_capacity = models.FloatField(null=True, blank=True)
+    peak_demand = models.FloatField(null=True, blank=True)
+    surplus = models.FloatField(null=True, blank=True)
+    fuel_to_diesel_genset = models.FloatField(null=True, blank=True)
+    diesel_genset_to_rectifier = models.FloatField(null=True, blank=True)
+    diesel_genset_to_demand = models.FloatField(null=True, blank=True)
+    rectifier_to_dc_bus = models.FloatField(null=True, blank=True)
+    pv_to_dc_bus = models.FloatField(null=True, blank=True)
+    battery_to_dc_bus = models.FloatField(null=True, blank=True)
+    dc_bus_to_battery = models.FloatField(null=True, blank=True)
+    dc_bus_to_inverter = models.FloatField(null=True, blank=True)
+    dc_bus_to_surplus = models.FloatField(null=True, blank=True)
+    inverter_to_demand = models.FloatField(null=True, blank=True)
+    time_grid_design = models.FloatField(null=True, blank=True)
+    time_energy_system_design = models.FloatField(null=True, blank=True)
+    time = models.FloatField(null=True, blank=True)
+    co2_savings = models.FloatField(null=True, blank=True)
+    max_voltage_drop = models.FloatField(null=True, blank=True)
+    infeasible = models.PositiveSmallIntegerField(null=True, blank=True)
+    average_annual_demand_per_consumer = models.FloatField(null=True, blank=True)
+    total_annual_consumption = models.FloatField(null=True, blank=True)
+    upfront_invest_grid = models.FloatField(null=True, blank=True)
+    upfront_invest_diesel_gen = models.FloatField(null=True, blank=True)
+    upfront_invest_inverter = models.FloatField(null=True, blank=True)
+    upfront_invest_rectifier = models.FloatField(null=True, blank=True)
+    upfront_invest_battery = models.FloatField(null=True, blank=True)
+    upfront_invest_pv = models.FloatField(null=True, blank=True)
+    co2_emissions = models.FloatField(null=True, blank=True)
+    fuel_consumption = models.FloatField(null=True, blank=True)
+    base_load = models.FloatField(null=True, blank=True)
+    max_shortage = models.FloatField(null=True, blank=True)
+    epc_total = models.FloatField(null=True, blank=True)
+    epc_pv = models.FloatField(null=True, blank=True)
+    epc_diesel_genset = models.FloatField(null=True, blank=True)
+    epc_inverter = models.FloatField(null=True, blank=True)
+    epc_rectifier = models.FloatField(null=True, blank=True)
+    epc_battery = models.FloatField(null=True, blank=True)
