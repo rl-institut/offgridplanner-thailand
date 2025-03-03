@@ -241,7 +241,7 @@ def energy_system_design(request,proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
-    return render(request, "pages/simulation_results.html")
+    return render(request, "pages/simulation_results.html", context={"proj_id": proj_id})
 
 
 

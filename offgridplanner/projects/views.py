@@ -7,6 +7,7 @@ import numpy as np
 
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
+from django.forms import model_to_dict
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
@@ -18,7 +19,8 @@ import pandas as pd
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
 
-from offgridplanner.projects.models import Project, Nodes, CustomDemand, Options, GridDesign, Energysystemdesign
+from offgridplanner.projects.models import Project, Nodes, CustomDemand, Options, GridDesign, Energysystemdesign, \
+    Results
 from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
 
@@ -193,7 +195,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
         if project.user != request.user:
             raise PermissionDenied
         nodes = get_object_or_404(Nodes, project=project)
-        df = pd.read_json(StringIO(nodes.data)) if nodes is not None else pd.DataFrame()
+        df = nodes.df if nodes is not None else pd.DataFrame()
         if not df.empty:
             df = df[
                 [
@@ -270,7 +272,7 @@ def consumer_to_db(request, proj_id=None):
         if df.empty:
             Nodes.objects.filter(project=project).delete()
             return
-        df["node_type"] = df["node_type"].astype(str)
+        df["node_type"] = str(df["node_type"])
         if len(df.index) != 0:
             if 'parent' in df.columns:
                 df['parent'] = df['parent'].replace('unknown', None)
@@ -369,12 +371,12 @@ def load_demand_plot_data(request, proj_id=None):
 #         return
 #     forward, redirect = await async_queries.check_data_availability(user.id, project_id)
 #     if forward is False:
-#         return JSONResponse({'task_id': '', 'redirect': redirect})
+#         return JsonResponse({'task_id': '', 'redirect': redirect})
 #     task_id = await optimization(user.id, project_id)
 #     user.task_id = task_id
 #     user.project_id = int(project_id)
 #     await async_inserts.update_model_by_user_id(user)
-#     return JSONResponse({'task_id': task_id, 'redirect': ''})
+#     return JsonResponse({'task_id': task_id, 'redirect': ''})
 
 # async def check_data_availability(user_id, project_id):
 #     project_setup = await get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
@@ -461,3 +463,112 @@ def start_optimization(request, proj_id):
             raise PermissionDenied
 
     pass
+
+
+def load_results(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+    opts = project.options
+    res = Results.objects.get(project=project)
+    df = pd.Series(model_to_dict(res))
+    # TODO delete
+    df.fillna(0.1, inplace=True)
+    infeasible = bool(df["infeasible"]) if "infeasible" in df else False
+    if df.empty:
+        return JsonResponse({})
+    # TODO figure out this logic - I changed it so it would run through but it doesnt make so much sense to me
+    # if df['lcoe'] is None and opts.do_es_design_optimization is True:
+    #     return JsonResponse({})
+    # elif df['n_poles']is None and opts.do_grid_optimization is True:
+    #     return JsonResponse({})
+    if opts.do_grid_optimization is True:
+        df["average_length_distribution_cable"] = df["length_distribution_cable"] / df["n_distribution_links"]
+        df["average_length_connection_cable"] = df["length_connection_cable"] / df["n_connection_links"]
+        df["gridLcoe"] = float(df['cost_grid']) / float(df["epc_total"]) * 100
+    else:
+        df["average_length_distribution_cable"] = None
+        df["average_length_connection_cable"] = None
+        df["gridLcoe"] = 0
+    df[["time_grid_design", "time_energy_system_design"]] = df[["time_grid_design", "time_energy_system_design"]].fillna(0)
+    df["time"] = (df["time_grid_design"] + df["time_energy_system_design"])
+    unit_dict = {'n_poles': '',
+                 'n_consumers': '',
+                 'n_shs_consumers': '',
+                 'length_distribution_cable': 'm',
+                 'average_length_distribution_cable': 'm',
+                 'length_connection_cable': 'm',
+                 'average_length_connection_cable': 'm',
+                 'cost_grid': 'USD/a',
+                 'lcoe': '',
+                 'gridLcoe': '%',
+                 'esLcoe': '%',
+                 'res': '%',
+                 'max_voltage_drop': '%',
+                 'shortage_total': '%',
+                 'surplus_rate': '%',
+                 'time': 's',
+                 'co2_savings': 't/a',
+                 'total_annual_consumption': 'kWh/a',
+                 'average_annual_demand_per_consumer': 'W',
+                 'upfront_invest_grid': 'USD',
+                 'upfront_invest_diesel_gen': 'USD',
+                 'upfront_invest_inverter': 'USD',
+                 'upfront_invest_rectifier': 'USD',
+                 'upfront_invest_battery': 'USD',
+                 'upfront_invest_pv': 'USD',
+                 'upfront_invest_converters': 'USD',
+                 'upfront_invest_total': 'USD',
+                 'battery_capacity': 'kWh',
+                 'pv_capacity': 'kW',
+                 'diesel_genset_capacity': 'kW',
+                 'inverter_capacity': 'kW',
+                 'rectifier_capacity': 'kW',
+                 'co2_emissions': 't/a',
+                 'fuel_consumption': 'liter/a',
+                 'peak_demand': 'kW',
+                 'base_load': 'kW',
+                 'max_shortage': '%',
+                 'cost_fuel': 'USD/a',
+                 'epc_pv': 'USD/a',
+                 'epc_diesel_genset': 'USD/a',
+                 'epc_inverter': 'USD/a',
+                 'epc_rectifier': 'USD/a',
+                 'epc_battery': 'USD/a',
+                 'epc_total': 'USD/a'
+                 }
+    if opts.do_es_design_optimization is True:
+        df["esLcoe"] = (float(df["epc_total"]) - float(df['cost_grid'])) / float(df["epc_total"]) * 100
+        if int(df['n_consumers']) != int(df['n_shs_consumers']) and not infeasible:
+            df['upfront_invest_converters'] = sum(
+                df[col] for col in df.columns if 'upfront' in col and 'grid' not in col)
+            df['upfront_invest_total'] = df['upfront_invest_converters'] + df['upfront_invest_grid']
+        else:
+            df['upfront_invest_converters'] = None
+            df['upfront_invest_total'] = None
+    else:
+        df['upfront_invest_converters'] = None
+        df['upfront_invest_total'] = None
+        df["esLcoe"] = 0
+    df = df[list(unit_dict.keys())].round(1).astype(str)
+    # TODO formatting, figure out later
+    # for col in df.keys():
+    #     if unit_dict[col] in ['%', 's', 'kW', 'kWh']:
+    #         df[col] = df[col].where(df[col] != 'None', 0)
+    #         if df[col].isna().sum() == 0:
+    #             df[col] = df[col].astype(float).round(1).astype(str)
+    #     elif unit_dict[col] in ['USD', 'kWh/a', 'USD/a']:
+    #         if df[col].isna().sum() == 0 and df.loc[0, col] != 'None':
+    #             df[col] = "{:,}".format(df[col].astype(float).astype(int).iat[0])
+    #     df[col] = df[col] + ' ' + unit_dict[col]
+    df["do_grid_optimization"] = opts.do_grid_optimization
+    df["do_es_design_optimization"] = opts.do_es_design_optimization
+    results = df.to_dict()
+    if infeasible is True:
+        results['responseMsg'] = 'There are no results of the energy system optimization. There were no feasible ' \
+                                 'solution.'
+    elif int(results['n_consumers']) == int(results['n_shs_consumers']):
+        results['responseMsg'] = 'Due to high grid costs, all consumers have been equipped with solar home ' \
+                                 'systems. A grid was not built, therefore no optimization of the energy system was ' \
+                                 'carried out.'
+    else:
+        results['responseMsg'] = ''
+    return JsonResponse(results, status=200)

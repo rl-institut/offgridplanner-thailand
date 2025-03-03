@@ -6,9 +6,8 @@
 
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+{% block head_block %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link href="{% static 'css/pages/simulation_results.css' %}"
@@ -23,8 +22,8 @@
         max-height: 9999px;
       }
     </style>
-  </head>
-  <body onload="redirect_if_cookie_is_missing(true, true); update_wizards_and_buttons_based_on_planning_step_selection({{ project_id }}, 'simulation_results'); load_results({{ project_id }}); show_email_and_project_in_navbar({{ project_id }});">
+{% endblock head_block %}
+  <body>
     {% block content %}
       <main>
         <section id="dashboard" class="dashboard">
@@ -156,7 +155,7 @@
                           margin-right: 10px;
                           margin-left: 10px"
                    href="javascript:void(0);"
-                   onclick="forward_if_no_task_is_pending({{ project_id }});">Recalculate</a>
+                   onclick="forward_if_no_task_is_pending({{ proj_id }});">Recalculate</a>
                 <a class="btn btn--medium"
                    style="height: 32px;
                           display: flex;
@@ -524,13 +523,13 @@
               <div style="text-align: center;">
                 <!-- Added text-align here -->
                 <a href="javascript:void(0);"
-                   onclick="forward_if_no_task_is_pending({{ project_id }});"
+                   onclick="forward_if_no_task_is_pending({{ proj_id }});"
                    class="btn btn--long"
                    style="display: block;
                           margin: 10px auto;
                           max-width: 300px">Yes, start
                 calculation</a>
-                <a href="project_setup?project_id={{ project_id }}"
+                <a href="project_setup?proj_id={{ proj_id }}"
                    class="btn btn--long"
                    style="display: block;
                           margin: 10px auto;
@@ -565,10 +564,18 @@
       </main>
     {% endblock content %}
   </body>
-  <script src="{% static 'js/integrate_map.js') }}"></script>
+
+{% block end_body_scripts %}
+    <script>
+      const proj_id = '{{ proj_id }}';
+      const loadResultsUrl = `{% url 'projects:load_results' proj_id %}`;
+      const dbNodesToJsUrl = `{% url 'projects:db_nodes_to_js' proj_id %}`;
+    </script>
+  <script src="{% static 'js/integrate_map.js' %}"></script>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  <script src="{% static 'js/third_party/plotly.js') }}"></script>
+  <script src="{% static 'js/third_party/plotly.js' %}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
-  <script src="{% static 'js/pages/simulation_results.js') }}"></script>
-  <script src="{% static 'js/backend_communication.js') }}"></script>
+  <script src="{% static 'js/pages/simulation_results.js' %}"></script>
+  <script src="{% static 'js/backend_communication.js' %}"></script>
+{% endblock end_body_scripts %}
 </html>

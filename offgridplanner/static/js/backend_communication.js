@@ -448,7 +448,7 @@ let hasRetried = false;
 
 async function load_results(project_id) {
     try {
-        const url = "load_results/" + project_id;
+        const url = loadResultsUrl;
         const response = await fetch(url);
 
         if (!response.ok) {

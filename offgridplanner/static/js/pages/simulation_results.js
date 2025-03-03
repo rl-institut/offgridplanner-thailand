@@ -1,6 +1,10 @@
 // Flag to track if a download is in progress
 let isDownloadingCSV = false;
 
+document.addEventListener('DOMContentLoaded', function () {
+    load_results(proj_id);
+});
+
 document.getElementById('downloadCSV').addEventListener('click', function (event) {
     event.preventDefault();
 
@@ -1208,5 +1212,3 @@ function plot_demand_24h(data) {
     // Render plot with the traces
     Plotly.react(demandTs, dataTraces, layout);
 }
-
-
