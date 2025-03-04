@@ -9,9 +9,12 @@ Additionally, it includes functions to check the status of these tasks, identify
 or been revoked. This setup enables efficient, asynchronous processing of complex tasks and user management.
 """
 from celery import shared_task
+from celery.result import AsyncResult
 
 from offgridplanner.opt_models.grid_optimizer import optimize_grid
 from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
+from offgridplanner.projects.models import Simulation
+
 
 @shared_task
 def hello():
@@ -37,18 +40,15 @@ def task_supply_opt(proj_id):
     result = optimize_energy_system(proj_id)
     return result
 
+def get_status(task_id):
+    task = AsyncResult(task_id)
+    status = task.state.lower()
+    return status
 
 
-# TODO should be able to get this just with res.state.lower()
-
-# def get_status_of_task(task_id):
-#     status = worker.AsyncResult(task_id).status.lower()
-#     return status
-
-
-# def task_is_finished(task_id):
-#     status = get_status_of_task(task_id)
-#     if status in ['success', 'failure', 'revoked']:
-#         return True
-#     else:
-#         return False
+def task_is_finished(task_id):
+    status = get_status(task_id)
+    if status in ['success', 'failure', 'revoked']:
+        return True
+    else:
+        return False

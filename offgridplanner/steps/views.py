@@ -244,6 +244,7 @@ def energy_system_design(request,proj_id=None):
 
 
 def calculating(request, proj_id=None):
+    # TODO currently the optimization is always triggered through js, add option to reset simulation or skip page if is complete (like open-plan)
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:

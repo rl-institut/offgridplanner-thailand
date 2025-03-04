@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import time
 from collections import defaultdict
 from io import StringIO
 import numpy as np
@@ -18,11 +19,12 @@ from django.contrib import messages
 import pandas as pd
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
-
 from offgridplanner.projects.models import Project, Nodes, CustomDemand, Options, GridDesign, Energysystemdesign, \
-    Results
+    Results, Simulation
 from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
+from offgridplanner.projects.tasks import task_grid_opt, task_supply_opt, get_status, task_is_finished, hello
+
 
 # @login_required
 @require_http_methods(["GET"])
@@ -362,62 +364,107 @@ def load_demand_plot_data(request, proj_id=None):
     timeseries["Average"] = timeseries["Average"].tolist()
     return JsonResponse({"timeseries": timeseries}, status=200)
 
-# @app.post("/start_calculation/{project_id}")
-# async def start_calculation(project_id, request: Request):
-#     if project_id is None:
-#         project_id = request.query_params.get('project_id')
-#     user = await handle_user_accounts.get_user_from_cookie(request)
-#     if user is None:
-#         return
-#     forward, redirect = await async_queries.check_data_availability(user.id, project_id)
-#     if forward is False:
-#         return JsonResponse({'task_id': '', 'redirect': redirect})
-#     task_id = await optimization(user.id, project_id)
-#     user.task_id = task_id
-#     user.project_id = int(project_id)
-#     await async_inserts.update_model_by_user_id(user)
-#     return JsonResponse({'task_id': task_id, 'redirect': ''})
+
+def start_calculation(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+
+    simulation = project.simulation
+    # TODO set up redirect later if we keep this
+    # forward, redirect = await async_queries.check_data_availability(user.id, project_id)
+    # if forward is False:
+    #     return JsonResponse({'task_id': '', 'redirect': redirect})
+    task_id = optimization(proj_id)
+    simulation.task_id = task_id
+    simulation.save()
+
+    return JsonResponse({'task_id': task_id, 'redirect': ''})
 
 # async def check_data_availability(user_id, project_id):
-#     project_setup = await get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
-#     if project_setup is None:
-#         return False, '/project_setup/?project_id=' + str(project_id)
-#     nodes = await get_model_instance(sa_tables.Nodes, user_id, project_id)
-#     nodes_df = pd.read_json(nodes.data) if nodes is not None else None
-#     if nodes_df is None or nodes_df.empty or nodes_df[nodes_df['node_type'] == 'consumer'].index.__len__() == 0:
-#         if project_setup.do_demand_estimation and project_setup.do_es_design_optimization:
-#             return False, '/consumer_selection/?project_id=' + str(project_id)
-#     demand_opt_dict = await get_model_instance(sa_tables.Demand, user_id, project_id)
-#     if demand_opt_dict is None or pd.isna(demand_opt_dict.household_option):
-#         return False, '/demand_estimation/?project_id=' + str(project_id)
-#     if project_setup.do_grid_optimization is True:
-#         grid_design = await get_model_instance(sa_tables.GridDesign, user_id, project_id)
-#         if grid_design is None or pd.isna(grid_design.pole_lifetime):
-#             return False, '/grid_design/?project_id=' + str(project_id)
-#     if project_setup.do_es_design_optimization is True:
-#         energy_system_design = await get_model_instance(sa_tables.EnergySystemDesign, user_id, project_id)
-#         if energy_system_design is None or pd.isna(energy_system_design.battery__parameters__c_rate_in):
-#             return False, '/energy_system_design/?project_id=' + str(project_id)
-#     return True, None
+    # TODO checks data availability and redirects the user if missing - not sure we want to keep this
+    # project_setup = await get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
+    # if project_setup is None:
+    #     return False, '/project_setup/?project_id=' + str(project_id)
+    # nodes = await get_model_instance(sa_tables.Nodes, user_id, project_id)
+    # nodes_df = pd.read_json(nodes.data) if nodes is not None else None
+    # if nodes_df is None or nodes_df.empty or nodes_df[nodes_df['node_type'] == 'consumer'].index.__len__() == 0:
+    #     if project_setup.do_demand_estimation and project_setup.do_es_design_optimization:
+    #         return False, '/consumer_selection/?project_id=' + str(project_id)
+    # demand_opt_dict = await get_model_instance(sa_tables.Demand, user_id, project_id)
+    # if demand_opt_dict is None or pd.isna(demand_opt_dict.household_option):
+    #     return False, '/demand_estimation/?project_id=' + str(project_id)
+    # if project_setup.do_grid_optimization is True:
+    #     grid_design = await get_model_instance(sa_tables.GridDesign, user_id, project_id)
+    #     if grid_design is None or pd.isna(grid_design.pole_lifetime):
+    #         return False, '/grid_design/?project_id=' + str(project_id)
+    # if project_setup.do_es_design_optimization is True:
+    #     energy_system_design = await get_model_instance(sa_tables.EnergySystemDesign, user_id, project_id)
+    #     if energy_system_design is None or pd.isna(energy_system_design.battery__parameters__c_rate_in):
+    #         return False, '/energy_system_design/?project_id=' + str(project_id)
+    # return True, None
 
-# async def optimization(user_id, project_id):
-#     await async_inserts.remove_results(user_id, project_id)
-#     project_setup = await async_queries.get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
-#     project_setup.status = "queued"
-#     await async_inserts.merge_model(project_setup)
-#     if bool(os.environ.get('DOCKERIZED')):
-#         if project_setup.do_grid_optimization is True:
-#             task = task_grid_opt.delay(user_id, project_id)
-#         else:
-#             task = task_supply_opt.delay(user_id, project_id)
-#         return task.id
-#     else:  # if app is not running in docker, celery isn't available
-#         if project_setup.do_grid_optimization is True:
-#             optimize_grid(user_id, project_id)
-#         if project_setup.do_es_design_optimization is True:
-#             optimize_energy_system(user_id, project_id)
-#         return 'no_celery_id'
+def optimization(proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+    opts = project.options
+    simulation = Simulation.objects.get(project=project)
+    simulation.status = "queued"
+    simulation.save()
+    if opts.do_grid_optimization is True:
+        task = task_grid_opt.delay(proj_id)
+    else:
+        task = task_supply_opt.delay(proj_id)
+    return task.id
 
+def waiting_for_results(request):
+    body_unicode = request.body.decode('utf-8')
+    data = json.loads(body_unicode)
+    total_time = data["time"]
+    task_id = data["task_id"]
+    model = data["model"]
+    finished = False
+    wait_time = 10
+
+    status = get_status(task_id)
+
+    if task_is_finished(task_id):
+        print(f"Task {model} optimization finished")
+        sim = Simulation.objects.get(task_id=task_id)
+        project = sim.project
+
+        # Grid opt is finished, proceed to supply opt
+        if model == "grid" and project.options.do_es_design_optimization:
+            # TODO for testing purposes while supply_opt is not ready, fix later
+            # new_task = task_supply_opt.delay(project.id)
+            new_task = hello.delay()
+            sim.task_id = new_task.id
+            sim.save()
+            finished = False
+            model = "supply"
+            status = "power supply optimization is running..."
+            task_id = new_task.id
+
+        # Supply opt is finished
+        else:
+            sim.status = "finished" if status in ['success', 'failure', 'revoked'] else status
+            # TODO: decide whether to keep or clear task_id
+            # sim.task_id = None
+            sim.save()
+            finished = True
+            status = sim.status
+    else:
+        print(f"task {model} optimization pending")
+        # If the task is still running, retry after a calculated delay
+        time.sleep(wait_time)
+        total_time += wait_time
+
+    # Prepare response structure
+    response = {
+        "time": total_time,
+        "status": status,
+        "task_id": task_id,
+        "model": model,
+        "finished": finished
+    }
+    return JsonResponse(response)
 
 def get_project_data(project):
     # TODO in the original function the user is redirected to whatever page has missing data, i would rather do an error message
@@ -455,20 +502,10 @@ def get_project_data(project):
         return proj_data
 
 
-
-def start_optimization(request, proj_id):
-    if proj_id is not None:
-        project = get_object_or_404(Project, id=proj_id)
-        if project.user != request.user:
-            raise PermissionDenied
-
-    pass
-
-
 def load_results(request, proj_id):
     project = get_object_or_404(Project, id=proj_id)
     opts = project.options
-    res = Results.objects.get(project=project)
+    res = project.simulation.results
     df = pd.Series(model_to_dict(res))
     # TODO delete
     df.fillna(0.1, inplace=True)
@@ -572,3 +609,12 @@ def load_results(request, proj_id):
     else:
         results['responseMsg'] = ''
     return JsonResponse(results, status=200)
+# TODO define later based on results models - could also be a method in the results model
+def remove_results(user_id, project_id):
+    # await remove(sa_tables.Results, user_id, project_id)
+    # await remove(sa_tables.DemandCoverage, user_id, project_id)
+    # await remove(sa_tables.EnergyFlow, user_id, project_id)
+    # await remove(sa_tables.Emissions, user_id, project_id)
+    # await remove(sa_tables.DurationCurve, user_id, project_id)
+    # await remove(sa_tables.Links, user_id, project_id)
+    pass
