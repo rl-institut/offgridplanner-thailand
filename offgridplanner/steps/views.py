@@ -11,8 +11,12 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
+from offgridplanner.opt_models.grid_optimizer import optimize_grid
+from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
 from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, GridDesignForm
-from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign
+from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign, \
+    Simulation
+from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
@@ -22,6 +26,7 @@ STEPS = [
     _("demand_estimation"),
     _("grid_design"),
     _("energy_system_design"),
+    _("calculating"),
     _("simulation_results"),
 ]
 
@@ -236,6 +241,36 @@ def energy_system_design(request,proj_id=None):
         es.project = project
         es.save()
         return JsonResponse({"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},status=200)
+
+
+def calculating(request, proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+
+        simulation, _ = Simulation.objects.get_or_create(project=project)
+        if 'anonymous' in project.user.email:
+            msg = 'You will be forwarded after the model calculation is completed.'
+            email_opt = False
+        else:
+            msg = 'You will be forwarded after the model calculation is completed. You can also close the window and view' \
+                  ' the results in your user account after the calculation is finished.'
+            email_opt = False
+        # TODO there was also the condition len(project.task_id) > 20 but I'm not sure why it is needed
+        if simulation.task_id is not None and not task_is_finished(simulation.task_id):
+            msg = 'CAUTION: You have a calculation in progress that has not yet been completed. Therefore you cannot' \
+                  ' start another calculation. You can cancel the already running calculation by clicking on the' \
+                  ' following button:'
+
+        context = {
+            'proj_id': proj_id,
+            'msg': msg,
+            'task_id': simulation.task_id,
+            'time': 3,
+            'email_opt': email_opt
+        }
+        return render(request, "pages/calculating.html", context)
 
 
 # @login_required()

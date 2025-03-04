@@ -1,3 +1,9 @@
+{% extends 'step_progression.html' %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+{% load i18n %}
+
 <!DOCTYPE html>
 <html lang="en-us">
 
@@ -27,7 +33,7 @@
                         {% endif %}
                         <a>{{ msg }}</a>
                         <p></p>
-                        <a href='energy_system_design/?project_id={{ project_id }}'
+                        <a href='energy_system_design/?project_id={{ proj_id }}'
                            class="btn btn--long text-right"
                            onclick="revoke_users_task();"
                         >Abort Calculation</a>
@@ -59,9 +65,23 @@
             } else {
                 is_active = false;
             }
-            send_email_notification({{ project_id }}, is_active)
+            send_email_notification({{ proj_id }}, is_active)
         });
     </script>
 {% endif %}
+
+{% block end_body_scripts %}
 <script src="{% static 'js/backend_communication.js' %}"></script>
+<script>
+  const proj_id = '{{ proj_id }}';
+  const csrfToken = '{{ csrf_token }}';
+  const startCalculationUrl = `{% url 'projects:start_calculation' proj_id %}`;
+  const waitingForResultsUrl = `{% url 'projects:waiting_for_results' %}`;
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      start_calculation(proj_id);
+  });
+</script>
+{% endblock end_body_scripts %}
 </html>

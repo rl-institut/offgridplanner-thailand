@@ -986,7 +986,7 @@ async function wait_for_results(project_id, task_id, time, model) {
     // If the url includes /calculating, proceed with the request
     if (url.includes("/calculating") && !shouldStop) {
         try {
-            const response = await fetch("waiting_for_results/", {
+            const response = await fetch(waitingForResultsUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1068,7 +1068,7 @@ async function revoke_users_task() {
 
 
 function start_calculation(project_id) {
-    fetch("start_calculation/" + project_id, {
+    fetch(startCalculationUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
