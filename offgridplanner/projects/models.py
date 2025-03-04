@@ -38,7 +38,6 @@ class Project(models.Model):
     start_date = models.DateTimeField(default=default_start_date)
     temporal_resolution = models.PositiveSmallIntegerField(default=1)
     n_days = models.PositiveSmallIntegerField(default=365)
-    status = models.CharField(max_length=25, default="not yet started")
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -234,11 +233,14 @@ class WeatherData(models.Model):
         return f"WeatherData({self.dt}, {self.lat}, {self.lon})"
 
 
-from django.db import models
+class Simulation(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    task_id = models.CharField(max_length=80, null=True, blank=True)
+    status = models.CharField(max_length=25, default="not yet started")
 
 class Results(models.Model):
     # TODO potentially remove redundant fields that can just be calculated on the fly (e.g. upfront investment)
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
+    simulation = models.OneToOneField(Simulation, on_delete=models.CASCADE, null=True)
     n_consumers = models.PositiveSmallIntegerField(null=True, blank=True)
     n_shs_consumers = models.PositiveSmallIntegerField(null=True, blank=True)
     n_poles = models.PositiveSmallIntegerField(null=True, blank=True)
