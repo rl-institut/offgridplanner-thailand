@@ -36,6 +36,7 @@ class BaseOptimizer:
     def __init__(self, proj_id):
         self.project = Project.objects.get(id=proj_id)
         self.project_dict = model_to_dict(self.project)
+        self.simulation = self.project.simulation
         self.opts_dict = model_to_dict(self.project.options)
         self.grid_design_dict = model_to_dict(self.project.griddesign)
         self.custom_demand_dict = model_to_dict(self.project.customdemand)
@@ -49,7 +50,7 @@ class BaseOptimizer:
         self.start_datetime = pd.to_datetime('2022').to_pydatetime()
         self.dt_index = pd.date_range(self.start_datetime,
                                       self.start_datetime + pd.to_timedelta(n_days, unit="D"),
-                                      freq='H',
+                                      freq='h',
                                       inclusive='left')
         self.n_days = n_days
         self.project_lifetime = self.project_dict["lifetime"]

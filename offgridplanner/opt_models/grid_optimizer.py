@@ -242,7 +242,7 @@ class GridOptimizer(BaseOptimizer):
         links.save()
 
     def _results_to_db(self):
-        results, _ = Results.objects.get_or_create(project=self.project)
+        results, _ = Results.objects.get_or_create(simulation=self.simulation)
         results.n_consumers = len(self.consumers())
         results.n_shs_consumers = self.nodes[self.nodes["is_connected"] == False].index.__len__()
         results.n_poles = len(self._poles())
