@@ -985,6 +985,7 @@ async function wait_for_results(project_id, task_id, time, model) {
 
     // If the url includes /calculating, proceed with the request
     if (url.includes("/calculating") && !shouldStop) {
+        console.log("Fetching results...")
         try {
             const response = await fetch(waitingForResultsUrl, {
                 method: "POST",
@@ -997,13 +998,11 @@ async function wait_for_results(project_id, task_id, time, model) {
 
             if (response.ok) {
                 const res = await response.json();
-
                 if (res.finished === true) {
-                    window.location.href = window.location.origin + '/simulation_results?project_id=' + project_id;
+                    window.location.href = window.location.origin + '/steps/simulation_results/' + project_id;
                 } else if (!shouldStop) {
-                    document.querySelector("#statusMsg").innerHTML = res.status;
-                    await renewToken();
-                    await wait_for_results(project_id, task_id, res.time, res.model);
+                    document.getElementById("statusMsg").innerHTML = res.status;
+                    await wait_for_results(project_id, res.task_id, res.time, res.model);
                 }
             } else {
                 if (response.status === 303 || response.status === 422) {
@@ -1033,7 +1032,7 @@ async function forward_if_no_task_is_pending(project_id) {
             const res = await response.json();
 
             if (res.forward === true) {
-                window.location.href = window.location.origin + '/calculating?project_id=' + project_id;
+                window.location.href = window.location.origin + '/steps/calculating/' + project_id;
             } else {
                 document.getElementById('pendingTask').style.display = 'block';
             }
