@@ -1,3 +1,12 @@
+"""
+This module provides functions to identify buildings in OpenStreetMap within user-specified areas. It retrieves
+geographic data within specified latitude and longitude boundaries using the Overpass API, then processes this data
+to create GeoJSON. Functions in the module convert latitude and longitude to XY coordinates, check if points are
+within boundaries, and calculate building surface areas and mean coordinates. The module is designed to handle complex
+geographic data processing tasks efficiently, extracting meaningful information like building locations and dimensions
+from raw OpenStreetMap data.
+"""
+
 import datetime
 import json
 import time
@@ -6,16 +15,6 @@ import urllib.request
 import math
 import numpy as np
 from shapely import geometry
-
-"""
-
-This module provides functions to identify buildings in OpenStreetMap within user-specified areas. It retrieves
-geographic data within specified latitude and longitude boundaries using the Overpass API, then processes this data
-to create GeoJSON. Functions in the module convert latitude and longitude to XY coordinates, check if points are
-within boundaries, and calculate building surface areas and mean coordinates. The module is designed to handle complex
-geographic data processing tasks efficiently, extracting meaningful information like building locations and dimensions
-from raw OpenStreetMap data.
-"""
 
 
 def get_consumer_within_boundaries(df):
