@@ -2,6 +2,9 @@ from django.forms import model_to_dict
 from datetime import timedelta
 import numpy as np
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 from config.settings.base import FULL_PATH_PROFILES
 LOAD_PROFILES = pd.read_parquet(path=FULL_PATH_PROFILES, engine="pyarrow")
@@ -68,26 +71,32 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
         total_demand (pd.Series): Total demand for the given consumer type including machinery
     """
     node_counts = nodes.counts
-    consumer_type_counts = node_counts.loc[consumer_type]
+    try:
+        consumer_type_counts = node_counts.loc[consumer_type]
 
-    if consumer_type == "household":
-        custom_demand_parameters = model_to_dict(custom_demand)
-        total_demand = compute_household_demand(consumer_type_counts, custom_demand_parameters, load_profiles)
+        if consumer_type == "household":
+            custom_demand_parameters = model_to_dict(custom_demand)
+            total_demand = compute_household_demand(consumer_type_counts, custom_demand_parameters, load_profiles)
 
-    else:
-        total_demand = compute_standard_demand(consumer_type, consumer_type_counts, load_profiles)
+        else:
+            total_demand = compute_standard_demand(consumer_type, consumer_type_counts, load_profiles)
 
-    # Add machinery loads to enterprises
-    if consumer_type == "enterprise":
-        # Check if there are any large loads in the custom_specifications
-        if nodes.have_custom_machinery:
-            ent_nodes = nodes.filter_consumers("enterprise")
-            large_load_enterprises = ent_nodes[ent_nodes.custom_specification != ""]
-            machinery = unpack_machinery(large_load_enterprises)
+        # Add machinery loads to enterprises
+        if consumer_type == "enterprise":
+            # Check if there are any large loads in the custom_specifications
+            if nodes.have_custom_machinery:
+                ent_nodes = nodes.filter_consumers("enterprise")
+                large_load_enterprises = ent_nodes[ent_nodes.custom_specification != ""]
+                machinery = unpack_machinery(large_load_enterprises)
 
-            # Compute machinery demand and add to enterprises
-            machinery_demand = compute_standard_demand("machinery", machinery, load_profiles)
-            total_demand += machinery_demand
+                # Compute machinery demand and add to enterprises
+                machinery_demand = compute_standard_demand("machinery", machinery, load_profiles)
+                total_demand += machinery_demand
+
+    # consumer_type does not exist
+    except KeyError:
+        logger.warning(f"Can't compute demand for {consumer_type}, since none were selected")
+        total_demand = pd.Series(0, index=load_profiles.index)
 
     return total_demand
 
