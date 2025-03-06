@@ -61,6 +61,10 @@ extend-exclude = [
     "staticfiles/*",
 ]
 
+# Same as Black.
+line-length = 88
+indent-width = 4
+
 [tool.ruff.lint]
 select = [
   "F",
@@ -96,7 +100,7 @@ select = [
   'PT',
   "Q",
   "RSE",
-  "RET",
+  #"RET", # would be nice as look for return statments
   "SLF",
   "SLOT",
   "SIM",
@@ -126,6 +130,12 @@ ignore = [
           # of types for comparison.
           # Deactivated because it can make the code slow:
           # https://github.com/astral-sh/ruff/issues/7871
+  "E501", # line too long
+  "ERA001", #
+  "T201",  # print statements found
+  "F841",  # unused variable
+  "PD901", # Avoid using the generic variable name `df` for DataFrames
+  "F405", # `...` may be undefined, or defined from star imports
 ]
 # The fixes in extend-unsafe-fixes will require
 # provide the `--unsafe-fixes` flag when fixing.
