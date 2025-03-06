@@ -34,9 +34,11 @@ class BaseOptimizer:
     """
 
     def __init__(self, proj_id):
+        print("Initiating base optimizer...")
         self.project = Project.objects.get(id=proj_id)
         self.project_dict = model_to_dict(self.project)
         self.simulation = self.project.simulation
+        self.results, _ = Results.objects.get_or_create(simulation=self.simulation)
         self.opts_dict = model_to_dict(self.project.options)
         self.grid_design_dict = model_to_dict(self.project.griddesign)
         self.custom_demand_dict = model_to_dict(self.project.customdemand)

@@ -111,11 +111,9 @@ class GridOptimizer(BaseOptimizer):
 
     def __init__(self, proj_id):
         super().__init__(proj_id)
-        print("Starting grid optimizer")
+        print("Initiating grid optimizer...")
         # TODO go through the helper functions and figure out what they do / document
         self._update_project_status_in_db()
-        # self.user_id = user_id
-        # self.project = Project.objects.get(id=proj_id)
         self.nodes_df, self.power_house = self._query_nodes()
         self.links = pd.DataFrame(
             {"label": pd.Series([], dtype=str),
@@ -242,7 +240,7 @@ class GridOptimizer(BaseOptimizer):
         links.save()
 
     def _results_to_db(self):
-        results, _ = Results.objects.get_or_create(simulation=self.simulation)
+        results = self.results
         results.n_consumers = len(self.consumers())
         results.n_shs_consumers = self.nodes[self.nodes["is_connected"] == False].index.__len__()
         results.n_poles = len(self._poles())
