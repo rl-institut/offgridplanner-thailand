@@ -1,7 +1,10 @@
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 from django.contrib.auth import forms as admin_forms
-from django.forms import EmailField, CharField, BooleanField, TextInput
+from django.forms import BooleanField
+from django.forms import CharField
+from django.forms import EmailField
+from django.forms import TextInput
 from django.utils.translation import gettext_lazy as _
 
 from .models import User
@@ -35,8 +38,10 @@ class UserSignupForm(SignupForm):
     Default fields will be added automatically.
     Check UserSocialSignupForm for accounts created from social.
     """
+
     email = CharField(
-        required=True, widget=TextInput(attrs={"placeholder": "name@example.com"})
+        required=True,
+        widget=TextInput(attrs={"placeholder": "name@example.com"}),
     )
 
     accept_privacy = BooleanField(required=True)
@@ -45,11 +50,10 @@ class UserSignupForm(SignupForm):
         privacy_url = kwargs.pop("privacy_url", "")
         super().__init__(*args, **kwargs)
         self.fields["accept_privacy"].label = _(
-            "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from open_plan"
+            "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from open_plan",
         ) % {"privacy_url": privacy_url}
 
     def save(self, request):
-
         # Ensure you call the parent class's save.
         # .save() returns a User object.
         user = super(UserSignupForm, self).save(request)

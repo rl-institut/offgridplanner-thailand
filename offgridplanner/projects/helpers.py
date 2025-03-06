@@ -1,8 +1,11 @@
-import os
 import io
+import os
+
 import numpy as np
 import pandas as pd
-from offgridplanner.projects.models import Project, Options
+
+from offgridplanner.projects.models import Options
+from offgridplanner.projects.models import Project
 
 
 def load_project_from_dict(model_data, user=None):
@@ -65,7 +68,7 @@ def check_imported_consumer_data(df):
         )
     allowed_values_shs_option = [0, 1]
     falsy_values_shs_option = set(df["shs_options"].unique()) - set(
-        allowed_values_shs_option
+        allowed_values_shs_option,
     )
     if len(falsy_values_shs_option) > 0:
         return (
@@ -121,7 +124,7 @@ def check_imported_consumer_data(df):
         "",
     ]
     falsy_values_consumer_detail = set(df["consumer_detail"].unique()) - set(
-        valid_consumer_details
+        valid_consumer_details,
     )
     if len(falsy_values_consumer_detail) > 0:
         return (
@@ -152,7 +155,7 @@ def check_imported_consumer_data(df):
             f"Values of 'custom_specification' must start with an integer followed by \" x \"  {valid_custom_specifications}. Falsy values passed: {list(non_matching_values)}.",
         )
     falsy_values_custom_specification = set(processed_loads) - set(
-        valid_custom_specifications
+        valid_custom_specifications,
     )
     if len(falsy_values_custom_specification) > 0:
         return (
@@ -171,13 +174,13 @@ def check_imported_consumer_data(df):
         try:
             df[column] = df[column].astype(dtype)
         except ValueError as e:
-            return None, f"Error converting '{column}' to {dtype.__name__}: {str(e)}"
+            return None, f"Error converting '{column}' to {dtype.__name__}: {e!s}"
     if df["latitude"].max() - df["latitude"].min() > float(
-        os.environ.get("MAX_LAT_LON_DIST", 0.15)
+        os.environ.get("MAX_LAT_LON_DIST", 0.15),
     ) or df["longitude"].max() - df["longitude"].min() > float(
-        os.environ.get("MAX_LAT_LON_DIST", 0.15)
+        os.environ.get("MAX_LAT_LON_DIST", 0.15),
     ):
-        return None, f"Distance between consumers exceeds maximum allowed distance."
+        return None, "Distance between consumers exceeds maximum allowed distance."
     nigeria_bounds = {
         "latitude_min": 4.2,
         "latitude_max": 13.9,
@@ -220,7 +223,7 @@ def df_to_file(df, file_type):
         df.to_excel(output, index=False, engine="xlsxwriter")
         output.seek(0)
         return io.BytesIO(output.getvalue())
-    elif file_type == "csv":
+    if file_type == "csv":
         output = io.StringIO()
         df.to_csv(output, index=False)
         output.seek(0)
@@ -237,7 +240,7 @@ def consumer_data_to_file(df, file_type):
                 "custom_specification",
                 "shs_options",
                 "consumer_detail",
-            ]
+            ],
         )
     else:
         df = df.drop(columns=["is_connected", "how_added", "node_type"])

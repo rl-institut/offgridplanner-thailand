@@ -1,8 +1,7 @@
-from django.forms import model_to_dict
-from datetime import timedelta
-import numpy as np
-import pandas as pd
 import logging
+
+import pandas as pd
+from django.forms import model_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +29,16 @@ def get_demand_timeseries(nodes, custom_demand, time_range=None):
     # TODO consider not only n_days but also start_date on time_range
     demand_df = pd.DataFrame(index=load_profiles.index)
     demand_df["household"] = combine_profiles(
-        nodes, "household", load_profiles, custom_demand=custom_demand
+        nodes,
+        "household",
+        load_profiles,
+        custom_demand=custom_demand,
     )
     demand_df["enterprise"] = combine_profiles(nodes, "enterprise", load_profiles)
     demand_df["public_service"] = combine_profiles(
-        nodes, "public_service", load_profiles
+        nodes,
+        "public_service",
+        load_profiles,
     )
 
     demand_df = calibrate_profiles(demand_df, custom_demand)
@@ -87,12 +91,16 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
         if consumer_type == "household":
             custom_demand_parameters = model_to_dict(custom_demand)
             total_demand = compute_household_demand(
-                consumer_type_counts, custom_demand_parameters, load_profiles
+                consumer_type_counts,
+                custom_demand_parameters,
+                load_profiles,
             )
 
         else:
             total_demand = compute_standard_demand(
-                consumer_type, consumer_type_counts, load_profiles
+                consumer_type,
+                consumer_type_counts,
+                load_profiles,
             )
 
         # Add machinery loads to enterprises
@@ -105,14 +113,16 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
 
                 # Compute machinery demand and add to enterprises
                 machinery_demand = compute_standard_demand(
-                    "machinery", machinery, load_profiles
+                    "machinery",
+                    machinery,
+                    load_profiles,
                 )
                 total_demand += machinery_demand
 
     # consumer_type does not exist
     except KeyError:
         logger.warning(
-            f"Can't compute demand for {consumer_type}, since none were selected"
+            f"Can't compute demand for {consumer_type}, since none were selected",
         )
         total_demand = pd.Series(0, index=load_profiles.index)
 
@@ -153,9 +163,9 @@ def compute_standard_demand(consumer_type, consumer_type_counts, load_profiles):
         total_demand (pd.Series): Total demand
     """
     if consumer_type == "machinery":
-        ts_string_prefix = f"Enterprise_Large Load"
+        ts_string_prefix = "Enterprise_Large Load"
     else:
-        ts_string_prefix = f'{consumer_type.title().replace("_", " ")}'
+        ts_string_prefix = f"{consumer_type.title().replace('_', ' ')}"
     ts_cols = [f"{ts_string_prefix}_{ts}" for ts in consumer_type_counts.index]
     # import pdb; pdb.set_trace()
     total_demand = load_profiles[ts_cols].dot(consumer_type_counts.values)
@@ -175,7 +185,7 @@ def unpack_machinery(large_load_enterprises):
     # Split large loads string into list, then expand into separate rows
     expanded = (
         large_load_enterprises.assign(
-            custom_specification=lambda df: df["custom_specification"].str.split(";")
+            custom_specification=lambda df: df["custom_specification"].str.split(";"),
         )
         .explode("custom_specification")
         .reset_index(drop=True)

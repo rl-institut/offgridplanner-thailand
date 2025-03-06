@@ -1,55 +1,45 @@
-import os
 import io
 import json
+import os
 import time
 from collections import defaultdict
-from io import StringIO
-import numpy as np
 
-from django.db.models import Q
-from django.core.exceptions import PermissionDenied
-from django.forms import model_to_dict
-from django.http import (
-    HttpResponseRedirect,
-    JsonResponse,
-    HttpResponse,
-    StreamingHttpResponse,
-)
-from django.urls import reverse
-from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_http_methods
-from django.contrib import messages
+import numpy as np
 
 # from jsonview.decorators import json_view
 import pandas as pd
-from offgridplanner.projects.demand_estimation import (
-    get_demand_timeseries,
-    LOAD_PROFILES,
-)
-from offgridplanner.projects.helpers import (
-    check_imported_consumer_data,
-    consumer_data_to_file,
-    load_project_from_dict,
-)
-from offgridplanner.projects.models import (
-    Project,
-    Nodes,
-    CustomDemand,
-    Options,
-    GridDesign,
-    Energysystemdesign,
-    Results,
-    Simulation,
-)
-from offgridplanner.users.models import User
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.forms import model_to_dict
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.http import StreamingHttpResponse
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+
 from offgridplanner.projects import identify_consumers_on_map
-from offgridplanner.projects.tasks import (
-    task_grid_opt,
-    task_supply_opt,
-    get_status,
-    task_is_finished,
-    hello,
-)
+from offgridplanner.projects.demand_estimation import LOAD_PROFILES
+from offgridplanner.projects.demand_estimation import get_demand_timeseries
+from offgridplanner.projects.helpers import check_imported_consumer_data
+from offgridplanner.projects.helpers import consumer_data_to_file
+from offgridplanner.projects.helpers import load_project_from_dict
+from offgridplanner.projects.models import CustomDemand
+from offgridplanner.projects.models import Energysystemdesign
+from offgridplanner.projects.models import GridDesign
+from offgridplanner.projects.models import Nodes
+from offgridplanner.projects.models import Options
+from offgridplanner.projects.models import Project
+from offgridplanner.projects.models import Simulation
+from offgridplanner.projects.tasks import get_status
+from offgridplanner.projects.tasks import hello
+from offgridplanner.projects.tasks import task_grid_opt
+from offgridplanner.projects.tasks import task_is_finished
+from offgridplanner.projects.tasks import task_supply_opt
+from offgridplanner.users.models import User
 
 
 # @login_required
@@ -150,27 +140,27 @@ def add_buildings_inside_boundary(request, proj_id):
 
     boundary_coordinates = js_data["boundary_coordinates"][0][0]
     df = pd.DataFrame.from_dict(boundary_coordinates).rename(
-        columns={"lat": "latitude", "lng": "longitude"}
+        columns={"lat": "latitude", "lng": "longitude"},
     )
     if df["latitude"].max() - df["latitude"].min() > float(
-        os.environ.get("MAX_LAT_LON_DIST", 0.15)
+        os.environ.get("MAX_LAT_LON_DIST", 0.15),
     ):
         return JsonResponse(
             {
                 "executed": False,
                 "msg": "The maximum latitude distance selected is too large. "
                 "Please select a smaller area.",
-            }
+            },
         )
-    elif df["longitude"].max() - df["longitude"].min() > float(
-        os.environ.get("MAX_LAT_LON_DIST", 0.15)
+    if df["longitude"].max() - df["longitude"].min() > float(
+        os.environ.get("MAX_LAT_LON_DIST", 0.15),
     ):
         return JsonResponse(
             {
                 "executed": False,
                 "msg": "The maximum longitude distance selected is too large. "
                 "Please select a smaller area.",
-            }
+            },
         )
     data, building_coordinates_within_boundaries = (
         identify_consumers_on_map.get_consumer_within_boundaries(df)
@@ -180,7 +170,7 @@ def add_buildings_inside_boundary(request, proj_id):
             {
                 "executed": False,
                 "msg": "In the selected area, no buildings could be identified.",
-            }
+            },
         )
     nodes = defaultdict(list)
     for label, coordinates in building_coordinates_within_boundaries.items():
@@ -203,9 +193,10 @@ def add_buildings_inside_boundary(request, proj_id):
                 "executed": False,
                 "msg": "You have selected {} consumers. You can select a maximum of {} consumer. "
                 "Reduce the number of consumers by selecting a small area, for example.".format(
-                    len(data["elements"]), max_consumer
+                    len(data["elements"]),
+                    max_consumer,
                 ),
-            }
+            },
         )
     df = pd.DataFrame.from_dict(nodes)
     df["is_connected"] = df["is_connected"]
@@ -222,13 +213,14 @@ def add_buildings_inside_boundary(request, proj_id):
 # TODO should be used as AJAX from backend_communication.js
 @require_http_methods(["POST"])
 def remove_buildings_inside_boundary(
-    request, proj_id=None
+    request,
+    proj_id=None,
 ):  # data: pydantic_schema.MapData
     data = json.loads(request.body)
     df = pd.DataFrame.from_records(data["map_elements"])
     if not df.empty:
         boundaries = pd.DataFrame.from_records(
-            data["boundary_coordinates"][0][0]
+            data["boundary_coordinates"][0][0],
         ).values.tolist()
         df["inside_boundary"] = identify_consumers_on_map.are_points_in_boundaries(
             df,
@@ -303,7 +295,6 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
 @require_http_methods(["POST"])
 # async def consumer_to_db(request, proj_id):
 def consumer_to_db(request, proj_id=None):
-
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -420,7 +411,7 @@ def file_nodes_to_js(request):  # UploadFile = File(...)
 
 def load_demand_plot_data(request, proj_id=None):
     # if is_ajax(request):
-    time_range = range(0, 24)
+    time_range = range(24)
     nodes = Nodes.objects.get(project__id=proj_id)
     custom_demand = CustomDemand.objects.get(project__id=proj_id)
     demand_df = get_demand_timeseries(nodes, custom_demand, time_range=time_range)
@@ -586,11 +577,10 @@ def get_project_data(project):
     if missing_qs:
         raise ValueError(
             f"The project does not contain all data required for the optimization."
-            f" The following models are missing: {missing_qs}"
+            f" The following models are missing: {missing_qs}",
         )
-    else:
-        proj_data = {key: qs.get() for key, qs in model_qs.items()}
-        return proj_data
+    proj_data = {key: qs.get() for key, qs in model_qs.items()}
+    return proj_data
 
 
 def load_results(request, proj_id):

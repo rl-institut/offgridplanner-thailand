@@ -14,7 +14,6 @@ from celery.result import AsyncResult
 
 from offgridplanner.opt_models.grid_optimizer import optimize_grid
 from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
-from offgridplanner.projects.models import Simulation
 
 
 @shared_task
@@ -56,5 +55,4 @@ def task_is_finished(task_id):
     status = get_status(task_id)
     if status in ["success", "failure", "revoked"]:
         return True
-    else:
-        return False
+    return False

@@ -1,4 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+
 from offgridplanner.projects.models import Project
 from offgridplanner.users.models import User
 
@@ -18,7 +19,9 @@ class Command(BaseCommand):
             is_active=True,
         )
         proj, _ = Project.objects.get_or_create(
-            name="dummy", interest_rate=0.1, user=user
+            name="dummy",
+            interest_rate=0.1,
+            user=user,
         )
         print(proj.id)
         proj.save()

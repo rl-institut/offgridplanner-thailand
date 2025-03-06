@@ -1,25 +1,26 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from django.shortcuts import render, redirect
-from django.db.models import QuerySet
-from django.http import HttpResponse
-from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import logout, update_session_auth_hash, get_user_model
+from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
+from django.db.models import QuerySet
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from django.views.generic import RedirectView
 from django.views.generic import UpdateView
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from offgridplanner.users.forms import UserSignupForm
 from offgridplanner.users.models import User
-from offgridplanner.users.services import send_mail
 
 UserModel = get_user_model()
 
@@ -52,7 +53,7 @@ def signup(request):
             messages.info(
                 request,
                 _(
-                    "Please confirm your email address to complete the registration  (note that the registration email may land in your spam box, if your email provider does not trust our domain name, we have unfortunately no control on our users' email provider)"
+                    "Please confirm your email address to complete the registration  (note that the registration email may land in your spam box, if your email provider does not trust our domain name, we have unfortunately no control on our users' email provider)",
                 ),
             )
             return redirect("home")
@@ -74,13 +75,12 @@ def activate(request, uidb64, token):
         messages.success(
             request,
             _(
-                "Thank you for your email confirmation. Now you can log in your account."
+                "Thank you for your email confirmation. Now you can log in your account.",
             ),
         )
         return redirect("account_login")
-    else:
-        return HttpResponse("Activation link is invalid!")
-        return redirect("home")
+    return HttpResponse("Activation link is invalid!")
+    return redirect("home")
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):

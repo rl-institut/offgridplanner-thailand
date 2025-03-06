@@ -77,18 +77,17 @@ functionalities:
 """
 
 import copy
+import logging
+import math
 import time
 
-import math
 import numpy as np
 import pandas as pd
 from k_means_constrained import KMeansConstrained
 from pyproj import Proj
 from scipy.sparse.csgraph import minimum_spanning_tree
-import logging
 
-from docs.conf import project
-from offgridplanner.projects.models import Project, Results, Links
+from offgridplanner.projects.models import Links
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,6 @@ def optimize_grid(proj_id):
 
 
 class GridOptimizer(BaseOptimizer):
-
     def __init__(self, proj_id):
         super().__init__(proj_id)
         print("Initiating grid optimizer...")
@@ -132,7 +130,7 @@ class GridOptimizer(BaseOptimizer):
                 "total_power": pd.Series([], dtype=int),
                 "from_node": pd.Series([], dtype=str),
                 "to_node": pd.Series([], dtype=str),
-            }
+            },
         ).set_index("label")
         self.pole_max_connection = self.grid_design_dict["pole_max_n_connections"]
         self.grid_mst = pd.DataFrame({}, dtype=np.dtype(float))
@@ -145,10 +143,12 @@ class GridOptimizer(BaseOptimizer):
             self.grid_design_dict["connection_cable_lifetime"],
         )
         self.epc_connection = self.calc_epc(
-            self.grid_design_dict["mg_connection_cost"], self.project_dict["lifetime"]
+            self.grid_design_dict["mg_connection_cost"],
+            self.project_dict["lifetime"],
         )
         self.epc_pole = self.calc_epc(
-            self.grid_design_dict["pole_capex"], self.grid_design_dict["pole_lifetime"]
+            self.grid_design_dict["pole_capex"],
+            self.grid_design_dict["pole_lifetime"],
         )
         self.max_levelized_grid_cost = self.grid_design_dict["shs_max_grid_cost"]
         self.connection_cable_max_length = self.grid_design_dict[
@@ -170,7 +170,7 @@ class GridOptimizer(BaseOptimizer):
         self.nodes.sort_index(key=lambda x: x.astype("int64"), inplace=True)
         if self.power_house is not None:
             power_house_consumers = self._connect_power_house_consumer_manually(
-                self.connection_cable_max_length
+                self.connection_cable_max_length,
             )
             self._placeholder_consumers_for_power_house()
         else:
@@ -178,7 +178,8 @@ class GridOptimizer(BaseOptimizer):
         print("Determining number of poles...")
         n_poles = self._find_opt_number_of_poles(n_grid_consumers)
         self.determine_poles(
-            min_n_clusters=n_poles, power_house_consumers=power_house_consumers
+            min_n_clusters=n_poles,
+            power_house_consumers=power_house_consumers,
         )
         # Find the connection links_df in the network with lengths greater than the
         # maximum allowed length for `connection` cables, specified by the user.
@@ -260,7 +261,8 @@ class GridOptimizer(BaseOptimizer):
             if len(nodes_df.index) != 0:
                 if "parent" in nodes_df.columns:
                     nodes_df["parent"] = nodes_df["parent"].where(
-                        nodes_df["parent"] != "unknown", None
+                        nodes_df["parent"] != "unknown",
+                        None,
                     )
                 nodes = self.project.nodes
                 nodes.data = nodes_df.reset_index(drop=True).to_json()
@@ -298,21 +300,22 @@ class GridOptimizer(BaseOptimizer):
         ].index.__len__()
         results.n_poles = len(self._poles())
         results.length_distribution_cable = int(
-            self.links[self.links.link_type == "distribution"]["length"].sum()
+            self.links[self.links.link_type == "distribution"]["length"].sum(),
         )
         results.length_connection_cable = int(
-            self.links[self.links.link_type == "connection"]["length"].sum()
+            self.links[self.links.link_type == "connection"]["length"].sum(),
         )
         results.cost_grid = int(self.cost()) if self.links.index.__len__() > 0 else 0
         results.cost_shs = 0
         results.time_grid_design = round(
-            time.monotonic() - self.start_execution_time, 1
+            time.monotonic() - self.start_execution_time,
+            1,
         )
         results.n_distribution_links = int(
-            self.links[self.links["link_type"] == "distribution"].shape[0]
+            self.links[self.links["link_type"] == "distribution"].shape[0],
         )
         results.n_connection_links = int(
-            self.links[self.links["link_type"] == "connection"].shape[0]
+            self.links[self.links["link_type"] == "connection"].shape[0],
         )
         length_dist_cable = self.links[self.links["link_type"] == "distribution"][
             "length"
@@ -324,7 +327,7 @@ class GridOptimizer(BaseOptimizer):
             self.nodes[
                 (self.nodes["consumer_type"] == "household")
                 & (self.nodes["is_connected"] == True)
-            ].index
+            ].index,
         )
         results.upfront_invest_grid = (
             results.n_poles * self.grid_design_dict["pole_capex"]
@@ -516,7 +519,6 @@ class GridOptimizer(BaseOptimizer):
         self,
         long_links,
     ):
-
         for long_link in long_links:
             # Get start and end coordinates of the long link.
             x_from = self.links.x_from[long_link]
@@ -527,9 +529,9 @@ class GridOptimizer(BaseOptimizer):
             # Calculate the number of additional poles required.
             n_required_poles = int(
                 np.ceil(
-                    self.links.length[long_link] / self.distribution_cable_max_length
+                    self.links.length[long_link] / self.distribution_cable_max_length,
                 )
-                - 1
+                - 1,
             )
 
             # Get the index of the last pole in the grid. The new pole's index
@@ -551,10 +553,10 @@ class GridOptimizer(BaseOptimizer):
             # Add all poles between the start and end points of the long link.
             for i in range(1, n_required_poles + 1):
                 x = x_from + np.sign(
-                    x_to - x_from
+                    x_to - x_from,
                 ) * i * length_smaller_links * np.sqrt(1 / (1 + slope**2))
                 y = y_from + np.sign(y_to - y_from) * i * length_smaller_links * abs(
-                    slope
+                    slope,
                 ) * np.sqrt(1 / (1 + slope**2))
 
                 pole_label = f"p-{i + index_last_pole}"
@@ -681,8 +683,7 @@ class GridOptimizer(BaseOptimizer):
             y2 = self.nodes.y.loc[label_node_2]
 
             return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        else:
-            return np.infty
+        return np.infty
 
     # -------------------- LINKS -------------------- #
 
@@ -713,7 +714,8 @@ class GridOptimizer(BaseOptimizer):
         Removes all links from the grid.
         """
         self.links = self.get_links().drop(
-            [label for label in self.get_links().index], axis=0
+            [label for label in self.get_links().index],
+            axis=0,
         )
 
     def _clear_links(self, link_type):
@@ -761,7 +763,8 @@ class GridOptimizer(BaseOptimizer):
 
         # calculate the length of the link
         length = self.distance_between_nodes(
-            label_node_1=label_node_from, label_node_2=label_node_to
+            label_node_1=label_node_from,
+            label_node_2=label_node_to,
         )
 
         # define a label for the link and add all other characteristics to the grid object
@@ -905,17 +908,17 @@ class GridOptimizer(BaseOptimizer):
         connection_links = links[links["link_type"] == "connection"].copy()
         for pole_idx in poles.index:
             n_distribution = len(
-                distribution_links[distribution_links["from_node"] == pole_idx].index
+                distribution_links[distribution_links["from_node"] == pole_idx].index,
             )
             n_distribution += len(
-                distribution_links[distribution_links["to_node"] == pole_idx].index
+                distribution_links[distribution_links["to_node"] == pole_idx].index,
             )
             self.nodes.loc[pole_idx, "n_distribution_links"] = n_distribution
             n_connection = len(
-                connection_links[connection_links["from_node"] == pole_idx].index
+                connection_links[connection_links["from_node"] == pole_idx].index,
             )
             n_connection += len(
-                connection_links[connection_links["to_node"] == pole_idx].index
+                connection_links[connection_links["to_node"] == pole_idx].index,
             )
             self.nodes.loc[pole_idx, "n_connection_links"] = n_connection
         self.nodes.loc[self.nodes["node_type"] == "consumer", "n_connection_links"] = 1
@@ -974,10 +977,12 @@ class GridOptimizer(BaseOptimizer):
 
     def label_branch_of_consumers(self):
         branch_map = self.nodes.loc[
-            self.nodes.node_type.isin(["pole", "power-house"]), "branch"
+            self.nodes.node_type.isin(["pole", "power-house"]),
+            "branch",
         ]
         self.nodes.loc[self.nodes.node_type == "consumer", "branch"] = self.nodes.loc[
-            self.nodes.node_type == "consumer", "parent"
+            self.nodes.node_type == "consumer",
+            "parent",
         ].map(branch_map)
 
     def determine_parent_branches(self, start_poles):
@@ -989,7 +994,8 @@ class GridOptimizer(BaseOptimizer):
             ].iat[0]
             parent_branch = poles[poles.index == split_pole]["branch"].iat[0]
             self.nodes.loc[
-                self.nodes["branch"] == branch_start_pole, "parent_branch"
+                self.nodes["branch"] == branch_start_pole,
+                "parent_branch",
             ] = parent_branch
 
     def allocate_subbranches_to_branches(self):
@@ -1094,10 +1100,9 @@ class GridOptimizer(BaseOptimizer):
             for sub_branch in next_sub_branches:
                 if sub_branch in leaf_branches:
                     break
-                else:
-                    for b in next_sub_branches:
-                        subbranches.append(b)
-                    next_next_sub_branches.append(sub_branch)
+                for b in next_sub_branches:
+                    subbranches.append(b)
+                next_next_sub_branches.append(sub_branch)
             next_sub_branches = next_next_sub_branches
             if len(next_sub_branches) == 0:
                 break
@@ -1159,7 +1164,8 @@ class GridOptimizer(BaseOptimizer):
                         ].iat[0]
                         for consumer in consumers_down_the_line:
                             self.nodes.loc[
-                                consumer, "total_grid_cost_per_consumer_per_a"
+                                consumer,
+                                "total_grid_cost_per_consumer_per_a",
                             ] += (
                                 cost_of_pole
                                 * self.nodes.loc[consumer, "yearly_consumption"]
@@ -1168,9 +1174,7 @@ class GridOptimizer(BaseOptimizer):
                         next_pole = self.nodes[
                             self.nodes.index == next_pole["parent"].iat[0]
                         ]
-                        if next_pole.index.__len__() == 0:
-                            break
-                        elif (
+                        if next_pole.index.__len__() == 0 or (
                             self.nodes[self.nodes.index == next_pole.index[0]][
                                 "branch"
                             ].iat[0]
@@ -1189,7 +1193,8 @@ class GridOptimizer(BaseOptimizer):
             "yearly_consumption"
         ].sum()
         cost_of_pole = self.nodes.loc[
-            self.nodes[self.nodes.index == pole].index, "cost_per_pole"
+            self.nodes[self.nodes.index == pole].index,
+            "cost_per_pole",
         ].iat[0]
         connection_cost_consumers = self.nodes[
             self.nodes.index.isin(consumer_of_pole.index)
@@ -1208,7 +1213,8 @@ class GridOptimizer(BaseOptimizer):
                 ):
                     break
                 cost_of_pole += self.nodes.loc[
-                    self.nodes[self.nodes.index == next_pole].index, "cost_per_pole"
+                    self.nodes[self.nodes.index == next_pole].index,
+                    "cost_per_pole",
                 ].iat[0]
                 next_pole = self.nodes[self.nodes.index == next_pole]["parent"].iat[0]
             else:
@@ -1235,19 +1241,18 @@ class GridOptimizer(BaseOptimizer):
                     "total_grid_cost_per_consumer_per_a"
                 ].mean()
                 average_marginal_cost_of_pole = self.marginal_cost_per_consumer(
-                    pole, consumer_of_pole
+                    pole,
+                    consumer_of_pole,
                 )
                 self.determine_costs_per_branch(branch)
                 average_marginal_branch_cost_of_pole = self.nodes.loc[
-                    consumer_of_branch, "cost_per_branch"
+                    consumer_of_branch,
+                    "cost_per_branch",
                 ].iat[0] / (
                     self.nodes.loc[consumer_of_branch, "yearly_consumption"].sum()
                     + 1e-9
                 )
-                if average_marginal_cost_of_pole > self.max_levelized_grid_cost:
-                    self._cut_specific_pole(pole)
-                    counter += 1
-                elif (
+                if average_marginal_cost_of_pole > self.max_levelized_grid_cost or (
                     average_total_cost_of_pole > self.max_levelized_grid_cost
                     and average_marginal_branch_cost_of_pole
                     > self.max_levelized_grid_cost
@@ -1308,7 +1313,7 @@ class GridOptimizer(BaseOptimizer):
                     self.nodes = self.nodes.drop(
                         index=self.nodes[
                             self.nodes["node_type"].isin(["power-house", "pole"])
-                        ].index
+                        ].index,
                     )
                     self.links = self.links.drop(index=self.links.index)
                 break
@@ -1335,11 +1340,11 @@ class GridOptimizer(BaseOptimizer):
         examined_pole_list = []
 
         def change_direction_of_links(from_pole, to_pole, links):
-            row_idxs = "({}, {})".format(from_pole, to_pole)
+            row_idxs = f"({from_pole}, {to_pole})"
             if row_idxs not in links.index:
-                row_idxs = "({}, {})".format(to_pole, from_pole)
+                row_idxs = f"({to_pole}, {from_pole})"
             if from_pole in row_idxs.split(",")[1]:
-                new_row_idxs = "({}, {})".format(from_pole, to_pole)
+                new_row_idxs = f"({from_pole}, {to_pole})"
                 links = links.rename(index={row_idxs: new_row_idxs})
             return links
 
@@ -1350,7 +1355,7 @@ class GridOptimizer(BaseOptimizer):
                     (distribution_links["poles"].str.contains(parent_pole + ","))
                     | (
                         (distribution_links["poles"] + "#").str.contains(
-                            parent_pole + "#"
+                            parent_pole + "#",
                         )
                     )
                 ]["poles"].str.split(",")
@@ -1369,7 +1374,9 @@ class GridOptimizer(BaseOptimizer):
                         self.nodes.loc[child_pole, "parent"] = tmp_parent_pole
                         new_parent_pole_list.append(child_pole)
                         links = change_direction_of_links(
-                            child_pole, parent_pole, links
+                            child_pole,
+                            parent_pole,
+                            links,
                         )
             examined_pole_list += parent_pole_list
             return new_parent_pole_list, links, examined_pole_list
@@ -1381,7 +1388,7 @@ class GridOptimizer(BaseOptimizer):
                     (distribution_links["poles"].str.contains(child_pole + ","))
                     | (
                         (distribution_links["poles"] + "#").str.contains(
-                            child_pole + "#"
+                            child_pole + "#",
                         )
                     )
                 ]["poles"].str.split(",")
@@ -1400,7 +1407,9 @@ class GridOptimizer(BaseOptimizer):
                         self.nodes.loc[tmp_child_pole, "parent"] = parent_pole
                         new_child_pole_list.append(parent_pole)
                         links = change_direction_of_links(
-                            child_pole, parent_pole, links
+                            child_pole,
+                            parent_pole,
+                            links,
                         )
             examined_pole_list += child_pole_list
             return new_child_pole_list, links, examined_pole_list
@@ -1408,7 +1417,9 @@ class GridOptimizer(BaseOptimizer):
         for _ in range(len(links.index)):
             if len(parent_pole_list) > 0:
                 parent_pole_list, links, examined_pole_list = check_all_child_poles(
-                    parent_pole_list, links, examined_pole_list
+                    parent_pole_list,
+                    links,
+                    examined_pole_list,
                 )
             else:
                 self.nodes.loc[self.nodes["node_type"] == "power-house", "parent"] = (
@@ -1419,27 +1430,28 @@ class GridOptimizer(BaseOptimizer):
                     == 0
                 ):
                     break
-                else:
-                    child_pole_list = self.nodes[
-                        (self.nodes["parent"] == "unknown")
-                        & (self.nodes["n_distribution_links"] == 1)
-                        & (self.nodes["node_type"] == "pole")
-                    ].index.tolist()
-                    for __ in range(len(links.index)):
-                        if (
-                            len(child_pole_list) > 0
-                            and self.nodes["parent"][
-                                self.nodes["parent"] == "unknown"
-                            ].__len__()
-                            > 0
-                        ):
-                            child_pole_list, links, examined_pole_list = (
-                                check_all_parent_poles(
-                                    child_pole_list, links, examined_pole_list
-                                )
+                child_pole_list = self.nodes[
+                    (self.nodes["parent"] == "unknown")
+                    & (self.nodes["n_distribution_links"] == 1)
+                    & (self.nodes["node_type"] == "pole")
+                ].index.tolist()
+                for __ in range(len(links.index)):
+                    if (
+                        len(child_pole_list) > 0
+                        and self.nodes["parent"][
+                            self.nodes["parent"] == "unknown"
+                        ].__len__()
+                        > 0
+                    ):
+                        child_pole_list, links, examined_pole_list = (
+                            check_all_parent_poles(
+                                child_pole_list,
+                                links,
+                                examined_pole_list,
                             )
-                        else:
-                            break
+                        )
+                    else:
+                        break
 
         links["from_node"] = (
             links.index.str.extract(r"^\(\s*([^,]+)")[0].str.strip().tolist()
@@ -1451,7 +1463,8 @@ class GridOptimizer(BaseOptimizer):
         if consumer_to_power_house:
             mask = links["link_type"] == "connection"
             links.loc[mask, ["from_node", "to_node"]] = links.loc[
-                mask, ["to_node", "from_node"]
+                mask,
+                ["to_node", "from_node"],
             ].values
         self.links = links.copy(True)
 
@@ -1460,7 +1473,9 @@ class GridOptimizer(BaseOptimizer):
             (
                 self.crf
                 * BaseOptimizer.capex_multi_investment(
-                    self, capex_0=capex_0, component_lifetime=component_lifetime
+                    self,
+                    capex_0=capex_0,
+                    component_lifetime=component_lifetime,
                 )
             )
             * self.n_days
@@ -1489,7 +1504,6 @@ class GridOptimizer(BaseOptimizer):
 
         # create links between each node and the corresponding centroid
         for cluster in range(n_clusters):
-
             if len(self.nodes[self.nodes["cluster_label"] == cluster]) == 1:
                 continue
 
@@ -1559,7 +1573,6 @@ class GridOptimizer(BaseOptimizer):
             # long links that should be removed and replaced with smaller links,
             # this part will be executed.
             if (mst_from_to in long_links) or (mst_to_from in long_links):
-
                 # Both `mst_from_to` and `mst_to_from` will be checked to find
                 # the added poles, but only the dataframe which is not empty is
                 # considered as the final `added_poles`
@@ -1588,7 +1601,6 @@ class GridOptimizer(BaseOptimizer):
                 counter = 0
                 n_added_poles = added_poles.shape[0]
                 for index_added_pole in added_poles.index:
-
                     if counter == 0:
                         # The first `added poles` should be connected to
                         # the beginning or to the end of the long link,
@@ -1661,7 +1673,8 @@ class GridOptimizer(BaseOptimizer):
                 # since the graph does not have a direction, only the upper part of the matrix must be filled
                 if j > i:
                     graph_matrix[i, j] = self.distance_between_nodes(
-                        label_node_1=poles.index[i], label_node_2=poles.index[j]
+                        label_node_1=poles.index[i],
+                        label_node_2=poles.index[j],
                     )
         # obtain the optimal links between all poles (grid_mst) and copy it in the grid object
         grid_mst = minimum_spanning_tree(graph_matrix)
@@ -1701,7 +1714,7 @@ class GridOptimizer(BaseOptimizer):
                 [grid_consumers.x.loc[index], grid_consumers.y.loc[index]]
                 for index in grid_consumers.index
                 if grid_consumers.is_connected.loc[index] == True
-            ]
+            ],
         )
 
         # call kmeans clustering with constraints (min and max number of members in each cluster )
@@ -1739,7 +1752,8 @@ class GridOptimizer(BaseOptimizer):
         poles["parent"] = "unknown"
         poles["distribution_cost"] = 0
         self.nodes = pd.concat(
-            [grid_consumers, poles, self.get_shs_consumers()], axis=0
+            [grid_consumers, poles, self.get_shs_consumers()],
+            axis=0,
         )
         self.nodes.index = self.nodes.index.astype("str")
 
@@ -1803,8 +1817,7 @@ class GridOptimizer(BaseOptimizer):
         ]
         if constraints_violation.shape[0] > 0:
             return False
-        else:
-            return True
+        return True
 
     def _find_opt_number_of_poles(self, n_mg_consumers):
         # calculate the minimum number of poles based on the
@@ -1813,7 +1826,7 @@ class GridOptimizer(BaseOptimizer):
             min_number_of_poles = 1
         else:
             min_number_of_poles = int(
-                np.ceil(n_mg_consumers / self.pole_max_connection)
+                np.ceil(n_mg_consumers / self.pole_max_connection),
             )
 
         space = pd.Series(range(min_number_of_poles, n_mg_consumers, 1))

@@ -1,9 +1,10 @@
 from django.urls import path
 
+from .views import activate
+from .views import signup
 from .views import user_detail_view
 from .views import user_redirect_view
 from .views import user_update_view
-from .views import signup, activate
 
 app_name = "users"
 urlpatterns = [

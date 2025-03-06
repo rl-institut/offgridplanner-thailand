@@ -38,7 +38,9 @@ urlpatterns = [
     ),
     path("load-results/<int:proj_id>", load_results, name="load_results"),
     path(
-        "start_calculation/<int:proj_id>", start_calculation, name="start_calculation"
+        "start_calculation/<int:proj_id>",
+        start_calculation,
+        name="start_calculation",
     ),
     path("waiting_for_results", waiting_for_results, name="waiting_for_results"),
 ]

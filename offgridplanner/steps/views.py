@@ -1,39 +1,28 @@
 import json
 import os
 
-import numpy as np
 import pandas as pd
-
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
-from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
-from offgridplanner.opt_models.grid_optimizer import optimize_grid
-from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
-from offgridplanner.projects.forms import (
-    ProjectForm,
-    CustomDemandForm,
-    OptionForm,
-    GridDesignForm,
-)
-from offgridplanner.projects.models import (
-    Project,
-    Options,
-    CustomDemand,
-    Nodes,
-    GridDesign,
-    Energysystemdesign,
-    Simulation,
-)
+from offgridplanner.projects.forms import CustomDemandForm
+from offgridplanner.projects.forms import GridDesignForm
+from offgridplanner.projects.forms import OptionForm
+from offgridplanner.projects.forms import ProjectForm
+from offgridplanner.projects.models import CustomDemand
+from offgridplanner.projects.models import Energysystemdesign
+from offgridplanner.projects.models import GridDesign
+from offgridplanner.projects.models import Project
+from offgridplanner.projects.models import Simulation
 from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.users.models import User
-from offgridplanner.projects.demand_estimation import (
-    get_demand_timeseries,
-    LOAD_PROFILES,
-)
 
 STEPS = [
     _("project_setup"),
@@ -48,7 +37,6 @@ STEPS = [
 
 @require_http_methods(["GET"])
 def home(request):
-
     return render(
         request,
         "pages/landing_page.html",
@@ -83,7 +71,7 @@ def project_setup(request, proj_id=None):
                 "max_days": max_days,
                 "step_id": STEPS.index("project_setup") + 1,
                 "step_list": STEPS,
-            }
+            },
         )
 
         # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
@@ -93,7 +81,7 @@ def project_setup(request, proj_id=None):
         # If Consumer Selection is hidden (in raw html), go to demand_estimation
 
         return render(request, "pages/project_setup.html", context)
-    elif request.method == "POST":
+    if request.method == "POST":
         if project is None:
             form = ProjectForm(request.POST)
             opts_form = OptionForm(request.POST)
@@ -109,7 +97,7 @@ def project_setup(request, proj_id=None):
             project.save()
 
         return HttpResponseRedirect(
-            reverse("steps:consumer_selection", args=[project.id])
+            reverse("steps:consumer_selection", args=[project.id]),
         )
 
 
@@ -214,7 +202,7 @@ def demand_estimation(request, proj_id=None):
 
             return render(request, "pages/demand_estimation.html", context)
 
-        elif request.method == "POST":
+        if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
             if form.is_valid():
                 form.save()
@@ -243,7 +231,7 @@ def grid_design(request, proj_id=None):
             }
             return render(request, "pages/grid_design.html", context)
 
-        elif request.method == "POST":
+        if request.method == "POST":
             form = GridDesignForm(request.POST, instance=grid_design)
             if form.is_valid():
                 form.save()
@@ -266,7 +254,7 @@ def energy_system_design(request, proj_id=None):
         # todo restore using load_previous_data in the first place, then replace with Django forms
 
         return render(request, "pages/energy_system_design.html", context)
-    elif request.method == "POST":
+    if request.method == "POST":
         data = json.loads(request.body)
         df = pd.json_normalize(data, sep="_")
         d_flat = df.to_dict(orient="records")[0]
@@ -275,7 +263,8 @@ def energy_system_design(request, proj_id=None):
         es.project = project
         es.save()
         return JsonResponse(
-            {"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])}, status=200
+            {"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},
+            status=200,
         )
 
 
@@ -318,7 +307,9 @@ def calculating(request, proj_id=None):
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
     return render(
-        request, "pages/simulation_results.html", context={"proj_id": proj_id}
+        request,
+        "pages/simulation_results.html",
+        context={"proj_id": proj_id},
     )
 
 
@@ -328,7 +319,7 @@ def steps(request, proj_id, step_id=None):
     if step_id is None:
         return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
-    return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id-1]}", args=[proj_id]))
+    return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id - 1]}", args=[proj_id]))
 
 
 @require_http_methods(["GET"])

@@ -10,7 +10,6 @@ combined with detailed solar panel and inverter specifications, enables it to ca
 
 import os
 import warnings
-import calendar
 
 import geopandas as gpd
 import numpy as np
@@ -71,16 +70,16 @@ def get_weather_data(lat, lon, start, end):
     ts_changed = False
 
     if end > pd.to_datetime("2023-03-01"):
-        end = pd.to_datetime("2022-{}-{}".format(start.month, start.day)) + (
-            end - start
-        )
-        start = pd.to_datetime("2022-{}-{}".format(start.month, start.day))
+        end = pd.to_datetime(f"2022-{start.month}-{start.day}") + (end - start)
+        start = pd.to_datetime(f"2022-{start.month}-{start.day}")
         ts_changed = True
 
     closest_lat, closest_lon = get_closest_grid_point(lat, lon)
 
     qs = WeatherData.objects.filter(
-        lat=closest_lat, lon=closest_lon, dt__range=(start, end)
+        lat=closest_lat,
+        lon=closest_lon,
+        dt__range=(start, end),
     )
     # Convert QuerySet to DataFrame
     df = pd.DataFrame.from_records(qs.values()).set_index("dt").astype(float)
@@ -145,7 +144,7 @@ def get_closest_grid_point(lat, lon):
             3.192,
             2.942,
             2.691,
-        ]
+        ],
     )
     lons = pd.Series(
         [
@@ -188,7 +187,7 @@ def get_closest_grid_point(lat, lon):
             13.240948,
             13.490973,
             13.741,
-        ]
+        ],
     )
     closest_lat = round(lats.loc[(lats - lat).abs().idxmin()], 3)
     closest_lon = round(lons.loc[(lons - lon).abs().idxmin()], 3)
@@ -239,7 +238,9 @@ def prepare_weather_data(data_xr):
         mask = (df["lat"] == lat) & (df["lon"] == lon)
         tmp_df = df.loc[mask]
         solar_position = pvlib.solarposition.get_solarposition(
-            time=tmp_df.index, latitude=lat, longitude=lon
+            time=tmp_df.index,
+            latitude=lat,
+            longitude=lon,
         )
         df.loc[mask, "dni"] = pvlib.irradiance.dni(
             ghi=tmp_df["ghi"],

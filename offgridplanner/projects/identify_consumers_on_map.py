@@ -9,10 +9,10 @@ from raw OpenStreetMap data.
 
 import datetime
 import json
+import math
 import time
 import urllib.request
 
-import math
 import numpy as np
 from shapely import geometry
 
@@ -124,7 +124,7 @@ def obtain_areas_and_mean_coordinates_from_geojson(geojson: dict):
                         longitude=latitudes_longitudes[edge][1],
                         ref_latitude=reference_coordinate[0],
                         ref_longitude=reference_coordinate[1],
-                    )
+                    ),
                 )
             polygon = geometry.Polygon(xy_coordinates)
             area = polygon.area
@@ -159,7 +159,7 @@ def obtain_mean_coordinates_from_geojson(df):
         df1 = df[df["type"] == "way"]
         df2 = df[df["type"] == "node"].set_index("id")
 
-        df2["lat_lon"] = list(zip(df2["lat"], df2["lon"]))
+        df2["lat_lon"] = list(zip(df2["lat"], df2["lon"], strict=False))
         index_to_lat_lon = df2["lat_lon"].to_dict()
         df1_exploded = df1.explode("nodes")
         df1_exploded["nodes"] = df1.explode("nodes")["nodes"].map(index_to_lat_lon)
@@ -173,8 +173,7 @@ def obtain_mean_coordinates_from_geojson(df):
                 mean_coord = [np.mean(latitudes), np.mean(longitudes)]
                 building_mean_coordinates[row["id"]] = mean_coord
         return building_mean_coordinates
-    else:
-        return {}, {}
+    return {}, {}
 
 
 def is_point_in_boundaries(point_coordinates: tuple, boundaries: tuple):
@@ -200,7 +199,7 @@ def are_points_in_boundaries(df, boundaries):
     polygon = geometry.Polygon(boundaries)
     df["inside_boundary"] = df.apply(
         lambda row: polygon.contains(
-            geometry.Point([row["latitude"], row["longitude"]])
+            geometry.Point([row["latitude"], row["longitude"]]),
         ),
         axis=1,
     )
@@ -208,7 +207,10 @@ def are_points_in_boundaries(df, boundaries):
 
 
 def xy_coordinates_from_latitude_longitude(
-    latitude, longitude, ref_latitude, ref_longitude
+    latitude,
+    longitude,
+    ref_latitude,
+    ref_longitude,
 ):
     """This function converts (latitude, longitude) coordinates into (x, y)
     plane coordinates using a reference latitude and longitude.

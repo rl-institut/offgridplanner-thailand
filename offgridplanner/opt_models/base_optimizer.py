@@ -78,7 +78,7 @@ class BaseOptimizer:
             self.demand = get_demand_timeseries(
                 self.project.nodes,
                 self.project.customdemand,
-                time_range=range(0, n_days * 24),
+                time_range=range(n_days * 24),
             ).sum(axis=1)
         else:
             # TODO check what is returned here
@@ -100,7 +100,7 @@ class BaseOptimizer:
             number_of_investments = 1
         else:
             number_of_investments = int(
-                round(self.project_lifetime / component_lifetime + 0.5)
+                round(self.project_lifetime / component_lifetime + 0.5),
             )
         first_time_investment = capex_0 * (1 + self.tax)
         capex = first_time_investment
