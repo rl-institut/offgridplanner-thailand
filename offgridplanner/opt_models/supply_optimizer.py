@@ -42,6 +42,7 @@ two primary modes: dispatch and design.
   - Updates the project status in the database and, if configured, sends email notifications upon completion of the
     optimization process.
 """
+
 import time
 
 import numpy as np
@@ -73,43 +74,53 @@ def optimize_energy_system(proj_id):
 class EnergySystemOptimizer(BaseOptimizer):
 
     def __init__(
-            self,
-            proj_id,
+        self,
+        proj_id,
     ):
-        print('start es opt')
+        print("start es opt")
         super().__init__(proj_id)
         energy_system_design = self.project.energysystemdesign.to_nested_dict()
-        if energy_system_design['pv']["settings"]["is_selected"] is True or \
-                energy_system_design['battery']["settings"]["is_selected"] is True:
-            energy_system_design['inverter']["settings"]["is_selected"] = True
-        if energy_system_design['diesel_genset']["settings"]["is_selected"] is False:
-            energy_system_design['inverter']["settings"]["is_selected"] = True
-            energy_system_design['battery']["settings"]["is_selected"] = True
-            energy_system_design['pv']["settings"]["is_selected"] = True
+        if (
+            energy_system_design["pv"]["settings"]["is_selected"] is True
+            or energy_system_design["battery"]["settings"]["is_selected"] is True
+        ):
+            energy_system_design["inverter"]["settings"]["is_selected"] = True
+        if energy_system_design["diesel_genset"]["settings"]["is_selected"] is False:
+            energy_system_design["inverter"]["settings"]["is_selected"] = True
+            energy_system_design["battery"]["settings"]["is_selected"] = True
+            energy_system_design["pv"]["settings"]["is_selected"] = True
         solver = SOLVER_NAME
-        if solver == 'cbc':
-            energy_system_design['diesel_genset']['settings']['offset'] = False
+        if solver == "cbc":
+            energy_system_design["diesel_genset"]["settings"]["offset"] = False
         self.solver = solver
-        self.pv = energy_system_design['pv']
-        self.diesel_genset = energy_system_design['diesel_genset']
-        self.battery = energy_system_design['battery']
-        self.inverter = energy_system_design['inverter']
-        self.rectifier = energy_system_design['rectifier']
-        self.shortage = energy_system_design['shortage']
+        self.pv = energy_system_design["pv"]
+        self.diesel_genset = energy_system_design["diesel_genset"]
+        self.battery = energy_system_design["battery"]
+        self.inverter = energy_system_design["inverter"]
+        self.rectifier = energy_system_design["rectifier"]
+        self.shortage = energy_system_design["shortage"]
         if not self.nodes.empty:
-            self.num_households = len(self.nodes[(self.nodes['consumer_type'] == 'household') &
-                                                 (self.nodes['is_connected'] == True)].index)
+            self.num_households = len(
+                self.nodes[
+                    (self.nodes["consumer_type"] == "household")
+                    & (self.nodes["is_connected"] == True)
+                ].index
+            )
             links, _ = Links.objects.get_or_create(project=self.project)
             self.links = links.df if links.data is not None else None
-            if not self.nodes[self.nodes['consumer_type'] == 'power_house'].empty:
-                lat, lon = self.nodes[self.nodes['consumer_type'] == 'power_house']['latitude', 'longitude'].to_list()
+            if not self.nodes[self.nodes["consumer_type"] == "power_house"].empty:
+                lat, lon = self.nodes[self.nodes["consumer_type"] == "power_house"][
+                    "latitude", "longitude"
+                ].to_list()
             else:
-                lat, lon = self.nodes[['latitude', 'longitude']].mean().to_list()
+                lat, lon = self.nodes[["latitude", "longitude"]].mean().to_list()
         else:
             lat, lon = 9.055158, 7.497112
             self.num_households = 1
             self.links = links, _ = Links.objects.get_or_create(project=self.project)
-        self.solar_potential = solar_potential.get_dc_feed_in_sync_db_query(lat, lon, self.dt_index).loc[self.dt_index]
+        self.solar_potential = solar_potential.get_dc_feed_in_sync_db_query(
+            lat, lon, self.dt_index
+        ).loc[self.dt_index]
         self.solar_potential_peak = self.solar_potential.max()
         self.demand_peak = self.demand.max()
         self.infeasible = False
@@ -119,7 +130,9 @@ class EnergySystemOptimizer(BaseOptimizer):
         # define an empty dictionary for all epc values
         start_execution_time = time.monotonic()
         self.epc = {}
-        energy_system = solph.EnergySystem(timeindex=self.dt_index.copy(), infer_last_interval=True)
+        energy_system = solph.EnergySystem(
+            timeindex=self.dt_index.copy(), infer_last_interval=True
+        )
         # TODO this should definitely be simplified with tabular or similar
         # -------------------- BUSES --------------------
         # create electricity and fuel buses
@@ -128,12 +141,12 @@ class EnergySystemOptimizer(BaseOptimizer):
         b_fuel = solph.Bus(label="fuel")
         # -------------------- PV --------------------
         self.epc["pv"] = (
-                self.crf
-                * self.capex_multi_investment(
-            capex_0=self.pv["parameters"]["capex"],
-            component_lifetime=self.pv["parameters"]["lifetime"],
-        )
-                + self.pv["parameters"]["opex"]
+            self.crf
+            * self.capex_multi_investment(
+                capex_0=self.pv["parameters"]["capex"],
+                component_lifetime=self.pv["parameters"]["lifetime"],
+            )
+            + self.pv["parameters"]["opex"]
         )
         # Make decision about different simulation modes of the PV
         if self.pv["settings"]["is_selected"] is False:
@@ -172,21 +185,21 @@ class EnergySystemOptimizer(BaseOptimizer):
         # -------------------- DIESEL GENSET --------------------
         # fuel density is assumed 0.846 kg/l
         fuel_cost = (
-                self.diesel_genset["parameters"]["fuel_cost"]
-                / 0.846
-                / self.diesel_genset["parameters"]["fuel_lhv"]
+            self.diesel_genset["parameters"]["fuel_cost"]
+            / 0.846
+            / self.diesel_genset["parameters"]["fuel_lhv"]
         )
         fuel_source = solph.components.Source(
             label="fuel_source", outputs={b_fuel: solph.Flow(variable_costs=fuel_cost)}
         )
         # optimize capacity of the fuel generator
         self.epc["diesel_genset"] = (
-                self.crf
-                * self.capex_multi_investment(
-            capex_0=self.diesel_genset["parameters"]["capex"],
-            component_lifetime=self.diesel_genset["parameters"]["lifetime"],
-        )
-                + self.diesel_genset["parameters"]["opex"]
+            self.crf
+            * self.capex_multi_investment(
+                capex_0=self.diesel_genset["parameters"]["capex"],
+                component_lifetime=self.diesel_genset["parameters"]["lifetime"],
+            )
+            + self.diesel_genset["parameters"]["opex"]
         )
         if self.diesel_genset["settings"]["is_selected"] is False:
             diesel_genset = solph.components.Transformer(
@@ -198,19 +211,26 @@ class EnergySystemOptimizer(BaseOptimizer):
             # DESIGN
             if self.diesel_genset["settings"]["offset"] is True:
                 diesel_genset = solph.components.Transformer(
-                    label='diesel_genset',
+                    label="diesel_genset",
                     inputs={b_fuel: solph.flows.Flow()},
                     outputs={
                         b_el_ac: solph.flows.Flow(
                             nominal_value=None,
-                            variable_costs=self.diesel_genset["parameters"]["variable_cost"],
+                            variable_costs=self.diesel_genset["parameters"][
+                                "variable_cost"
+                            ],
                             min=self.diesel_genset["parameters"]["min_load"],
                             max=1,
                             nonconvex=solph.NonConvex(),
-                            investment=solph.Investment(ep_costs=self.epc["diesel_genset"] * self.n_days / 365, ),
+                            investment=solph.Investment(
+                                ep_costs=self.epc["diesel_genset"] * self.n_days / 365,
+                            ),
                         )
                     },
-                    conversion_factors={b_el_ac: self.diesel_genset["parameters"]["max_efficiency"]})
+                    conversion_factors={
+                        b_el_ac: self.diesel_genset["parameters"]["max_efficiency"]
+                    },
+                )
             else:
                 diesel_genset = solph.components.Transformer(
                     label="diesel_genset",
@@ -218,9 +238,12 @@ class EnergySystemOptimizer(BaseOptimizer):
                     outputs={
                         b_el_ac: solph.Flow(
                             nominal_value=None,
-                            variable_costs=self.diesel_genset["parameters"]["variable_cost"],
-                            investment=solph.Investment(ep_costs=self.epc["diesel_genset"] * self.n_days / 365
-                                                        ),
+                            variable_costs=self.diesel_genset["parameters"][
+                                "variable_cost"
+                            ],
+                            investment=solph.Investment(
+                                ep_costs=self.epc["diesel_genset"] * self.n_days / 365
+                            ),
                         )
                     },
                     conversion_factors={
@@ -234,8 +257,12 @@ class EnergySystemOptimizer(BaseOptimizer):
                 inputs={b_fuel: solph.Flow()},
                 outputs={
                     b_el_ac: solph.Flow(
-                        nominal_value=self.diesel_genset["parameters"]["nominal_capacity"],
-                        variable_costs=self.diesel_genset["parameters"]["variable_cost"],
+                        nominal_value=self.diesel_genset["parameters"][
+                            "nominal_capacity"
+                        ],
+                        variable_costs=self.diesel_genset["parameters"][
+                            "variable_cost"
+                        ],
                     )
                 },
                 conversion_factors={
@@ -245,12 +272,12 @@ class EnergySystemOptimizer(BaseOptimizer):
 
         # -------------------- RECTIFIER --------------------
         self.epc["rectifier"] = (
-                self.crf
-                * self.capex_multi_investment(
-            capex_0=self.rectifier["parameters"]["capex"],
-            component_lifetime=self.rectifier["parameters"]["lifetime"],
-        )
-                + self.rectifier["parameters"]["opex"]
+            self.crf
+            * self.capex_multi_investment(
+                capex_0=self.rectifier["parameters"]["capex"],
+                component_lifetime=self.rectifier["parameters"]["lifetime"],
+            )
+            + self.rectifier["parameters"]["opex"]
         )
 
         if self.rectifier["settings"]["is_selected"] is False:
@@ -295,12 +322,12 @@ class EnergySystemOptimizer(BaseOptimizer):
 
         # -------------------- INVERTER --------------------
         self.epc["inverter"] = (
-                self.crf
-                * self.capex_multi_investment(
-            capex_0=self.inverter["parameters"]["capex"],
-            component_lifetime=self.inverter["parameters"]["lifetime"],
-        )
-                + self.inverter["parameters"]["opex"]
+            self.crf
+            * self.capex_multi_investment(
+                capex_0=self.inverter["parameters"]["capex"],
+                component_lifetime=self.inverter["parameters"]["lifetime"],
+            )
+            + self.inverter["parameters"]["opex"]
         )
         if self.inverter["settings"]["is_selected"] is False:
             inverter = solph.components.Transformer(
@@ -344,12 +371,12 @@ class EnergySystemOptimizer(BaseOptimizer):
 
         # -------------------- BATTERY --------------------
         self.epc["battery"] = (
-                self.crf
-                * self.capex_multi_investment(
-            capex_0=self.battery["parameters"]["capex"],
-            component_lifetime=self.battery["parameters"]["lifetime"],
-        )
-                + self.battery["parameters"]["opex"]
+            self.crf
+            * self.capex_multi_investment(
+                capex_0=self.battery["parameters"]["capex"],
+                component_lifetime=self.battery["parameters"]["lifetime"],
+            )
+            + self.battery["parameters"]["opex"]
         )
 
         if self.battery["settings"]["is_selected"] is False:
@@ -428,7 +455,7 @@ class EnergySystemOptimizer(BaseOptimizer):
                             "shortage_penalty_cost"
                         ],
                         nominal_value=self.shortage["parameters"]["max_shortage_total"]
-                                      * sum(self.demand),
+                        * sum(self.demand),
                         full_load_time_max=1,
                     ),
                 },
@@ -500,9 +527,11 @@ class EnergySystemOptimizer(BaseOptimizer):
         # cbc --> 'ratioGap': '0.01'
         solver_option = {"gurobi": {"MipGap": "0.03"}, "cbc": {"ratioGap": "0.03"}}
 
-        res = model.solve(solver=self.solver,
-                          solve_kwargs={"tee": True},
-                          cmdline_options=solver_option[self.solver], )
+        res = model.solve(
+            solver=self.solver,
+            solve_kwargs={"tee": True},
+            cmdline_options=solver_option[self.solver],
+        )
         self.model = model
         if model.solutions.__len__() > 0:
             energy_system.results["meta"] = solph.processing.meta_results(model)
@@ -511,7 +540,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             self._process_results()
         else:
             print("No solution found")
-        if list(res['Solver'])[0]['Termination condition'] == 'infeasible':
+        if list(res["Solver"])[0]["Termination condition"] == "infeasible":
             self.infeasible = True
 
     def _process_results(self):
@@ -545,13 +574,14 @@ class EnergySystemOptimizer(BaseOptimizer):
         # hourly profiles for fuel consumption and electricity production in the fuel genset
         # the 'flow' from oemof is in kWh and must be converted to liter
         self.sequences_fuel_consumption = (
-                results_fuel_source["sequences"][(("fuel_source", "fuel"), "flow")]
-                / self.diesel_genset["parameters"]["fuel_lhv"]
-                / 0.846
+            results_fuel_source["sequences"][(("fuel_source", "fuel"), "flow")]
+            / self.diesel_genset["parameters"]["fuel_lhv"]
+            / 0.846
         )  # conversion: kWh -> kg -> l
 
-        self.sequences_fuel_consumption_kWh \
-            = (results_fuel_source["sequences"][(("fuel_source", "fuel"), "flow")])  # conversion: kWh
+        self.sequences_fuel_consumption_kWh = results_fuel_source["sequences"][
+            (("fuel_source", "fuel"), "flow")
+        ]  # conversion: kWh
 
         self.sequences_genset = results_diesel_genset["sequences"][
             (("diesel_genset", "electricity_ac"), "flow")
@@ -637,54 +667,54 @@ class EnergySystemOptimizer(BaseOptimizer):
             self.capacity_battery = self.battery["parameters"]["nominal_capacity"]
 
         self.total_renewable = (
-                (
-                        self.epc["pv"] * self.capacity_pv
-                        + self.epc["inverter"] * self.capacity_inverter
-                        + self.epc["battery"] * self.capacity_battery
-                )
-                * self.n_days
-                / 365
+            (
+                self.epc["pv"] * self.capacity_pv
+                + self.epc["inverter"] * self.capacity_inverter
+                + self.epc["battery"] * self.capacity_battery
+            )
+            * self.n_days
+            / 365
         )
         self.total_non_renewable = (
-                                           self.epc["diesel_genset"] * self.capacity_genset
-                                           + self.epc["rectifier"] * self.capacity_rectifier
-                                   ) * self.n_days / 365 + self.diesel_genset["parameters"][
-                                       "variable_cost"
-                                   ] * self.sequences_genset.sum(
+            self.epc["diesel_genset"] * self.capacity_genset
+            + self.epc["rectifier"] * self.capacity_rectifier
+        ) * self.n_days / 365 + self.diesel_genset["parameters"][
+            "variable_cost"
+        ] * self.sequences_genset.sum(
             axis=0
         )
         self.total_component = self.total_renewable + self.total_non_renewable
         self.total_fuel = self.diesel_genset["parameters"][
-                              "fuel_cost"
-                          ] * self.sequences_fuel_consumption.sum(axis=0)
+            "fuel_cost"
+        ] * self.sequences_fuel_consumption.sum(axis=0)
         self.total_revenue = self.total_component + self.total_fuel
         self.total_demand = self.sequences_demand.sum(axis=0)
         self.lcoe = 100 * self.total_revenue / self.total_demand
 
         self.res = (
-                100
-                * self.sequences_pv.sum(axis=0)
-                / (self.sequences_genset.sum(axis=0) + self.sequences_pv.sum(axis=0))
+            100
+            * self.sequences_pv.sum(axis=0)
+            / (self.sequences_genset.sum(axis=0) + self.sequences_pv.sum(axis=0))
         )
 
         self.surplus_rate = (
-                100
-                * self.sequences_surplus.sum(axis=0)
-                / (
-                        self.sequences_genset.sum(axis=0)
-                        - self.sequences_rectifier.sum(axis=0)
-                        + self.sequences_inverter.sum(axis=0)
-                )
+            100
+            * self.sequences_surplus.sum(axis=0)
+            / (
+                self.sequences_genset.sum(axis=0)
+                - self.sequences_rectifier.sum(axis=0)
+                + self.sequences_inverter.sum(axis=0)
+            )
         )
         self.genset_to_dc = (
-                100
-                * self.sequences_rectifier.sum(axis=0)
-                / self.sequences_genset.sum(axis=0)
+            100
+            * self.sequences_rectifier.sum(axis=0)
+            / self.sequences_genset.sum(axis=0)
         )
         self.shortage = (
-                100
-                * self.sequences_shortage.sum(axis=0)
-                / self.sequences_demand.sum(axis=0)
+            100
+            * self.sequences_shortage.sum(axis=0)
+            / self.sequences_demand.sum(axis=0)
         )
 
         print("")
@@ -707,7 +737,9 @@ class EnergySystemOptimizer(BaseOptimizer):
     def results_to_db(self):
         if self.model.solutions.__len__() == 0:
             if self.infeasible is True:
-                results = sync_queries.get_model_instance(sa_tables.Results, self.user_id, self.project_id)
+                results = sync_queries.get_model_instance(
+                    sa_tables.Results, self.user_id, self.project_id
+                )
                 results.infeasable = self.infeasible
                 sync_inserts.merge_model(results)
             return False
@@ -720,13 +752,19 @@ class EnergySystemOptimizer(BaseOptimizer):
         return True
 
     def _update_project_status_in_db(self):
-        project_setup = sync_queries.get_model_instance(sa_tables.ProjectSetup, self.user_id, self.project_id)
+        project_setup = sync_queries.get_model_instance(
+            sa_tables.ProjectSetup, self.user_id, self.project_id
+        )
         project_setup.status = "finished"
         if project_setup.email_notification is True:
             user = sync_queries.get_user_by_id(self.user_id)
             subject = "PeopleSun: Model Calculation finished"
-            msg = "The calculation of your optimization model is finished. You can view the results at: " \
-                  "\n\n{}/simulation_results?project_id={}\n".format(config.DOMAIN, self.project_id)
+            msg = (
+                "The calculation of your optimization model is finished. You can view the results at: "
+                "\n\n{}/simulation_results?project_id={}\n".format(
+                    config.DOMAIN, self.project_id
+                )
+            )
             send_mail(user.email, msg, subject=subject)
         project_setup.email_notification = False
         sync_inserts.merge_model(project_setup)
@@ -756,28 +794,36 @@ class EnergySystemOptimizer(BaseOptimizer):
         # store fuel co2 emissions (kg_CO2 per L of fuel)
         df = pd.DataFrame()
         df["non_renewable_electricity_production"] = (
-                np.cumsum(self.demand) * co2_emission_factor / 1000)  # tCO2 per year
-        df["hybrid_electricity_production"] = np.cumsum(
-            self.sequences_genset) * co2_emission_factor / 1000  # tCO2 per year
+            np.cumsum(self.demand) * co2_emission_factor / 1000
+        )  # tCO2 per year
+        df["hybrid_electricity_production"] = (
+            np.cumsum(self.sequences_genset) * co2_emission_factor / 1000
+        )  # tCO2 per year
         df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
         df = df.resample("D").max().reset_index(drop=True)
         emissions = sa_tables.Emissions()
         emissions.id = self.user_id
         emissions.project_id = self.project_id
         emissions.data = df.reset_index(drop=True).to_json()
-        self.co2_savings = (df["non_renewable_electricity_production"] - df["hybrid_electricity_production"]).max()
+        self.co2_savings = (
+            df["non_renewable_electricity_production"]
+            - df["hybrid_electricity_production"]
+        ).max()
         self.co2_emission_factor = co2_emission_factor
         sync_inserts.merge_model(emissions)
 
     def _energy_flow_to_db(self):
-        energy_flow_df = pd.DataFrame({
-            "diesel_genset_production": self.sequences_genset,
-            "pv_production": self.sequences_pv,
-            "battery_charge": self.sequences_battery_charge,
-            "battery_discharge": self.sequences_battery_discharge,
-            "battery_content": self.sequences_battery_content,
-            "demand": self.sequences_demand,
-            "surplus": self.sequences_surplus}).round(3)
+        energy_flow_df = pd.DataFrame(
+            {
+                "diesel_genset_production": self.sequences_genset,
+                "pv_production": self.sequences_pv,
+                "battery_charge": self.sequences_battery_charge,
+                "battery_discharge": self.sequences_battery_discharge,
+                "battery_content": self.sequences_battery_content,
+                "demand": self.sequences_demand,
+                "surplus": self.sequences_surplus,
+            }
+        ).round(3)
         energy_flow = sa_tables.EnergyFlow()
         energy_flow.id = self.user_id
         energy_flow.project_id = self.project_id
@@ -786,36 +832,43 @@ class EnergySystemOptimizer(BaseOptimizer):
 
     def _demand_curve_to_db(self):
         df = pd.DataFrame()
-        df["diesel_genset_duration"] = (100 * np.sort(self.sequences_genset)[::-1] / self.sequences_genset.max())
+        df["diesel_genset_duration"] = (
+            100 * np.sort(self.sequences_genset)[::-1] / self.sequences_genset.max()
+        )
         if self.sequences_pv.max() > 0:
             div = self.sequences_pv.max()
         else:
             div = 1
-        df["pv_duration"] = (100 * np.sort(self.sequences_pv)[::-1] / div)
+        df["pv_duration"] = 100 * np.sort(self.sequences_pv)[::-1] / div
         if not self.sequences_rectifier.abs().sum() == 0:
-            df["rectifier_duration"] = 100 * np.nan_to_num(np.sort(self.sequences_rectifier)[::-1]
-                                                           / self.sequences_rectifier.max())
+            df["rectifier_duration"] = 100 * np.nan_to_num(
+                np.sort(self.sequences_rectifier)[::-1] / self.sequences_rectifier.max()
+            )
         else:
             df["rectifier_duration"] = 0
         if self.sequences_inverter.max() > 0:
             div = self.sequences_inverter.max()
         else:
             div = 1
-        df["inverter_duration"] = (100 * np.sort(self.sequences_inverter)[::-1] / div)
+        df["inverter_duration"] = 100 * np.sort(self.sequences_inverter)[::-1] / div
         if not self.sequences_battery_charge.max() > 0:
             div = 1
         else:
             div = self.sequences_battery_charge.max()
-        df["battery_charge_duration"] = (100 * np.sort(self.sequences_battery_charge)[::-1] / div)
+        df["battery_charge_duration"] = (
+            100 * np.sort(self.sequences_battery_charge)[::-1] / div
+        )
         if self.sequences_battery_discharge.max() > 0:
             div = self.sequences_battery_discharge.max()
         else:
             div = 1
-        df["battery_discharge_duration"] = (100 * np.sort(self.sequences_battery_discharge)[::-1] / div)
+        df["battery_discharge_duration"] = (
+            100 * np.sort(self.sequences_battery_discharge)[::-1] / div
+        )
         df = df.copy()
         df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
         df = df.resample("D").min().reset_index(drop=True)
-        df['pv_percentage'] = df.index.copy() / df.shape[0]
+        df["pv_percentage"] = df.index.copy() / df.shape[0]
         df = df.round(3)
         duration_curve = sa_tables.DurationCurve()
         duration_curve.id = self.user_id
@@ -824,26 +877,34 @@ class EnergySystemOptimizer(BaseOptimizer):
         sync_inserts.merge_model(duration_curve)
 
     def _results_to_db(self):
-        results = sync_queries.get_model_instance(sa_tables.Results, self.user_id, self.project_id)
+        results = sync_queries.get_model_instance(
+            sa_tables.Results, self.user_id, self.project_id
+        )
         if pd.isna(results.cost_grid) is True:
-                results.n_consumers = 0
-                results.n_shs_consumers = 0
-                results.n_poles = 0
-                results.length_distribution_cable = 0
-                results.length_connection_cable = 0
-                results.cost_grid = 0
-                results.cost_shs = 0
-                results.time_grid_design = 0
-                results.n_distribution_links = 0
-                results.n_connection_links = 0
-                results.upfront_invest_grid = 0
-                results.time_grid_design = 0
+            results.n_consumers = 0
+            results.n_shs_consumers = 0
+            results.n_poles = 0
+            results.length_distribution_cable = 0
+            results.length_connection_cable = 0
+            results.cost_grid = 0
+            results.cost_shs = 0
+            results.time_grid_design = 0
+            results.n_distribution_links = 0
+            results.n_connection_links = 0
+            results.upfront_invest_grid = 0
+            results.time_grid_design = 0
         results.cost_renewable_assets = self.total_renewable / self.n_days * 365
         results.cost_non_renewable_assets = self.total_non_renewable / self.n_days * 365
         results.cost_fuel = self.total_fuel / self.n_days * 365
-        results.cost_grid = results.cost_grid / self.n_days * 365 if results.cost_grid is not None else 0
+        results.cost_grid = (
+            results.cost_grid / self.n_days * 365
+            if results.cost_grid is not None
+            else 0
+        )
         results.epc_total = (self.total_revenue + results.cost_grid) / self.n_days * 365
-        results.lcoe = (100 * (self.total_revenue + results.cost_grid) / self.total_demand)
+        results.lcoe = (
+            100 * (self.total_revenue + results.cost_grid) / self.total_demand
+        )
         results.res = self.res
         results.shortage_total = self.shortage
         results.surplus_rate = self.surplus_rate
@@ -856,11 +917,20 @@ class EnergySystemOptimizer(BaseOptimizer):
         results.surplus = self.sequences_surplus.max()
         results.infeasible = self.infeasible
         # data for sankey diagram - all in MWh
-        results.fuel_to_diesel_genset = (self.sequences_fuel_consumption.sum() * 0.846 *
-                                         self.diesel_genset["parameters"]["fuel_lhv"] / 1000)
-        results.diesel_genset_to_rectifier = (self.sequences_rectifier.sum() /
-                                              self.rectifier["parameters"]["efficiency"] / 1000)
-        results.diesel_genset_to_demand = (self.sequences_genset.sum() / 1000 - results.diesel_genset_to_rectifier)
+        results.fuel_to_diesel_genset = (
+            self.sequences_fuel_consumption.sum()
+            * 0.846
+            * self.diesel_genset["parameters"]["fuel_lhv"]
+            / 1000
+        )
+        results.diesel_genset_to_rectifier = (
+            self.sequences_rectifier.sum()
+            / self.rectifier["parameters"]["efficiency"]
+            / 1000
+        )
+        results.diesel_genset_to_demand = (
+            self.sequences_genset.sum() / 1000 - results.diesel_genset_to_rectifier
+        )
         results.rectifier_to_dc_bus = self.sequences_rectifier.sum() / 1000
         results.pv_to_dc_bus = self.sequences_pv.sum() / 1000
         results.battery_to_dc_bus = self.sequences_battery_discharge.sum() / 1000
@@ -869,34 +939,62 @@ class EnergySystemOptimizer(BaseOptimizer):
             div = self.inverter["parameters"]["efficiency"]
         else:
             div = 1
-        results.dc_bus_to_inverter = (self.sequences_inverter.sum() / div / 1000)
+        results.dc_bus_to_inverter = self.sequences_inverter.sum() / div / 1000
         results.dc_bus_to_surplus = self.sequences_surplus.sum() / 1000
         results.inverter_to_demand = self.sequences_inverter.sum() / 1000
         results.time_energy_system_design = self.execution_time
         results.co2_savings = self.co2_savings / self.n_days * 365
-        results.total_annual_consumption = self.demand_full_year.iloc[:, 0].sum() * (100 -  self.shortage) / 100
-        results.average_annual_demand_per_consumer = (self.demand_full_year.iloc[:, 0].mean() * (100 -  self.shortage) / 100
-                                                      / self.num_households * 1000)
+        results.total_annual_consumption = (
+            self.demand_full_year.iloc[:, 0].sum() * (100 - self.shortage) / 100
+        )
+        results.average_annual_demand_per_consumer = (
+            self.demand_full_year.iloc[:, 0].mean()
+            * (100 - self.shortage)
+            / 100
+            / self.num_households
+            * 1000
+        )
         results.base_load = self.demand_full_year.iloc[:, 0].quantile(0.1)
         results.max_shortage = (self.sequences_shortage / self.demand).max() * 100
 
-        results.upfront_invest_diesel_gen = results.diesel_genset_capacity \
-                                            * self.energy_system_design['diesel_genset']['parameters']['capex']
-        results.upfront_invest_pv = results.pv_capacity \
-                                    * self.energy_system_design['pv']['parameters']['capex']
-        results.upfront_invest_inverter = results.inverter_capacity \
-                                          * self.energy_system_design['inverter']['parameters']['capex']
-        results.upfront_invest_rectifier = results.rectifier_capacity \
-                                           * self.energy_system_design['rectifier']['parameters']['capex']
-        results.upfront_invest_battery = results.battery_capacity \
-                                         * self.energy_system_design['battery']['parameters']['capex']
-        results.co2_emissions = self.sequences_genset.sum() * self.co2_emission_factor / 1000 / self.n_days * 365
-        results.fuel_consumption = self.sequences_fuel_consumption.sum() / self.n_days * 365
-        results.epc_pv = self.epc['pv'] * self.capacity_pv
-        results.epc_diesel_genset = (self.epc["diesel_genset"] * self.capacity_genset) \
-                                    + self.diesel_genset["parameters"]["variable_cost"] \
-                                    * self.sequences_genset.sum(axis=0) * 365 / self.n_days
-        results.epc_inverter = self.epc['inverter'] * self.capacity_inverter
+        results.upfront_invest_diesel_gen = (
+            results.diesel_genset_capacity
+            * self.energy_system_design["diesel_genset"]["parameters"]["capex"]
+        )
+        results.upfront_invest_pv = (
+            results.pv_capacity * self.energy_system_design["pv"]["parameters"]["capex"]
+        )
+        results.upfront_invest_inverter = (
+            results.inverter_capacity
+            * self.energy_system_design["inverter"]["parameters"]["capex"]
+        )
+        results.upfront_invest_rectifier = (
+            results.rectifier_capacity
+            * self.energy_system_design["rectifier"]["parameters"]["capex"]
+        )
+        results.upfront_invest_battery = (
+            results.battery_capacity
+            * self.energy_system_design["battery"]["parameters"]["capex"]
+        )
+        results.co2_emissions = (
+            self.sequences_genset.sum()
+            * self.co2_emission_factor
+            / 1000
+            / self.n_days
+            * 365
+        )
+        results.fuel_consumption = (
+            self.sequences_fuel_consumption.sum() / self.n_days * 365
+        )
+        results.epc_pv = self.epc["pv"] * self.capacity_pv
+        results.epc_diesel_genset = (
+            self.epc["diesel_genset"] * self.capacity_genset
+        ) + self.diesel_genset["parameters"][
+            "variable_cost"
+        ] * self.sequences_genset.sum(
+            axis=0
+        ) * 365 / self.n_days
+        results.epc_inverter = self.epc["inverter"] * self.capacity_inverter
         results.epc_rectifier = self.epc["rectifier"] * self.capacity_rectifier
-        results.epc_battery = self.epc['battery'] * self.capacity_battery
+        results.epc_battery = self.epc["battery"] * self.capacity_battery
         sync_inserts.merge_model(results)

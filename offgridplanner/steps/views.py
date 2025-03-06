@@ -13,12 +13,27 @@ from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.opt_models.grid_optimizer import optimize_grid
 from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
-from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, GridDesignForm
-from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign, \
-    Simulation
+from offgridplanner.projects.forms import (
+    ProjectForm,
+    CustomDemandForm,
+    OptionForm,
+    GridDesignForm,
+)
+from offgridplanner.projects.models import (
+    Project,
+    Options,
+    CustomDemand,
+    Nodes,
+    GridDesign,
+    Energysystemdesign,
+    Simulation,
+)
 from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.users.models import User
-from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
+from offgridplanner.projects.demand_estimation import (
+    get_demand_timeseries,
+    LOAD_PROFILES,
+)
 
 STEPS = [
     _("project_setup"),
@@ -61,19 +76,27 @@ def project_setup(request, proj_id=None):
         else:
             form = ProjectForm()
             opts = OptionForm()
-        context.update({"form": form, "opts_form": opts, "max_days": max_days, "step_id": STEPS.index("project_setup")+1, "step_list": STEPS})
+        context.update(
+            {
+                "form": form,
+                "opts_form": opts,
+                "max_days": max_days,
+                "step_id": STEPS.index("project_setup") + 1,
+                "step_list": STEPS,
+            }
+        )
 
-    # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
-    # or step 'demand_estimation'
-    # const consumerSelectionHref = `consumer_selection?project_id=${project_id}`;
-    # const demandEstimationHref = `demand_estimation?project_id =${project_id}`;
-    # If Consumer Selection is hidden (in raw html), go to demand_estimation
+        # TODO in the js figure out what this is supposed to mean, this make the next button jump to either step 'consumer_selection'
+        # or step 'demand_estimation'
+        # const consumerSelectionHref = `consumer_selection?project_id=${project_id}`;
+        # const demandEstimationHref = `demand_estimation?project_id =${project_id}`;
+        # If Consumer Selection is hidden (in raw html), go to demand_estimation
 
         return render(request, "pages/project_setup.html", context)
     elif request.method == "POST":
         if project is None:
             form = ProjectForm(request.POST)
-            opts_form  = OptionForm(request.POST)
+            opts_form = OptionForm(request.POST)
         else:
             form = ProjectForm(request.POST, instance=project)
             opts_form = OptionForm(request.POST, instance=project.options)
@@ -85,7 +108,10 @@ def project_setup(request, proj_id=None):
                 project.options = opts
             project.save()
 
-        return HttpResponseRedirect(reverse("steps:consumer_selection",args=[project.id]))
+        return HttpResponseRedirect(
+            reverse("steps:consumer_selection", args=[project.id])
+        )
+
 
 # @login_required()
 @require_http_methods(["GET"])
@@ -153,7 +179,7 @@ def consumer_selection(request, proj_id=None):
         "enterpise_option": enterpise_option,
         "option_load": option_load,
         "step_id": STEPS.index("consumer_selection") + 1,
-        "step_list": STEPS
+        "step_list": STEPS,
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
@@ -179,7 +205,12 @@ def demand_estimation(request, proj_id=None):
         custom_demand, _ = CustomDemand.objects.get_or_create(project=project)
         if request.method == "GET":
             form = CustomDemandForm(instance=custom_demand)
-            context = {"form": form, "proj_id": proj_id, "step_id": step_id, "step_list": STEPS}
+            context = {
+                "form": form,
+                "proj_id": proj_id,
+                "step_id": step_id,
+                "step_list": STEPS,
+            }
 
             return render(request, "pages/demand_estimation.html", context)
 
@@ -204,7 +235,12 @@ def grid_design(request, proj_id=None):
         if request.method == "GET":
             form = GridDesignForm(instance=grid_design)
 
-            context = {"form": form, "proj_id": proj_id, "step_id": step_id, "step_list": STEPS}
+            context = {
+                "form": form,
+                "proj_id": proj_id,
+                "step_id": step_id,
+                "step_list": STEPS,
+            }
             return render(request, "pages/grid_design.html", context)
 
         elif request.method == "POST":
@@ -215,32 +251,32 @@ def grid_design(request, proj_id=None):
             return redirect("steps:ogp_steps", proj_id, step_id + 1)
 
 
-
 # @login_required()
 @require_http_methods(["GET", "POST"])
-def energy_system_design(request,proj_id=None):
+def energy_system_design(request, proj_id=None):
     step_id = STEPS.index("energy_system_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
             raise PermissionDenied
     if request.method == "GET":
-        context = {"proj_id": project.id,"step_id": step_id,"step_list": STEPS}
+        context = {"proj_id": project.id, "step_id": step_id, "step_list": STEPS}
 
         # TODO read js/pages/energy-system-design.js
-        #todo restore using load_previous_data in the first place, then replace with Django forms
-
+        # todo restore using load_previous_data in the first place, then replace with Django forms
 
         return render(request, "pages/energy_system_design.html", context)
     elif request.method == "POST":
         data = json.loads(request.body)
-        df = pd.json_normalize(data, sep='_')
-        d_flat = df.to_dict(orient='records')[0]
+        df = pd.json_normalize(data, sep="_")
+        d_flat = df.to_dict(orient="records")[0]
         Energysystemdesign.objects.filter(project=project).delete()
-        es= Energysystemdesign(**d_flat)
+        es = Energysystemdesign(**d_flat)
         es.project = project
         es.save()
-        return JsonResponse({"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},status=200)
+        return JsonResponse(
+            {"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])}, status=200
+        )
 
 
 def calculating(request, proj_id=None):
@@ -251,25 +287,29 @@ def calculating(request, proj_id=None):
             raise PermissionDenied
 
         simulation, _ = Simulation.objects.get_or_create(project=project)
-        if 'anonymous' in project.user.email:
-            msg = 'You will be forwarded after the model calculation is completed.'
+        if "anonymous" in project.user.email:
+            msg = "You will be forwarded after the model calculation is completed."
             email_opt = False
         else:
-            msg = 'You will be forwarded after the model calculation is completed. You can also close the window and view' \
-                  ' the results in your user account after the calculation is finished.'
+            msg = (
+                "You will be forwarded after the model calculation is completed. You can also close the window and view"
+                " the results in your user account after the calculation is finished."
+            )
             email_opt = False
         # TODO there was also the condition len(project.task_id) > 20 but I'm not sure why it is needed
         if simulation.task_id is not None and not task_is_finished(simulation.task_id):
-            msg = 'CAUTION: You have a calculation in progress that has not yet been completed. Therefore you cannot' \
-                  ' start another calculation. You can cancel the already running calculation by clicking on the' \
-                  ' following button:'
+            msg = (
+                "CAUTION: You have a calculation in progress that has not yet been completed. Therefore you cannot"
+                " start another calculation. You can cancel the already running calculation by clicking on the"
+                " following button:"
+            )
 
         context = {
-            'proj_id': proj_id,
-            'msg': msg,
-            'task_id': simulation.task_id,
-            'time': 3,
-            'email_opt': email_opt
+            "proj_id": proj_id,
+            "msg": msg,
+            "task_id": simulation.task_id,
+            "time": 3,
+            "email_opt": email_opt,
         }
         return render(request, "pages/calculating.html", context)
 
@@ -277,9 +317,9 @@ def calculating(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
-    return render(request, "pages/simulation_results.html", context={"proj_id": proj_id})
-
-
+    return render(
+        request, "pages/simulation_results.html", context={"proj_id": proj_id}
+    )
 
 
 # @login_required
@@ -290,16 +330,17 @@ def steps(request, proj_id, step_id=None):
 
     return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id-1]}", args=[proj_id]))
 
+
 @require_http_methods(["GET"])
 def load_previous_data(request, page_name=None, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
             raise PermissionDenied
-    # user = await handle_user_accounts.get_user_from_cookie(request)
-    # if user is None:
-    #     return
-    # project_id = request.query_params.get('project_id')
+        # user = await handle_user_accounts.get_user_from_cookie(request)
+        # if user is None:
+        #     return
+        # project_id = request.query_params.get('project_id')
         if page_name == "project_setup":
             pass
         #     if project_id == 'new':
@@ -319,33 +360,33 @@ def load_previous_data(request, page_name=None, proj_id=None):
             grid_design = GridDesign.get(project=project)
             return grid_design
         # elif page_name == "demand_estimation":
-            # try:
-            #     project_id = int(project_id)
-            # except (ValueError, TypeError):
-            #     return None
-            # demand_estimation = await async_queries.get_model_instance(sa_tables.Demand, user.id, project_id)
-            # if (demand_estimation is not None
-            #         and hasattr(demand_estimation, 'use_custom_demand')
-            #         and demand_estimation.use_custom_demand is True):
-            #     return demand_estimation
-            # if demand_estimation is None or not hasattr(demand_estimation, 'maximum_peak_load'):
-            #     return None
-            # if pd.Series([value for key, value in demand_estimation.to_dict().items() if 'custom_share_' in key]).fillna(0).sum() == 0:
-            #     wealth_share_dict = default_wealth_share()
-            #     demand_estimation.custom_share_1 = wealth_share_dict['custom_share_1']
-            #     demand_estimation.custom_share_2 = wealth_share_dict['custom_share_2']
-            #     demand_estimation.custom_share_3 = wealth_share_dict['custom_share_3']
-            #     demand_estimation.custom_share_4 = wealth_share_dict['custom_share_4']
-            #     demand_estimation.custom_share_5 = wealth_share_dict['custom_share_5']
-            # demand_estimation.maximum_peak_load = str(demand_estimation.maximum_peak_load) \
-            #     if demand_estimation.maximum_peak_load is not None else ''
-            # demand_estimation.average_daily_energy = str(demand_estimation.average_daily_energy) \
-            #     if demand_estimation.average_daily_energy is not None else ''
-            # demand_estimation.custom_calibration = True \
-            #     if len(demand_estimation.maximum_peak_load) > 0 or len(demand_estimation.average_daily_energy) > 0 \
-            #     else False
-            # demand_estimation.calibration_options = 2 if len(demand_estimation.maximum_peak_load) > 0 else 1
-            # return demand_estimation
-        elif page_name == 'energy_system_design':
+        # try:
+        #     project_id = int(project_id)
+        # except (ValueError, TypeError):
+        #     return None
+        # demand_estimation = await async_queries.get_model_instance(sa_tables.Demand, user.id, project_id)
+        # if (demand_estimation is not None
+        #         and hasattr(demand_estimation, 'use_custom_demand')
+        #         and demand_estimation.use_custom_demand is True):
+        #     return demand_estimation
+        # if demand_estimation is None or not hasattr(demand_estimation, 'maximum_peak_load'):
+        #     return None
+        # if pd.Series([value for key, value in demand_estimation.to_dict().items() if 'custom_share_' in key]).fillna(0).sum() == 0:
+        #     wealth_share_dict = default_wealth_share()
+        #     demand_estimation.custom_share_1 = wealth_share_dict['custom_share_1']
+        #     demand_estimation.custom_share_2 = wealth_share_dict['custom_share_2']
+        #     demand_estimation.custom_share_3 = wealth_share_dict['custom_share_3']
+        #     demand_estimation.custom_share_4 = wealth_share_dict['custom_share_4']
+        #     demand_estimation.custom_share_5 = wealth_share_dict['custom_share_5']
+        # demand_estimation.maximum_peak_load = str(demand_estimation.maximum_peak_load) \
+        #     if demand_estimation.maximum_peak_load is not None else ''
+        # demand_estimation.average_daily_energy = str(demand_estimation.average_daily_energy) \
+        #     if demand_estimation.average_daily_energy is not None else ''
+        # demand_estimation.custom_calibration = True \
+        #     if len(demand_estimation.maximum_peak_load) > 0 or len(demand_estimation.average_daily_energy) > 0 \
+        #     else False
+        # demand_estimation.calibration_options = 2 if len(demand_estimation.maximum_peak_load) > 0 else 1
+        # return demand_estimation
+        elif page_name == "energy_system_design":
             energy_system_design = Energysystemdesign.objects.get(project=project)
             return energy_system_design

@@ -165,7 +165,7 @@ function change_box_visibility(id) {
         // ---------- DISABLING ITEMS ---------- //
     } else {
         // Change the border color.
-        // document.getElementById("select"+toTitleCase(id)+"Box").style.border = '2px solid #dc3545';  
+        // document.getElementById("select"+toTitleCase(id)+"Box").style.border = '2px solid #dc3545';
         document.getElementById("select" + toTitleCase(id) + "Box").classList.add('box--not-selected');
 
         for (index in component_specifications[id]) {
@@ -383,7 +383,7 @@ function styleLine(id) {
 }
 
 function drawArrow(id, arrowOutPoints1, arrowInPoints1, arrowOutPoints2, arrowInPoints2) {
-    // The default arrow is the `arrowOut` which always at the end of the line, 
+    // The default arrow is the `arrowOut` which always at the end of the line,
     // that means it is outward (block ---> bus ).
     // Another type of arrow is called `arrowIn`, which corresponds to the arrows
     // entering a block (bus ---> block).
@@ -497,8 +497,8 @@ function styleArrow(id) {
 }
 
 function refreshBusesOnDiagram() {
-    // This function draw/remove AC and DC buses and their texts in the diagram 
-    // depending on if the attached blocks to them are selected or not. 
+    // This function draw/remove AC and DC buses and their texts in the diagram
+    // depending on if the attached blocks to them are selected or not.
     const groupDcBus = document.getElementById("groupDcBus");
     const groupAcBus = document.getElementById("groupAcBus");
 
@@ -553,7 +553,7 @@ function refreshBusesOnDiagram() {
 
 function refreshBlocksOnDiagram(id) {
     // This function draw/remove all blocks and their texts and flows in the diagram depending on
-    // if they are selected by user or not. 
+    // if they are selected by user or not.
     // For AC and DC buses, the function `refreshBusesOnDiagram` does the same work.
     const groupId = document.getElementById("group" + toTitleCase(id));
 

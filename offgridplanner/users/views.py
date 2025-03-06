@@ -23,6 +23,7 @@ from offgridplanner.users.services import send_mail
 
 UserModel = get_user_model()
 
+
 def signup(request):
     if request.method == "POST":
         form = UserSignupForm(request.POST)
@@ -46,7 +47,7 @@ def signup(request):
             )
             print(message)
             to_email = form.cleaned_data.get("email")
-            #send_mail(to_address=to_email, msg=message, subject=subject)
+            # send_mail(to_address=to_email, msg=message, subject=subject)
             # TODO some encode error here
             messages.info(
                 request,
@@ -59,13 +60,13 @@ def signup(request):
         form = UserSignupForm(privacy_url=reverse("privacy"))
     return render(request, "account/signup.html", {"form": form})
 
+
 def activate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
-
 
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True

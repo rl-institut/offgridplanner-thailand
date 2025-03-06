@@ -17,14 +17,21 @@ geographic data processing tasks efficiently, extracting meaningful information 
 from raw OpenStreetMap data.
 """
 
+
 def get_consumer_within_boundaries(df):
     # min and max of latitudes and longitudes are sent to the overpass to get
     # a large rectangle including (maybe) more buildings than selected
-    min_latitude, min_longitude, max_latitude, max_longitude \
-        = df['latitude'].min(), df['longitude'].min(), df['latitude'].max(), df['longitude'].max()
-    url = (f'https://www.overpass-api.de/api/interpreter?data=[out:json][timeout:2500]'
-           f'[bbox:{min_latitude},{min_longitude},{max_latitude},{max_longitude}];'
-           f'way["building"="yes"];(._;>;);out;')
+    min_latitude, min_longitude, max_latitude, max_longitude = (
+        df["latitude"].min(),
+        df["longitude"].min(),
+        df["latitude"].max(),
+        df["longitude"].max(),
+    )
+    url = (
+        f"https://www.overpass-api.de/api/interpreter?data=[out:json][timeout:2500]"
+        f"[bbox:{min_latitude},{min_longitude},{max_latitude},{max_longitude}];"
+        f'way["building"="yes"];(._;>;);out;'
+    )
     url_formatted = url.replace(" ", "+")
     with urllib.request.urlopen(url_formatted) as url:
         res = url.read().decode()
@@ -37,12 +44,19 @@ def get_consumer_within_boundaries(df):
     # 'big' rectangle.
     geojson_data = convert_overpass_json_to_geojson(data)
 
-    building_coord, building_surface_areas = obtain_areas_and_mean_coordinates_from_geojson(geojson_data)
+    building_coord, building_surface_areas = (
+        obtain_areas_and_mean_coordinates_from_geojson(geojson_data)
+    )
     # excluding the buildings which are outside the drawn boundary
-    mask_building_within_boundaries = {key: is_point_in_boundaries(value, df.values.tolist())
-                                       for key, value in building_coord.items()}
-    building_coordinates_within_boundaries = \
-        {key: value for key, value in building_coord.items() if mask_building_within_boundaries[key]}
+    mask_building_within_boundaries = {
+        key: is_point_in_boundaries(value, df.values.tolist())
+        for key, value in building_coord.items()
+    }
+    building_coordinates_within_boundaries = {
+        key: value
+        for key, value in building_coord.items()
+        if mask_building_within_boundaries[key]
+    }
     return data, building_coordinates_within_boundaries
 
 
@@ -57,10 +71,13 @@ def convert_overpass_json_to_geojson(json_dict):
         dict obtained using the overpass api.
     """
     ts = time.time()
-    timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
 
-    node_coordinates = {element["id"]: [element["lat"], element["lon"]]
-                        for element in json_dict["elements"] if element["type"] == "node"}
+    node_coordinates = {
+        element["id"]: [element["lat"], element["lon"]]
+        for element in json_dict["elements"]
+        if element["type"] == "node"
+    }
 
     geojson = {
         "type": "FeatureCollection",
@@ -76,12 +93,14 @@ def convert_overpass_json_to_geojson(json_dict):
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
-                        [
-                            node_coordinates[node] for node in d["nodes"]
-                        ],
+                        [node_coordinates[node] for node in d["nodes"]],
                     ],
                 },
-            } for d in json_dict['elements'] if d['type'] == "way"]}
+            }
+            for d in json_dict["elements"]
+            if d["type"] == "way"
+        ],
+    }
     return geojson
 
 
@@ -93,22 +112,26 @@ def obtain_areas_and_mean_coordinates_from_geojson(geojson: dict):
         reference_coordinate = geojson["features"][0]["geometry"]["coordinates"][0][0]
         for building in geojson["features"]:
             xy_coordinates = []
-            latitudes_longitudes = [coord for coord in building["geometry"]["coordinates"][0]]
+            latitudes_longitudes = [
+                coord for coord in building["geometry"]["coordinates"][0]
+            ]
             latitudes = [x[0] for x in latitudes_longitudes]
             longitudes = [x[1] for x in latitudes_longitudes]
             mean_coord = [np.mean(latitudes), np.mean(longitudes)]
             for edge in range(len(latitudes)):
-                xy_coordinates.append(xy_coordinates_from_latitude_longitude(
-                    latitude=latitudes_longitudes[edge][0],
-                    longitude=latitudes_longitudes[edge][1],
-                    ref_latitude=reference_coordinate[0],
-                    ref_longitude=reference_coordinate[1]))
+                xy_coordinates.append(
+                    xy_coordinates_from_latitude_longitude(
+                        latitude=latitudes_longitudes[edge][0],
+                        longitude=latitudes_longitudes[edge][1],
+                        ref_latitude=reference_coordinate[0],
+                        ref_longitude=reference_coordinate[1],
+                    )
+                )
             polygon = geometry.Polygon(xy_coordinates)
             area = polygon.area
             perimeter = polygon.length
-            compactness = 4 * np.pi * area / (perimeter ** 2) if perimeter else 0
-            if area > 4 \
-                    and not (0.81 < compactness < 1.19 and area < 8):
+            compactness = 4 * np.pi * area / (perimeter**2) if perimeter else 0
+            if area > 4 and not (0.81 < compactness < 1.19 and area < 8):
                 building_mean_coordinates[building["property"]["@id"]] = mean_coord
                 building_surface_areas[building["property"]["@id"]] = area
     return building_mean_coordinates, building_surface_areas
@@ -134,14 +157,14 @@ def obtain_mean_coordinates_from_geojson(df):
         Dict containing the 'id' of each building as a key
     """
     if not df.empty:
-        df1 = df[df['type'] == 'way']
-        df2 = df[df['type'] == 'node'].set_index('id')
+        df1 = df[df["type"] == "way"]
+        df2 = df[df["type"] == "node"].set_index("id")
 
-        df2['lat_lon'] = list(zip(df2['lat'], df2['lon']))
-        index_to_lat_lon = df2['lat_lon'].to_dict()
-        df1_exploded = df1.explode('nodes')
-        df1_exploded['nodes'] = df1.explode('nodes')['nodes'].map(index_to_lat_lon)
-        df1['nodes'] = df1_exploded.groupby(df1_exploded.index).agg({'nodes': list})
+        df2["lat_lon"] = list(zip(df2["lat"], df2["lon"]))
+        index_to_lat_lon = df2["lat_lon"].to_dict()
+        df1_exploded = df1.explode("nodes")
+        df1_exploded["nodes"] = df1.explode("nodes")["nodes"].map(index_to_lat_lon)
+        df1["nodes"] = df1_exploded.groupby(df1_exploded.index).agg({"nodes": list})
         building_mean_coordinates = {}
         if not df1.empty:
             for row_idx, row in df1.iterrows():
@@ -155,8 +178,7 @@ def obtain_mean_coordinates_from_geojson(df):
         return {}, {}
 
 
-def is_point_in_boundaries(point_coordinates: tuple,
-                           boundaries: tuple):
+def is_point_in_boundaries(point_coordinates: tuple, boundaries: tuple):
     """
     Function that checks whether 2D point lies within boundaries
 
@@ -168,7 +190,7 @@ def is_point_in_boundaries(point_coordinates: tuple,
     boundaries (list or tuple):
         Coordinates of the angle of the polygon forming the boundaries in format
         [[x1, y1], [x2, y2], ..., [xn, yn]] for a polygon with n vertices.
- """
+    """
     polygon = geometry.Polygon(boundaries)
     point = geometry.Point(point_coordinates)
 
@@ -177,13 +199,19 @@ def is_point_in_boundaries(point_coordinates: tuple,
 
 def are_points_in_boundaries(df, boundaries):
     polygon = geometry.Polygon(boundaries)
-    df['inside_boundary'] = df.apply(lambda row: polygon.contains(geometry.Point([row['latitude'], row['longitude']])),
-                                     axis=1)
-    return df['inside_boundary']
+    df["inside_boundary"] = df.apply(
+        lambda row: polygon.contains(
+            geometry.Point([row["latitude"], row["longitude"]])
+        ),
+        axis=1,
+    )
+    return df["inside_boundary"]
 
 
-def xy_coordinates_from_latitude_longitude(latitude, longitude, ref_latitude, ref_longitude):
-    """ This function converts (latitude, longitude) coordinates into (x, y)
+def xy_coordinates_from_latitude_longitude(
+    latitude, longitude, ref_latitude, ref_longitude
+):
+    """This function converts (latitude, longitude) coordinates into (x, y)
     plane coordinates using a reference latitude and longitude.
 
     Parameters

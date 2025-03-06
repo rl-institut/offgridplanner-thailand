@@ -14,6 +14,7 @@ class TooltipModelForm(ModelForm):
         for fieldname, field in self.fields.items():
             set_parameter_info(fieldname, field)
 
+
 # TODO put these in a .csv file with all other values that have default parameters and help texts (see github issue #27)
 PROJECT_LABELS = {
     "name": _("Project Name"),
@@ -94,6 +95,7 @@ class OptionForm(ModelForm):
         fields = [k for k in OPTIONS_LABELS.keys()]
         labels = OPTIONS_LABELS
 
+
 class CustomDemandForm(ModelForm):
     percentage_fields = ["very_low", "low", "middle", "high", "very_high"]
 
@@ -108,15 +110,18 @@ class CustomDemandForm(ModelForm):
         if instance is not None:
             for field in self.percentage_fields:
                 # Serve number to user in 0-100 format
-                initial[field] = self.change_percentage_format(getattr(instance, field), upper_limit=100)
+                initial[field] = self.change_percentage_format(
+                    getattr(instance, field), upper_limit=100
+                )
 
             kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
 
-
     def clean(self):
         cleaned_data = super().clean()
-        percentage_values = {field: cleaned_data[field] for field in self.percentage_fields}
+        percentage_values = {
+            field: cleaned_data[field] for field in self.percentage_fields
+        }
         total = round(sum(percentage_values.values(), 0))
         if total != 1:
             # TODO tbd how we want to handle this
@@ -126,7 +131,9 @@ class CustomDemandForm(ModelForm):
         for field, value in self.cleaned_data.items():
             if field in self.percentage_fields:
                 # Save number to database in 0-1 format
-                self.cleaned_data[field] = self.change_percentage_format(value, upper_limit=1)
+                self.cleaned_data[field] = self.change_percentage_format(
+                    value, upper_limit=1
+                )
 
         return cleaned_data
 
@@ -141,6 +148,7 @@ class CustomDemandForm(ModelForm):
             raise ValueError("Upper limit must be either 1 or 100")
 
         return value
+
 
 class GridDesignForm(ModelForm):
     class Meta:

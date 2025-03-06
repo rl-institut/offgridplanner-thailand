@@ -5,7 +5,6 @@ from .views import *
 app_name = "projects"
 
 urlpatterns = [
-
     path("", projects_list, name="home"),
     path("", projects_list, name="projects_list"),
     path("<int:proj_id>", projects_list, name="projects_list"),
@@ -32,8 +31,14 @@ urlpatterns = [
         db_nodes_to_js,
         name="db_nodes_to_js",
     ),
-    path("load-demand-plot-data/<int:proj_id>", load_demand_plot_data, name="load_demand_plot_data"),
+    path(
+        "load-demand-plot-data/<int:proj_id>",
+        load_demand_plot_data,
+        name="load_demand_plot_data",
+    ),
     path("load-results/<int:proj_id>", load_results, name="load_results"),
-    path("start_calculation/<int:proj_id>", start_calculation, name="start_calculation"),
+    path(
+        "start_calculation/<int:proj_id>", start_calculation, name="start_calculation"
+    ),
     path("waiting_for_results", waiting_for_results, name="waiting_for_results"),
 ]

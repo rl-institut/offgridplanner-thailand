@@ -387,4 +387,3 @@ function load_legend() {
 }
 
 // Function to load external script dynamically
-

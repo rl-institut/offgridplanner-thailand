@@ -8,6 +8,7 @@ This module in a FastAPI application uses Celery to handle asynchronous tasks:
 Additionally, it includes functions to check the status of these tasks, identifying if they have completed, failed,
 or been revoked. This setup enables efficient, asynchronous processing of complex tasks and user management.
 """
+
 from celery import shared_task
 from celery.result import AsyncResult
 
@@ -18,27 +19,32 @@ from offgridplanner.projects.models import Simulation
 
 @shared_task
 def hello():
-    return 'hello world'
+    return "hello world"
 
-@shared_task(name='task_grid_opt',
-             force=True,
-             track_started=True,
-             autoretry_for=(Exception,),
-             retry_kwargs={'max_retries': 1, 'countdown': 10})
+
+@shared_task(
+    name="task_grid_opt",
+    force=True,
+    track_started=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={"max_retries": 1, "countdown": 10},
+)
 def task_grid_opt(proj_id):
     result = optimize_grid(proj_id)
     return result
 
 
-@shared_task(name='task_supply_opt',
-             force=True,
-             track_started=True,
-             autoretry_for=(Exception,),
-             retry_kwargs={'max_retries': 1, 'countdown': 10}
-             )
+@shared_task(
+    name="task_supply_opt",
+    force=True,
+    track_started=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={"max_retries": 1, "countdown": 10},
+)
 def task_supply_opt(proj_id):
     result = optimize_energy_system(proj_id)
     return result
+
 
 def get_status(task_id):
     task = AsyncResult(task_id)
@@ -48,7 +54,7 @@ def get_status(task_id):
 
 def task_is_finished(task_id):
     status = get_status(task_id)
-    if status in ['success', 'failure', 'revoked']:
+    if status in ["success", "failure", "revoked"]:
         return True
     else:
         return False

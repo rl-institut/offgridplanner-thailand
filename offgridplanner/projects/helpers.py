@@ -17,7 +17,6 @@ def load_project_from_dict(model_data, user=None):
     """
     options_data_dm = model_data.pop("options_data", None)
 
-
     model_data["user"] = user
     if options_data_dm is not None:
         options_data = Options(**options_data_dm)
@@ -27,6 +26,7 @@ def load_project_from_dict(model_data, user=None):
     project.save()
 
     return project.id
+
 
 def check_imported_consumer_data(df):
     if df.empty:
@@ -129,7 +129,9 @@ def check_imported_consumer_data(df):
             f"Allowed values of column 'consumer_detail' are {valid_consumer_details}. Falsy values passed: {list(falsy_values_consumer_detail)}.",
         )
 
-    custom_loads = df[df["custom_specification"] != ""]["custom_specification"].unique().tolist()
+    custom_loads = (
+        df[df["custom_specification"] != ""]["custom_specification"].unique().tolist()
+    )
     processed_loads = []
     non_matching_values = []
     for load in custom_loads:
@@ -211,21 +213,32 @@ def check_imported_consumer_data(df):
     ]
     return df, ""
 
+
 def df_to_file(df, file_type):
-    if file_type == 'xlsx':
+    if file_type == "xlsx":
         output = io.BytesIO()
-        df.to_excel(output, index=False, engine='xlsxwriter')
+        df.to_excel(output, index=False, engine="xlsxwriter")
         output.seek(0)
         return io.BytesIO(output.getvalue())
-    elif file_type == 'csv':
+    elif file_type == "csv":
         output = io.StringIO()
         df.to_csv(output, index=False)
         output.seek(0)
         return io.StringIO(output.getvalue())
 
+
 def consumer_data_to_file(df, file_type):
     if df.empty:
-        df = pd.DataFrame(columns=['latitude', 'longitude', 'consumer_type', 'custom_specification', 'shs_options', 'consumer_detail'])
+        df = pd.DataFrame(
+            columns=[
+                "latitude",
+                "longitude",
+                "consumer_type",
+                "custom_specification",
+                "shs_options",
+                "consumer_detail",
+            ]
+        )
     else:
-        df = df.drop(columns=['is_connected', 'how_added', 'node_type'])
+        df = df.drop(columns=["is_connected", "how_added", "node_type"])
     return df_to_file(df, file_type)
