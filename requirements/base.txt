@@ -21,6 +21,7 @@ oemof.solph
 geopandas
 pvlib
 feedinlib==0.1.0rc4
+pyarrow
 # Django
 # ------------------------------------------------------------------------------
 django==5.0.11  # pyup: < 5.1  # https://www.djangoproject.com/
