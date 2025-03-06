@@ -14,7 +14,13 @@ pandas
 xlsxwriter
 openpyxl
 shapely
-
+k-means-constrained
+pyproj
+oemof.solph
+# TODO these packages should not be necessary once we set up the CDS weather data API
+geopandas
+pvlib
+feedinlib==0.1.0rc4
 # Django
 # ------------------------------------------------------------------------------
 django==5.0.11  # pyup: < 5.1  # https://www.djangoproject.com/

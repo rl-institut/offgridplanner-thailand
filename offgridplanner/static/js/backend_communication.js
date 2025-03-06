@@ -448,7 +448,7 @@ let hasRetried = false;
 
 async function load_results(project_id) {
     try {
-        const url = "load_results/" + project_id;
+        const url = loadResultsUrl;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -772,7 +772,7 @@ function save_demand_estimation(href) {
 
 function load_previous_data(page_name) {
     var xhr = new XMLHttpRequest();
-    url = "load_previous_data/" + page_name;
+    url = "load_previous_data/" + page_name + "/" + project_id;
     xhr.open("GET", url, true);
     xhr.responseType = "json";
     xhr.send();
@@ -985,8 +985,9 @@ async function wait_for_results(project_id, task_id, time, model) {
 
     // If the url includes /calculating, proceed with the request
     if (url.includes("/calculating") && !shouldStop) {
+        console.log("Fetching results...")
         try {
-            const response = await fetch("waiting_for_results/", {
+            const response = await fetch(waitingForResultsUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -997,13 +998,11 @@ async function wait_for_results(project_id, task_id, time, model) {
 
             if (response.ok) {
                 const res = await response.json();
-
                 if (res.finished === true) {
-                    window.location.href = window.location.origin + '/simulation_results?project_id=' + project_id;
+                    window.location.href = window.location.origin + '/steps/simulation_results/' + project_id;
                 } else if (!shouldStop) {
-                    document.querySelector("#statusMsg").innerHTML = res.status;
-                    await renewToken();
-                    await wait_for_results(project_id, task_id, res.time, res.model);
+                    document.getElementById("statusMsg").innerHTML = res.status;
+                    await wait_for_results(project_id, res.task_id, res.time, res.model);
                 }
             } else {
                 if (response.status === 303 || response.status === 422) {
@@ -1033,7 +1032,7 @@ async function forward_if_no_task_is_pending(project_id) {
             const res = await response.json();
 
             if (res.forward === true) {
-                window.location.href = window.location.origin + '/calculating?project_id=' + project_id;
+                window.location.href = window.location.origin + '/steps/calculating/' + project_id;
             } else {
                 document.getElementById('pendingTask').style.display = 'block';
             }
@@ -1068,7 +1067,7 @@ async function revoke_users_task() {
 
 
 function start_calculation(project_id) {
-    fetch("start_calculation/" + project_id, {
+    fetch(startCalculationUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

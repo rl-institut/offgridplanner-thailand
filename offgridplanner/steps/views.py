@@ -11,8 +11,12 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils.translation import gettext_lazy as _
 
+from offgridplanner.opt_models.grid_optimizer import optimize_grid
+from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
 from offgridplanner.projects.forms import ProjectForm, CustomDemandForm, OptionForm, GridDesignForm
-from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign
+from offgridplanner.projects.models import Project, Options, CustomDemand, Nodes, GridDesign, Energysystemdesign, \
+    Simulation
+from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.users.models import User
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 
@@ -22,6 +26,7 @@ STEPS = [
     _("demand_estimation"),
     _("grid_design"),
     _("energy_system_design"),
+    _("calculating"),
     _("simulation_results"),
 ]
 
@@ -238,10 +243,41 @@ def energy_system_design(request,proj_id=None):
         return JsonResponse({"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},status=200)
 
 
+def calculating(request, proj_id=None):
+    # TODO currently the optimization is always triggered through js, add option to reset simulation or skip page if is complete (like open-plan)
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+
+        simulation, _ = Simulation.objects.get_or_create(project=project)
+        if 'anonymous' in project.user.email:
+            msg = 'You will be forwarded after the model calculation is completed.'
+            email_opt = False
+        else:
+            msg = 'You will be forwarded after the model calculation is completed. You can also close the window and view' \
+                  ' the results in your user account after the calculation is finished.'
+            email_opt = False
+        # TODO there was also the condition len(project.task_id) > 20 but I'm not sure why it is needed
+        if simulation.task_id is not None and not task_is_finished(simulation.task_id):
+            msg = 'CAUTION: You have a calculation in progress that has not yet been completed. Therefore you cannot' \
+                  ' start another calculation. You can cancel the already running calculation by clicking on the' \
+                  ' following button:'
+
+        context = {
+            'proj_id': proj_id,
+            'msg': msg,
+            'task_id': simulation.task_id,
+            'time': 3,
+            'email_opt': email_opt
+        }
+        return render(request, "pages/calculating.html", context)
+
+
 # @login_required()
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
-    return render(request, "pages/simulation_results.html")
+    return render(request, "pages/simulation_results.html", context={"proj_id": proj_id})
 
 
 
@@ -253,3 +289,63 @@ def steps(request, proj_id, step_id=None):
         return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
     return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id-1]}", args=[proj_id]))
+
+@require_http_methods(["GET"])
+def load_previous_data(request, page_name=None, proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+    # user = await handle_user_accounts.get_user_from_cookie(request)
+    # if user is None:
+    #     return
+    # project_id = request.query_params.get('project_id')
+        if page_name == "project_setup":
+            pass
+        #     if project_id == 'new':
+        #         project_id = await async_queries.next_project_id_of_user(user.id)
+        #         return sa_tables.ProjectSetup(project_id=project_id)
+        #     try:
+        #         project_id = int(project_id)
+        #     except (ValueError, TypeError):
+        #         return None
+        #     project_setup = await async_queries.get_model_instance(sa_tables.ProjectSetup, user.id, project_id)
+        #     if hasattr(project_setup, 'start_date'):
+        #         project_setup.start_datetime = project_setup.start_date.date().__str__()
+        #         return project_setup
+        #     else:
+        #         return None
+        elif page_name == "grid_design":
+            grid_design = GridDesign.get(project=project)
+            return grid_design
+        # elif page_name == "demand_estimation":
+            # try:
+            #     project_id = int(project_id)
+            # except (ValueError, TypeError):
+            #     return None
+            # demand_estimation = await async_queries.get_model_instance(sa_tables.Demand, user.id, project_id)
+            # if (demand_estimation is not None
+            #         and hasattr(demand_estimation, 'use_custom_demand')
+            #         and demand_estimation.use_custom_demand is True):
+            #     return demand_estimation
+            # if demand_estimation is None or not hasattr(demand_estimation, 'maximum_peak_load'):
+            #     return None
+            # if pd.Series([value for key, value in demand_estimation.to_dict().items() if 'custom_share_' in key]).fillna(0).sum() == 0:
+            #     wealth_share_dict = default_wealth_share()
+            #     demand_estimation.custom_share_1 = wealth_share_dict['custom_share_1']
+            #     demand_estimation.custom_share_2 = wealth_share_dict['custom_share_2']
+            #     demand_estimation.custom_share_3 = wealth_share_dict['custom_share_3']
+            #     demand_estimation.custom_share_4 = wealth_share_dict['custom_share_4']
+            #     demand_estimation.custom_share_5 = wealth_share_dict['custom_share_5']
+            # demand_estimation.maximum_peak_load = str(demand_estimation.maximum_peak_load) \
+            #     if demand_estimation.maximum_peak_load is not None else ''
+            # demand_estimation.average_daily_energy = str(demand_estimation.average_daily_energy) \
+            #     if demand_estimation.average_daily_energy is not None else ''
+            # demand_estimation.custom_calibration = True \
+            #     if len(demand_estimation.maximum_peak_load) > 0 or len(demand_estimation.average_daily_energy) > 0 \
+            #     else False
+            # demand_estimation.calibration_options = 2 if len(demand_estimation.maximum_peak_load) > 0 else 1
+            # return demand_estimation
+        elif page_name == 'energy_system_design':
+            energy_system_design = Energysystemdesign.objects.get(project=project)
+            return energy_system_design

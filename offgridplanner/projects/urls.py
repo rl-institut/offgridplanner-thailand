@@ -28,9 +28,12 @@ urlpatterns = [
     path("db_nodes_to_js", db_nodes_to_js, name="db_nodes_to_js"),
     path("db_nodes_to_js/<int:proj_id>", db_nodes_to_js, name="db_nodes_to_js"),
     path(
-        "db_nodes_to_js/<int:proj_id>/<int:markers_only>",
+        "db_nodes_to_js/<int:proj_id>/<str:markers_only>",
         db_nodes_to_js,
         name="db_nodes_to_js",
     ),
     path("load-demand-plot-data/<int:proj_id>", load_demand_plot_data, name="load_demand_plot_data"),
+    path("load-results/<int:proj_id>", load_results, name="load_results"),
+    path("start_calculation/<int:proj_id>", start_calculation, name="start_calculation"),
+    path("waiting_for_results", waiting_for_results, name="waiting_for_results"),
 ]

@@ -1,12 +1,14 @@
 import os
 import io
 import json
+import time
 from collections import defaultdict
 from io import StringIO
 import numpy as np
 
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
+from django.forms import model_to_dict
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
@@ -17,10 +19,12 @@ from django.contrib import messages
 import pandas as pd
 from offgridplanner.projects.demand_estimation import get_demand_timeseries, LOAD_PROFILES
 from offgridplanner.projects.helpers import check_imported_consumer_data, consumer_data_to_file, load_project_from_dict
-
-from offgridplanner.projects.models import Project, Nodes, CustomDemand
+from offgridplanner.projects.models import Project, Nodes, CustomDemand, Options, GridDesign, Energysystemdesign, \
+    Results, Simulation
 from offgridplanner.users.models import User
 from offgridplanner.projects import identify_consumers_on_map
+from offgridplanner.projects.tasks import task_grid_opt, task_supply_opt, get_status, task_is_finished, hello
+
 
 # @login_required
 @require_http_methods(["GET"])
@@ -86,6 +90,19 @@ def project_delete(request, proj_id):
         messages.success(request, "Project successfully deleted!")
 
     return HttpResponseRedirect(reverse("projects:projects_list"))
+
+# TODO maybe link task to project and not to user...
+@require_http_methods(["POST"])
+def forward_if_no_task_is_pending(request,proj_id=None):
+    if proj_id is not None:
+        project = get_object_or_404(Project, id=proj_id)
+        if project.user.email != request.user.email:
+            raise PermissionDenied
+    if user.task_id is not None and len(user.task_id) > 20 and not task_is_finished(user.task_id):
+        res = {'forward': False, 'task_id': user.task_id}
+    else:
+        res = {'forward': True, 'task_id': ''}
+    return JsonResponse(res)
 
 
 
@@ -180,7 +197,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
         if project.user != request.user:
             raise PermissionDenied
         nodes = get_object_or_404(Nodes, project=project)
-        df = pd.read_json(StringIO(nodes.data)) if nodes is not None else pd.DataFrame()
+        df = nodes.df if nodes is not None else pd.DataFrame()
         if not df.empty:
             df = df[
                 [
@@ -229,59 +246,64 @@ def consumer_to_db(request, proj_id=None):
             raise PermissionDenied
 
         data = json.loads(request.body)
-        print(data["map_elements"])
-        print(data["file_type"])
-        # TODO I need to continue here
+        map_elements = data.get("map_elements", [])
+        file_type = data.get("file_type", "")
 
-        df = pd.DataFrame.from_records(data["map_elements"])
-        if df.empty is True:
+        if not map_elements:
             Nodes.objects.filter(project=project).delete()
-            return
-        df = df.drop_duplicates(subset=['latitude', 'longitude'])
-        drop_index = df[df['node_type'] == 'power-house'].index
-        if len(drop_index) > 1:
-            df = df.drop(index=drop_index[1:])
-        if df.empty is True:
-            Nodes.objects.filter(project=project).delete()
-            return
-        df = df[df['node_type'].isin(['power-house', 'consumer'])]
-        if df.empty is True:
-            Nodes.objects.filter(project=project).delete()
-            return
-        df = df[['latitude', 'longitude', 'how_added', 'node_type', 'consumer_type', 'custom_specification', 'shs_options', 'consumer_detail']]
-        df['consumer_type'] = df['consumer_type'].fillna('household')
-        df['custom_specification'] = df['custom_specification'].fillna('')
-        df['shs_options'] = df['shs_options'].fillna(0)
-        df['is_connected'] = True
-        df = df.round(decimals=6)
+            return JsonResponse({"message": "No data provided"}, status=200)
+
+        # Create DataFrame and clean data
+        df = pd.DataFrame.from_records(map_elements)
+
         if df.empty:
             Nodes.objects.filter(project=project).delete()
-            return
-        df["node_type"] = df["node_type"].astype(str)
-        if len(df.index) != 0:
-            if 'parent' in df.columns:
-                df['parent'] = df['parent'].replace('unknown', None)
-        df.latitude = df.latitude.map(lambda x: "%.6f" % x)
-        df.longitude = df.longitude.map(lambda x: "%.6f" % x)
-        if data["file_type"] == 'db':
-            nodes,_ = Nodes.objects.get_or_create(project=project)
-            nodes.data=df.reset_index(drop=True).to_json()
-            nodes.save()
+            return JsonResponse({"message": "No valid data"}, status=200)
 
-            return JsonResponse({"message": "Success"},status=200)
-        else:
-            io_file = consumer_data_to_file(df, data["file_type"])
-            if data["file_type"] == 'xlsx':
-                response = StreamingHttpResponse(io_file,
-                                             # media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                                )
-                response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.xlsx"
-            elif data["file_type"] == 'csv':
-                response = StreamingHttpResponse(io_file,
-                                             # media_type="text/csv"
-                                                 )
-                response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.csv"
-            return response
+        df = df.drop_duplicates(subset=["latitude", "longitude"])
+        df = df[df["node_type"].isin(["power-house", "consumer"])]
+
+        # Ensure only one power-house node remains
+        df = df.drop(df[df["node_type"] == "power-house"].index[1:], errors="ignore")
+
+        # Keep only relevant columns
+        required_columns = [
+            "latitude", "longitude", "how_added", "node_type",
+            "consumer_type", "custom_specification", "shs_options", "consumer_detail"
+        ]
+        df = df[required_columns]
+
+        # Fill missing values
+        df["consumer_type"] = df["consumer_type"].fillna("household")
+        df["custom_specification"] = df["custom_specification"].fillna("")
+        df["shs_options"] = df["shs_options"].fillna(0)
+        df["is_connected"] = True
+        df["node_type"] = df["node_type"].astype(str)
+
+        # Format latitude and longitude
+        df["latitude"] = df["latitude"].map(lambda x: f"{x:.6f}")
+        df["longitude"] = df["longitude"].map(lambda x: f"{x:.6f}")
+
+        # Handle optional 'parent' column
+        if "parent" in df.columns:
+            df["parent"] = df["parent"].replace("unknown", None)
+
+        if file_type == "db":
+            nodes, _ = Nodes.objects.get_or_create(project=project)
+            nodes.data = df.to_json(orient="records")  # Keep format structured
+            nodes.save()
+            return JsonResponse({"message": "Success"}, status=200)
+
+        # Handle file downloads
+        io_file = consumer_data_to_file(df, file_type)
+        response = StreamingHttpResponse(io_file)
+
+        if file_type == "xlsx":
+            response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.xlsx"
+        elif file_type == "csv":
+            response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.csv"
+
+        return response
 
 
 @require_http_methods(["POST"])
@@ -346,3 +368,258 @@ def load_demand_plot_data(request, proj_id=None):
 
     timeseries["Average"] = timeseries["Average"].tolist()
     return JsonResponse({"timeseries": timeseries}, status=200)
+
+
+def start_calculation(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+
+    simulation = project.simulation
+    # TODO set up redirect later if we keep this
+    # forward, redirect = await async_queries.check_data_availability(user.id, project_id)
+    # if forward is False:
+    #     return JsonResponse({'task_id': '', 'redirect': redirect})
+    task_id = optimization(proj_id)
+    simulation.task_id = task_id
+    simulation.save()
+
+    return JsonResponse({'task_id': task_id, 'redirect': ''})
+
+# async def check_data_availability(user_id, project_id):
+    # TODO checks data availability and redirects the user if missing - not sure we want to keep this
+    # project_setup = await get_model_instance(sa_tables.ProjectSetup, user_id, project_id)
+    # if project_setup is None:
+    #     return False, '/project_setup/?project_id=' + str(project_id)
+    # nodes = await get_model_instance(sa_tables.Nodes, user_id, project_id)
+    # nodes_df = pd.read_json(nodes.data) if nodes is not None else None
+    # if nodes_df is None or nodes_df.empty or nodes_df[nodes_df['node_type'] == 'consumer'].index.__len__() == 0:
+    #     if project_setup.do_demand_estimation and project_setup.do_es_design_optimization:
+    #         return False, '/consumer_selection/?project_id=' + str(project_id)
+    # demand_opt_dict = await get_model_instance(sa_tables.Demand, user_id, project_id)
+    # if demand_opt_dict is None or pd.isna(demand_opt_dict.household_option):
+    #     return False, '/demand_estimation/?project_id=' + str(project_id)
+    # if project_setup.do_grid_optimization is True:
+    #     grid_design = await get_model_instance(sa_tables.GridDesign, user_id, project_id)
+    #     if grid_design is None or pd.isna(grid_design.pole_lifetime):
+    #         return False, '/grid_design/?project_id=' + str(project_id)
+    # if project_setup.do_es_design_optimization is True:
+    #     energy_system_design = await get_model_instance(sa_tables.EnergySystemDesign, user_id, project_id)
+    #     if energy_system_design is None or pd.isna(energy_system_design.battery__parameters__c_rate_in):
+    #         return False, '/energy_system_design/?project_id=' + str(project_id)
+    # return True, None
+
+def optimization(proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+    opts = project.options
+    simulation = Simulation.objects.get(project=project)
+    simulation.status = "queued"
+    simulation.save()
+    if opts.do_grid_optimization is True:
+        task = task_grid_opt.delay(proj_id)
+    else:
+        task = task_supply_opt.delay(proj_id)
+    return task.id
+
+def waiting_for_results(request):
+    body_unicode = request.body.decode('utf-8')
+    data = json.loads(body_unicode)
+    total_time = data["time"]
+    task_id = data["task_id"]
+    model = data["model"]
+    finished = False
+    wait_time = 10
+
+    status = get_status(task_id)
+
+    if task_is_finished(task_id):
+        print(f"Task {model} optimization finished")
+        sim = Simulation.objects.get(task_id=task_id)
+        project = sim.project
+
+        # Grid opt is finished, proceed to supply opt
+        if model == "grid" and project.options.do_es_design_optimization:
+            # TODO for testing purposes while supply_opt is not ready, fix later
+            # new_task = task_supply_opt.delay(project.id)
+            new_task = hello.delay()
+            sim.task_id = new_task.id
+            sim.save()
+            finished = False
+            model = "supply"
+            status = "power supply optimization is running..."
+            task_id = new_task.id
+
+        # Supply opt is finished
+        else:
+            sim.status = "finished" if status in ['success', 'failure', 'revoked'] else status
+            # TODO: decide whether to keep or clear task_id
+            # sim.task_id = None
+            sim.save()
+            finished = True
+            status = sim.status
+    else:
+        print(f"Task {model} optimization pending")
+        # If the task is still running, retry after a calculated delay
+        time.sleep(wait_time)
+        total_time += wait_time
+
+    # Prepare response structure
+    response = {
+        "time": total_time,
+        "status": status,
+        "task_id": task_id,
+        "model": model,
+        "finished": finished
+    }
+    return JsonResponse(response)
+
+def get_project_data(project):
+    # TODO in the original function the user is redirected to whatever page has missing data, i would rather do an error message
+    """
+    Checks if all necessary data for the optimization exists
+    :param project:
+    :return:
+    """
+    options = Options.objects.get(project=project)
+
+    model_qs = {
+        "Nodes": Nodes.objects.filter(project=project),
+        "CustomDemand": CustomDemand.objects.filter(project=project),
+        "GridDesign": GridDesign.objects.filter(project=project),
+        "Energysystemdesign": Energysystemdesign.objects.filter(project=project)
+        }
+
+    # TODO check which models are only necessary for the skipped steps and exclude them
+    if options.do_demand_estimation is False:
+        # qs.pop(..)
+        pass
+
+    if options.do_grid_optimization is False:
+        pass
+
+    if options.do_es_design_optimization is False:
+        pass
+
+    missing_qs = [key for key, qs in model_qs.items() if not qs.exists()]
+    if missing_qs:
+        raise ValueError(f"The project does not contain all data required for the optimization."
+                         f" The following models are missing: {missing_qs}")
+    else:
+        proj_data = {key: qs.get() for key, qs in model_qs.items()}
+        return proj_data
+
+
+def load_results(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+    opts = project.options
+    res = project.simulation.results
+    df = pd.Series(model_to_dict(res))
+    # TODO delete
+    df.fillna(0.1, inplace=True)
+    infeasible = bool(df["infeasible"]) if "infeasible" in df else False
+    if df.empty:
+        return JsonResponse({})
+    # TODO figure out this logic - I changed it so it would run through but it doesnt make so much sense to me
+    # if df['lcoe'] is None and opts.do_es_design_optimization is True:
+    #     return JsonResponse({})
+    # elif df['n_poles']is None and opts.do_grid_optimization is True:
+    #     return JsonResponse({})
+    if opts.do_grid_optimization is True:
+        df["average_length_distribution_cable"] = df["length_distribution_cable"] / df["n_distribution_links"]
+        df["average_length_connection_cable"] = df["length_connection_cable"] / df["n_connection_links"]
+        df["gridLcoe"] = float(df['cost_grid']) / float(df["epc_total"]) * 100
+    else:
+        df["average_length_distribution_cable"] = None
+        df["average_length_connection_cable"] = None
+        df["gridLcoe"] = 0
+    df[["time_grid_design", "time_energy_system_design"]] = df[["time_grid_design", "time_energy_system_design"]].fillna(0)
+    df["time"] = (df["time_grid_design"] + df["time_energy_system_design"])
+    unit_dict = {'n_poles': '',
+                 'n_consumers': '',
+                 'n_shs_consumers': '',
+                 'length_distribution_cable': 'm',
+                 'average_length_distribution_cable': 'm',
+                 'length_connection_cable': 'm',
+                 'average_length_connection_cable': 'm',
+                 'cost_grid': 'USD/a',
+                 'lcoe': '',
+                 'gridLcoe': '%',
+                 'esLcoe': '%',
+                 'res': '%',
+                 'max_voltage_drop': '%',
+                 'shortage_total': '%',
+                 'surplus_rate': '%',
+                 'time': 's',
+                 'co2_savings': 't/a',
+                 'total_annual_consumption': 'kWh/a',
+                 'average_annual_demand_per_consumer': 'W',
+                 'upfront_invest_grid': 'USD',
+                 'upfront_invest_diesel_gen': 'USD',
+                 'upfront_invest_inverter': 'USD',
+                 'upfront_invest_rectifier': 'USD',
+                 'upfront_invest_battery': 'USD',
+                 'upfront_invest_pv': 'USD',
+                 'upfront_invest_converters': 'USD',
+                 'upfront_invest_total': 'USD',
+                 'battery_capacity': 'kWh',
+                 'pv_capacity': 'kW',
+                 'diesel_genset_capacity': 'kW',
+                 'inverter_capacity': 'kW',
+                 'rectifier_capacity': 'kW',
+                 'co2_emissions': 't/a',
+                 'fuel_consumption': 'liter/a',
+                 'peak_demand': 'kW',
+                 'base_load': 'kW',
+                 'max_shortage': '%',
+                 'cost_fuel': 'USD/a',
+                 'epc_pv': 'USD/a',
+                 'epc_diesel_genset': 'USD/a',
+                 'epc_inverter': 'USD/a',
+                 'epc_rectifier': 'USD/a',
+                 'epc_battery': 'USD/a',
+                 'epc_total': 'USD/a'
+                 }
+    if opts.do_es_design_optimization is True:
+        df["esLcoe"] = (float(df["epc_total"]) - float(df['cost_grid'])) / float(df["epc_total"]) * 100
+        if int(df['n_consumers']) != int(df['n_shs_consumers']) and not infeasible:
+            df['upfront_invest_converters'] = sum(
+                df[col] for col in df.columns if 'upfront' in col and 'grid' not in col)
+            df['upfront_invest_total'] = df['upfront_invest_converters'] + df['upfront_invest_grid']
+        else:
+            df['upfront_invest_converters'] = None
+            df['upfront_invest_total'] = None
+    else:
+        df['upfront_invest_converters'] = None
+        df['upfront_invest_total'] = None
+        df["esLcoe"] = 0
+    df = df[list(unit_dict.keys())].round(1).astype(str)
+    # TODO formatting, figure out later
+    # for col in df.keys():
+    #     if unit_dict[col] in ['%', 's', 'kW', 'kWh']:
+    #         df[col] = df[col].where(df[col] != 'None', 0)
+    #         if df[col].isna().sum() == 0:
+    #             df[col] = df[col].astype(float).round(1).astype(str)
+    #     elif unit_dict[col] in ['USD', 'kWh/a', 'USD/a']:
+    #         if df[col].isna().sum() == 0 and df.loc[0, col] != 'None':
+    #             df[col] = "{:,}".format(df[col].astype(float).astype(int).iat[0])
+    #     df[col] = df[col] + ' ' + unit_dict[col]
+    df["do_grid_optimization"] = opts.do_grid_optimization
+    df["do_es_design_optimization"] = opts.do_es_design_optimization
+    results = df.to_dict()
+    if infeasible is True:
+        results['responseMsg'] = 'There are no results of the energy system optimization. There were no feasible ' \
+                                 'solution.'
+    elif int(results['n_consumers']) == int(results['n_shs_consumers']):
+        results['responseMsg'] = 'Due to high grid costs, all consumers have been equipped with solar home ' \
+                                 'systems. A grid was not built, therefore no optimization of the energy system was ' \
+                                 'carried out.'
+    else:
+        results['responseMsg'] = ''
+    return JsonResponse(results, status=200)
+# TODO define later based on results models - could also be a method in the results model
+def remove_results(user_id, project_id):
+    # await remove(sa_tables.Results, user_id, project_id)
+    # await remove(sa_tables.DemandCoverage, user_id, project_id)
+    # await remove(sa_tables.EnergyFlow, user_id, project_id)
+    # await remove(sa_tables.Emissions, user_id, project_id)
+    # await remove(sa_tables.DurationCurve, user_id, project_id)
+    # await remove(sa_tables.Links, user_id, project_id)
+    pass

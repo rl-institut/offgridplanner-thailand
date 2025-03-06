@@ -280,7 +280,7 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
-REDIS_URL = env("REDIS_URL", default="redis://redis:6379/0")
+REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 REDIS_SSL = REDIS_URL.startswith("rediss://")
 
 # Celery
@@ -373,5 +373,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SCHEMA_PATH_PREFIX": "/api/",
 }
-# Your stuff...
+# SIMULATION
 # ------------------------------------------------------------------------------
+SOLVER_NAME = os.environ.get("SOLVER_NAME", "cbc")
+CDS_API_KEY = os.environ.get("CDS_API_KEY")
