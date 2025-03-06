@@ -1,0 +1,80 @@
+{% extends 'step_progression.html' %}
+
+{% load crispy_forms_tags %}
+{% load custom_template_tags %}
+{% load static %}
+{% load i18n %}
+
+{% block progression_content %}
+  <main>
+    <section class="dashboard" style="height: auto">
+      <div class="chart"
+           style="height: auto;
+                      padding-bottom: 10px;
+                      max-height: 350px">
+        <div class="chart__header">
+          <a class="title"></a>
+        </div>
+
+        <form action="{% if proj_id %}{% url 'steps:project_setup' proj_id %}{% else %}{% url 'steps:project_setup' %}{% endif %}" method="POST">
+
+
+
+          {% csrf_token %}
+          <div class="row" style="height: auto">
+            <div class="col-md-6" style="height: auto">
+              <div class="input-item">{{ form|get_field:"name"|as_crispy_field }}</div>
+              <div class="input-item">{{ form|get_field:"n_days"|as_crispy_field }}</div>
+              <div class="input-item optional">{{ form|get_field:"description"|as_crispy_field }}</div>
+            </div>
+            <div class="col-md-6" style="height: auto">
+              <div class="input-item">
+                <div class="input-group">
+                  {{ form|get_field:"interest_rate"|as_crispy_field }}
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+              <div class="input-item">
+                <div class="input-group">
+                  {{ form|get_field:"lifetime"|as_crispy_field }}
+                  <span class="input-group-text">Years</span>
+                </div>
+              </div>
+              <label class="form-label">
+                Planning Steps
+                <span class="icon icon-question"
+                      data-bs-toggle="tooltip"
+                      title="Offgridplanner was developed to guide users through the entire planning process of an off-grid system, from demand estimation and spatial grid optimization to design optimization and unit commitment of energy converters. However, individual planning steps can be skipped if needed; simply deselect the relevant options accordingly."></span>
+              </label>
+              <div class="form-control" style="background-color: var(--bcc)">
+                <div style="display: flex;
+                                align-items: center;
+                                margin-bottom: 10px;
+                                margin-top: 10px">{{ opts_form|get_field:"do_demand_estimation"|as_crispy_field }}</div>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                  {{ opts_form|get_field:"do_grid_optimization"|as_crispy_field }}
+                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                  {{ opts_form|get_field:"do_es_design_optimization"|as_crispy_field }}
+                </div>
+              </div>
+              <input type="submit" id="submitFormBtn" hidden="true">
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+{% endblock progression_content %}
+{% block end_body_scripts %}
+<!-- TODO mostly not needed as JS -->
+<script src="{% static 'js/pages/project_setup.js' %}"></script>
+<script src="{% static 'js/backend_communication.js' %}"></script>
+<script src="{% static 'js/modal_utils.js' %}"></script>
+{% endblock end_body_scripts %}
+
+{% block next_btn %}
+<button id="next-button"
+        class="btn btn--medium"
+        onclick="javascript:document.getElementById('submitFormBtn').click();">{% translate "Next" %}</button>
+{% endblock next_btn %}

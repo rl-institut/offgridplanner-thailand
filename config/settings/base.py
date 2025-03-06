@@ -29,12 +29,13 @@ TIME_ZONE = "CET"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
-# from django.utils.translation import gettext_lazy as _
-# LANGUAGES = [
-#     ('en', _('English')),
-#     ('fr-fr', _('French')),
-#     ('pt-br', _('Portuguese')),
-# ]
+from django.utils.translation import gettext_lazy as _
+
+LANGUAGES = [
+    ("en", _("English")),
+    ("fr-fr", _("French")),
+    ("pt-br", _("Portuguese")),
+]
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
@@ -55,6 +56,10 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Demand data
+DEMAND_DIR = os.path.join(APPS_DIR, "static", "parquet")
+FULL_PATH_PROFILES = os.path.join(DEMAND_DIR, "1-hour_mean_365_days_all_users.parquet")
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -93,6 +98,9 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "offgridplanner.users",
     # Your stuff: custom apps go here
+    "offgridplanner.projects",
+    "offgridplanner.dashboard",
+    "offgridplanner.steps",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -112,9 +120,10 @@ AUTHENTICATION_BACKENDS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = "users:redirect"
+LOGIN_REDIRECT_URL = "projects:home"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "account_login"
+LOGOUT_REDIRECT_URL = "home"
 
 # PASSWORDS
 # ------------------------------------------------------------------------------
@@ -271,7 +280,7 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
-REDIS_URL = env("REDIS_URL", default="redis://redis:6379/0")
+REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 REDIS_SSL = REDIS_URL.startswith("rediss://")
 
 # Celery
@@ -364,5 +373,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SCHEMA_PATH_PREFIX": "/api/",
 }
-# Your stuff...
+# SIMULATION
 # ------------------------------------------------------------------------------
+SOLVER_NAME = os.environ.get("SOLVER_NAME", "cbc")
+CDS_API_KEY = os.environ.get("CDS_API_KEY")

@@ -13,6 +13,16 @@ Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getti
 
 ## Basic Commands
 
+### Setting up
+
+if you are developping locally, please install the requirements listed under `requirements/local.txt` for example using pip inside a virtualenvironment
+
+    pip install -r requirements/local.txt
+
+Following the installation run
+
+    pre-commit install
+
 ### Setting Up Your Users
 
 - To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
