@@ -1437,7 +1437,6 @@ class GridOptimizer(BaseOptimizer):
             random_state=0,
             n_jobs=5,
         )
-
         # fit clusters to the data
         kmeans.fit(nodes_coord)
 
@@ -1506,6 +1505,17 @@ class GridOptimizer(BaseOptimizer):
             self.nodes.loc[self.nodes.index == power_house_idx[0], "node_type"] = 'power-house'
             self.nodes.loc[self.nodes.index == power_house_idx[0], "how_added"] = 'manual'
 
+    def is_enough_poles(self, n):
+        self.kmeans_clustering(n_clusters=n)
+        self.connect_grid_consumers()
+        constraints_violation = self.links[self.links["link_type"] == "connection"]
+        constraints_violation = constraints_violation[
+            constraints_violation["length"] > self.connection_cable_max_length]
+        if constraints_violation.shape[0] > 0:
+            return False
+        else:
+            return True
+
     def _find_opt_number_of_poles(self, n_mg_consumers):
         # calculate the minimum number of poles based on the
         # maximum number of connections at each pole
@@ -1516,26 +1526,15 @@ class GridOptimizer(BaseOptimizer):
 
         space = pd.Series(range(min_number_of_poles, n_mg_consumers, 1))
 
-        def is_enough_poles(n):
-            self.kmeans_clustering(n_clusters=n)
-            self.connect_grid_consumers()
-            constraints_violation = self.links[self.links["link_type"] == "connection"]
-            constraints_violation = constraints_violation[
-                constraints_violation["length"] > self.connection_cable_max_length]
-            if constraints_violation.shape[0] > 0:
-                return False
-            else:
-                return True
-
         for _ in range(min_number_of_poles, n_mg_consumers, 1):
             if len(space) >= 5:
                 next_n = int(space.median())
-                if is_enough_poles(next_n) is True:
+                if self.is_enough_poles(next_n) is True:
                     space = space[space <= next_n]
                 else:
                     space = space[space > next_n]
             else:
                 for next_n in space:
                     next_n = int(next_n)
-                    if next_n == space.iat[-1] or is_enough_poles(next_n) is True:
+                    if next_n == space.iat[-1] or self.is_enough_poles(next_n) is True:
                         return next_n

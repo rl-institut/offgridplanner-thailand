@@ -246,59 +246,64 @@ def consumer_to_db(request, proj_id=None):
             raise PermissionDenied
 
         data = json.loads(request.body)
-        print(data["map_elements"])
-        print(data["file_type"])
-        # TODO I need to continue here
+        map_elements = data.get("map_elements", [])
+        file_type = data.get("file_type", "")
 
-        df = pd.DataFrame.from_records(data["map_elements"])
-        if df.empty is True:
+        if not map_elements:
             Nodes.objects.filter(project=project).delete()
-            return
-        df = df.drop_duplicates(subset=['latitude', 'longitude'])
-        drop_index = df[df['node_type'] == 'power-house'].index
-        if len(drop_index) > 1:
-            df = df.drop(index=drop_index[1:])
-        if df.empty is True:
-            Nodes.objects.filter(project=project).delete()
-            return
-        df = df[df['node_type'].isin(['power-house', 'consumer'])]
-        if df.empty is True:
-            Nodes.objects.filter(project=project).delete()
-            return
-        df = df[['latitude', 'longitude', 'how_added', 'node_type', 'consumer_type', 'custom_specification', 'shs_options', 'consumer_detail']]
-        df['consumer_type'] = df['consumer_type'].fillna('household')
-        df['custom_specification'] = df['custom_specification'].fillna('')
-        df['shs_options'] = df['shs_options'].fillna(0)
-        df['is_connected'] = True
-        df = df.round(decimals=6)
+            return JsonResponse({"message": "No data provided"}, status=200)
+
+        # Create DataFrame and clean data
+        df = pd.DataFrame.from_records(map_elements)
+
         if df.empty:
             Nodes.objects.filter(project=project).delete()
-            return
-        df["node_type"] = str(df["node_type"])
-        if len(df.index) != 0:
-            if 'parent' in df.columns:
-                df['parent'] = df['parent'].replace('unknown', None)
-        df.latitude = df.latitude.map(lambda x: "%.6f" % x)
-        df.longitude = df.longitude.map(lambda x: "%.6f" % x)
-        if data["file_type"] == 'db':
-            nodes,_ = Nodes.objects.get_or_create(project=project)
-            nodes.data=df.reset_index(drop=True).to_json()
-            nodes.save()
+            return JsonResponse({"message": "No valid data"}, status=200)
 
-            return JsonResponse({"message": "Success"},status=200)
-        else:
-            io_file = consumer_data_to_file(df, data["file_type"])
-            if data["file_type"] == 'xlsx':
-                response = StreamingHttpResponse(io_file,
-                                             # media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                                )
-                response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.xlsx"
-            elif data["file_type"] == 'csv':
-                response = StreamingHttpResponse(io_file,
-                                             # media_type="text/csv"
-                                                 )
-                response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.csv"
-            return response
+        df = df.drop_duplicates(subset=["latitude", "longitude"])
+        df = df[df["node_type"].isin(["power-house", "consumer"])]
+
+        # Ensure only one power-house node remains
+        df = df.drop(df[df["node_type"] == "power-house"].index[1:], errors="ignore")
+
+        # Keep only relevant columns
+        required_columns = [
+            "latitude", "longitude", "how_added", "node_type",
+            "consumer_type", "custom_specification", "shs_options", "consumer_detail"
+        ]
+        df = df[required_columns]
+
+        # Fill missing values
+        df["consumer_type"] = df["consumer_type"].fillna("household")
+        df["custom_specification"] = df["custom_specification"].fillna("")
+        df["shs_options"] = df["shs_options"].fillna(0)
+        df["is_connected"] = True
+        df["node_type"] = df["node_type"].astype(str)
+
+        # Format latitude and longitude
+        df["latitude"] = df["latitude"].map(lambda x: f"{x:.6f}")
+        df["longitude"] = df["longitude"].map(lambda x: f"{x:.6f}")
+
+        # Handle optional 'parent' column
+        if "parent" in df.columns:
+            df["parent"] = df["parent"].replace("unknown", None)
+
+        if file_type == "db":
+            nodes, _ = Nodes.objects.get_or_create(project=project)
+            nodes.data = df.to_json(orient="records")  # Keep format structured
+            nodes.save()
+            return JsonResponse({"message": "Success"}, status=200)
+
+        # Handle file downloads
+        io_file = consumer_data_to_file(df, file_type)
+        response = StreamingHttpResponse(io_file)
+
+        if file_type == "xlsx":
+            response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.xlsx"
+        elif file_type == "csv":
+            response.headers["Content-Disposition"] = "attachment; filename=offgridplanner_consumers.csv"
+
+        return response
 
 
 @require_http_methods(["POST"])
@@ -451,7 +456,7 @@ def waiting_for_results(request):
             finished = True
             status = sim.status
     else:
-        print(f"task {model} optimization pending")
+        print(f"Task {model} optimization pending")
         # If the task is still running, retry after a calculated delay
         time.sleep(wait_time)
         total_time += wait_time
