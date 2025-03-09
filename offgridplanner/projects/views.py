@@ -439,6 +439,7 @@ def load_demand_plot_data(request, proj_id=None):
     return JsonResponse({"timeseries": timeseries}, status=200)
 
 
+@require_http_methods(["POST"])
 def start_calculation(request, proj_id):
     project = get_object_or_404(Project, id=proj_id)
 
@@ -484,6 +485,7 @@ def optimization(proj_id):
     simulation = Simulation.objects.get(project=project)
     simulation.status = "queued"
     simulation.save()
+    # TODO I am not sure to understand why the supply optimisation does not solely depend on what the user ticked ...
     if opts.do_grid_optimization is True:
         task = task_grid_opt.delay(proj_id)
     else:

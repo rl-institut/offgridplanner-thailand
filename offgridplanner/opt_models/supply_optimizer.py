@@ -810,7 +810,7 @@ class EnergySystemOptimizer(BaseOptimizer):
         df["hybrid_electricity_production"] = (
             np.cumsum(self.sequences_genset) * co2_emission_factor / 1000
         )  # tCO2 per year
-        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
+        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="h")
         df = df.resample("D").max().reset_index(drop=True)
         emissions = sa_tables.Emissions()
         emissions.id = self.user_id
@@ -878,7 +878,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             100 * np.sort(self.sequences_battery_discharge)[::-1] / div
         )
         df = df.copy()
-        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
+        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="h")
         df = df.resample("D").min().reset_index(drop=True)
         df["pv_percentage"] = df.index.copy() / df.shape[0]
         df = df.round(3)

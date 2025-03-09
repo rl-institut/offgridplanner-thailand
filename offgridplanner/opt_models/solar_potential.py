@@ -21,6 +21,8 @@ from pvlib.modelchain import ModelChain
 from pvlib.pvsystem import PVSystem
 from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 
+from django.utils.timezone import make_aware
+
 from config.settings.base import CDS_API_KEY
 from offgridplanner.projects.models import WeatherData
 
@@ -66,13 +68,14 @@ from offgridplanner.projects.models import WeatherData
 
 # originally in sync_queries.py
 def get_weather_data(lat, lon, start, end):
-    index = pd.date_range(start, end, freq="1H")
+    index = pd.date_range(start, end, freq="h")
+
     ts_changed = False
 
-    if end > pd.to_datetime("2023-03-01"):
-        end = pd.to_datetime(f"2022-{start.month}-{start.day}") + (end - start)
-        start = pd.to_datetime(f"2022-{start.month}-{start.day}")
-        ts_changed = True
+    # if end > make_aware(pd.to_datetime("2023-03-01")):
+    #     end = (pd.to_datetime(f"2022-{start.month}-{start.day}")) + (end - start)
+    #     start = (pd.to_datetime(f"2022-{start.month}-{start.day}"))
+    #     ts_changed = True
 
     closest_lat, closest_lon = get_closest_grid_point(lat, lon)
 
@@ -84,8 +87,11 @@ def get_weather_data(lat, lon, start, end):
     # Convert QuerySet to DataFrame
     df = pd.DataFrame.from_records(qs.values()).set_index("dt").astype(float)
 
-    if ts_changed:
-        df.index = index
+    # TODO the data is saved in DB as time-aware, right now we don't need this
+    df.index = index
+
+    # if ts_changed:
+    #     df.index = index
 
     return df
 
