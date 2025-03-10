@@ -60,16 +60,17 @@ services:
     ports: []
     command: /start-celeryworker
 
-  celerybeat:
-    <<: *django
-    image: offgridplanner_local_celerybeat
-    container_name: offgridplanner_local_celerybeat
-    depends_on:
-      - redis
-      - postgres
-      - mailpit
-    ports: []
-    command: /start-celerybeat
+# TODO enable again if being used later - currently not needed
+#  celerybeat:
+#    <<: *django
+#    image: offgridplanner_local_celerybeat
+#    container_name: offgridplanner_local_celerybeat
+#    depends_on:
+#      - redis
+#      - postgres
+#      - mailpit
+#    ports: []
+#    command: /start-celerybeat
 
   flower:
     <<: *django

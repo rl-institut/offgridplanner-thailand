@@ -1,100 +1,73 @@
 # Offgridplanner-Django
 
-Implementation of the Offgridplanner in Django
+This tool is the Django-based implementation of the already existing [Offgridplanner tool](https://github.com/rl-institut/tier_spatial_planning/), which originated from the [PeopleSun](https://reiner-lemoine-institut.de/projekt/peoplesun-optimierung-von-off-grid-energieversorgungssystemen-in-nigeria/) project and was originally written using FastAPI.
 
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-License: GPLv3
+#  Web-Application
+The open-source tool originated from the PeopleSuN project and serves the planning of off-grid systems in Nigeria.
+The tool aims to perform a spatial optimization of the distribution grid as well as the design of the energy converters
+and energy storage.
+
+![Docker Network Diagram](offgridplanner/static/images/results_example.jpg)
+## Features
+The features of the tool are listed below:
+- **Automatic Identification of Buildings from OpenStreetMap:** Utilizes OpenStreetMap data to automatically identify building locations.
+- **Spatial Optimization of the Distribution Grid:** Enhances the efficiency of the distribution grid through spatial optimization techniques.
+- **Design Optimization of Generation Systems:** Optimizes the design of PV systems, battery systems, inverters, and diesel-engines.
+- **Automatic Identification for Individual Solar Home Systems:** Identifies buildings that are more suitably served by individual solar home systems.
+
+
+## Basic Structure
+The application is composed of the following services:
+- `django`: the application running behind Gunicorn.
+- `postgres`: PostgreSQL database with the application’s data.
+- `redis`: Redis instance for caching.
+- `traefik`: Traefik reverse proxy with HTTPS on by default.
+- `celeryworker`: Dunning a Celery worker process.
+- `flower`: To manage and monitor the celery task queue.
+
+## Getting Started Locally
+### With Docker Compose
+The environment variables for Docker are defined within the `.envs` folder. To build the container, open a terminal at
+the project root and run the following for local development:
+```bash
+docker compose -f docker-compose.local.yml up -d --build
+```
+If you want to emulate production environment use `docker-compose.production.yml` instead. For more information please
+refer to the [cookiecutter-django documentation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally-docker.html).
+
+### With a local development server
+Make sure you have the following installed:
+- Python 3.12
+- PostgreSQL
+- Redis (you may have to install the Windows Subsystem for Linux (WSL) if developing on Windows)
+- Mailpit
+
+Then proceed to the next steps.
+1. Create a virtual environment using `python=3.12`
+2. Activate your virtual environment
+3. Create a new postgreSQL database
+4. Define your environment variables (you can create a `.env` file at the root level, it will be read by Django)
+```
+POSTGRES_ENGINE=django.db.backends.postgresql
+POSTGRES_DB=<your db name>
+POSTGRES_USER=<your username>
+POSTGRES_PASSWORD=<your password>
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+USE_DOCKER=(yes|no)
+DJANGO_DEBUG=(True|False)
+```
+5. Execute the local_setup.sh file (`sh local_setup.sh` / `. local_setup.sh`)
+6. Start the redis service with `redis-server` (you will need to use a WSL terminal if developing on Windows)
+7. Start the celery worker in a separate terminal with `celery -A config.celery_app worker -l info` (you may have to specify `--pool=solo` if developing on Windows)
+8. Start your local mail server in a new terminal with `mailpit`. To view the UI, access http://127.0.0.1:8025/
+9. Start the local development server in a new terminal with `python manage.py runserver` :)
+
+For more information on developing locally, refer to the [cookiecutter-django documentation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally.html).
 
 ## Settings
 
-Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
-
-## Basic Commands
-
-### Setting up
-
-if you are developping locally, please install the requirements listed under `requirements/local.txt` for example using pip inside a virtualenvironment
-
-    pip install -r requirements/local.txt
-
-Following the installation run
-
-    pre-commit install
-
-### Setting Up Your Users
-
-- To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
-
-- To create a **superuser account**, use this command:
-
-      $ python manage.py createsuperuser
-
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
-
-### Type checks
-
-Running type checks with mypy:
-
-    $ mypy offgridplanner
-
-### Test coverage
-
-To run the tests, check your test coverage, and generate an HTML coverage report:
-
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
-
-#### Running tests with pytest
-
-    $ pytest
-
-### Live reloading and Sass CSS compilation
-
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally.html#using-webpack-or-gulp).
-
-### Celery
-
-This app comes with Celery.
-
-To run a celery worker:
-
-```bash
-cd offgridplanner
-celery -A config.celery_app worker -l info
-```
-
-Please note: For Celery's import magic to work, it is important _where_ the celery commands are run. If you are in the same folder with _manage.py_, you should be right.
-
-To run [periodic tasks](https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html), you'll need to start the celery beat scheduler service. You can start it as a standalone process:
-
-```bash
-cd offgridplanner
-celery -A config.celery_app beat
-```
-
-or you can embed the beat service inside a worker with the `-B` option (not recommended for production use):
-
-```bash
-cd offgridplanner
-celery -A config.celery_app worker -B -l info
-```
-
-### Email Server
-
-In development, it is often nice to be able to see emails that are being sent from your application. For that reason local SMTP server [Mailpit](https://github.com/axllent/mailpit) with a web interface is available as docker container.
-
-Container mailpit will start automatically when you will run all docker containers.
-Please check [cookiecutter-django Docker documentation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally-docker.html) for more details how to start all containers.
-
-With Mailpit running, to view messages that are sent by your application, open your browser and go to `http://127.0.0.1:8025`
-
-## Deployment
-
-The following details how to deploy this application.
-
-### Docker
-
-See detailed [cookiecutter-django Docker documentation](https://cookiecutter-django.readthedocs.io/en/latest/3-deployment/deployment-with-docker.html).
+For more information about Django [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
