@@ -161,12 +161,12 @@ class GridDesign(models.Model):
 
 class Energysystemdesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    battery_settings_is_selected = models.IntegerField(
+    battery_settings_is_selected = models.BooleanField(
         db_column="battery__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    battery_settings_design = models.IntegerField(
+    battery_settings_design = models.BooleanField(
         db_column="battery__settings__design",
         blank=True,
         null=True,
@@ -216,12 +216,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    diesel_genset_settings_is_selected = models.IntegerField(
+    diesel_genset_settings_is_selected = models.BooleanField(
         db_column="diesel_genset__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    diesel_genset_settings_design = models.IntegerField(
+    diesel_genset_settings_design = models.BooleanField(
         db_column="diesel_genset__settings__design",
         blank=True,
         null=True,
@@ -281,12 +281,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    inverter_settings_is_selected = models.IntegerField(
+    inverter_settings_is_selected = models.BooleanField(
         db_column="inverter__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    inverter_settings_design = models.IntegerField(
+    inverter_settings_design = models.BooleanField(
         db_column="inverter__settings__design",
         blank=True,
         null=True,
@@ -316,12 +316,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    pv_settings_is_selected = models.IntegerField(
+    pv_settings_is_selected = models.BooleanField(
         db_column="pv__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    pv_settings_design = models.IntegerField(
+    pv_settings_design = models.BooleanField(
         db_column="pv__settings__design",
         blank=True,
         null=True,
@@ -346,12 +346,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    rectifier_settings_is_selected = models.IntegerField(
+    rectifier_settings_is_selected = models.BooleanField(
         db_column="rectifier__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    rectifier_settings_design = models.IntegerField(
+    rectifier_settings_design = models.BooleanField(
         db_column="rectifier__settings__design",
         blank=True,
         null=True,
