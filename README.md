@@ -62,7 +62,7 @@ DJANGO_DEBUG=(True|False)
 ```
 5. Execute the local_setup.sh file (`sh local_setup.sh` / `. local_setup.sh`)
 6. Start the redis service with `redis-server` (you will need to use a WSL terminal if developing on Windows)
-7. Start the celery worker in a new terminal with `celery -A config.celery_app worker -l info` (you may have to specify `--pool=solo` if developing on Windows)
+7. Start the celery worker in a separate terminal with `celery -A config.celery_app worker -l info` (you may have to specify `--pool=solo` if developing on Windows)
 8. Start your local mail server in a new terminal with `mailpit`. To view the UI, access http://127.0.0.1:8025/
 9. Start the local development server in a new terminal with `python manage.py runserver` :)
 
