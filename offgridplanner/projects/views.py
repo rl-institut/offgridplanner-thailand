@@ -35,7 +35,6 @@ from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
 from offgridplanner.projects.models import Simulation
 from offgridplanner.projects.tasks import get_status
-from offgridplanner.projects.tasks import hello
 from offgridplanner.projects.tasks import task_grid_opt
 from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.projects.tasks import task_supply_opt
@@ -511,9 +510,7 @@ def waiting_for_results(request):
 
         # Grid opt is finished, proceed to supply opt
         if model == "grid" and project.options.do_es_design_optimization:
-            # TODO for testing purposes while supply_opt is not ready, fix later
-            # new_task = task_supply_opt.delay(project.id)
-            new_task = hello.delay()
+            new_task = task_supply_opt.delay(project.id)
             sim.task_id = new_task.id
             sim.save()
             finished = False
