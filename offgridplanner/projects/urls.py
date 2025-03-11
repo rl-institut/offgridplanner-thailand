@@ -36,6 +36,11 @@ urlpatterns = [
         load_demand_plot_data,
         name="load_demand_plot_data",
     ),
+    path(
+        "load-plot-data/<int:proj_id>/<str:plot_type>",
+        load_plot_data,
+        name="load_plot_data",
+    ),
     path("load-results/<int:proj_id>", load_results, name="load_results"),
     path(
         "start_calculation/<int:proj_id>",

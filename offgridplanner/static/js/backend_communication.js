@@ -39,7 +39,7 @@ async function plot_results(sequential = false) {
         // Sequential execution: wait for each fetch and plot to complete before starting the next
 
         // Fetch and plot 'other' data
-        const response3 = await fetch('/get_plot_data/' + project_id + '/other');
+        const response3 = await fetch('/load-plot-data/' + proj_id + '/other');
         const data3 = await response3.json();
         plot_lcoe_pie(data3.lcoe_breakdown);
         plot_bar_chart(data3.optimal_capacities);
@@ -48,7 +48,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const response6 = await fetch('/get_demand_plot_data/' + project_id);
+            const response6 = await fetch('/load-demand-plot-data/' + proj_id);
             const data6 = await response6.json();
             plot_demand_24h(data6);
         } else {
@@ -60,22 +60,22 @@ async function plot_results(sequential = false) {
         }
 
         // Fetch and plot 'demand_coverage' data
-        const response1 = await fetch('/get_plot_data/' + project_id + '/demand_coverage');
+        const response1 = await fetch('/load-plot-data/' + proj_id + '/demand_coverage');
         const data1 = await response1.json();
         plot_demand_coverage(data1.demand_coverage);
 
         // Fetch and plot 'energy_flow' data
-        const response2 = await fetch('/get_plot_data/' + project_id + '/energy_flow');
+        const response2 = await fetch('/load-plot-data/' + proj_id + '/energy_flow');
         const data2 = await response2.json();
         plot_energy_flows(data2.energy_flow);
 
         // Fetch and plot 'duration_curve' data
-        const response4 = await fetch('/get_plot_data/' + project_id + '/duration_curve');
+        const response4 = await fetch('/load-plot-data/' + proj_id + '/duration_curve');
         const data4 = await response4.json();
         plot_duration_curves(data4.duration_curve);
 
         // Fetch and plot 'emissions' data
-        const response5 = await fetch('/get_plot_data/' + project_id + '/emissions');
+        const response5 = await fetch('/load-plot-data/' + proj_id + '/emissions');
         const data5 = await response5.json();
         plot_co2_emissions(data5.emissions);
 
@@ -86,19 +86,19 @@ async function plot_results(sequential = false) {
         const fetchAndPlotPromises = [];
 
         // Fetch and plot 'demand_coverage' data
-        const fetchAndPlot1 = fetch('/get_plot_data/' + project_id + '/demand_coverage')
+        const fetchAndPlot1 = fetch('/load-plot-data/' + proj_id + '/demand_coverage')
             .then(response => response.json())
             .then(data => plot_demand_coverage(data.demand_coverage));
         fetchAndPlotPromises.push(fetchAndPlot1);
 
         // Fetch and plot 'energy_flow' data
-        const fetchAndPlot2 = fetch('/get_plot_data/' + project_id + '/energy_flow')
+        const fetchAndPlot2 = fetch('/load-plot-data/' + proj_id + '/energy_flow')
             .then(response => response.json())
             .then(data => plot_energy_flows(data.energy_flow));
         fetchAndPlotPromises.push(fetchAndPlot2);
 
         // Fetch and plot 'other' data
-        const fetchAndPlot3 = fetch('/get_plot_data/' + project_id + '/other')
+        const fetchAndPlot3 = fetch('/load-plot-data/' + proj_id + '/other')
             .then(response => response.json())
             .then(data => {
                 plot_lcoe_pie(data.lcoe_breakdown);
@@ -108,13 +108,13 @@ async function plot_results(sequential = false) {
         fetchAndPlotPromises.push(fetchAndPlot3);
 
         // Fetch and plot 'duration_curve' data
-        const fetchAndPlot4 = fetch('/get_plot_data/' + project_id + '/duration_curve')
+        const fetchAndPlot4 = fetch('/load-plot-data/' + proj_id + '/duration_curve')
             .then(response => response.json())
             .then(data => plot_duration_curves(data.duration_curve));
         fetchAndPlotPromises.push(fetchAndPlot4);
 
         // Fetch and plot 'emissions' data
-        const fetchAndPlot5 = fetch('/get_plot_data/' + project_id + '/emissions')
+        const fetchAndPlot5 = fetch('/load-plot-data/' + proj_id + '/emissions')
             .then(response => response.json())
             .then(data => plot_co2_emissions(data.emissions));
         fetchAndPlotPromises.push(fetchAndPlot5);
@@ -122,7 +122,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const fetchAndPlot6 = fetch('/get_demand_plot_data/' + project_id)
+            const fetchAndPlot6 = fetch('/load-demand-plot-data/' + proj_id)
                 .then(response => response.json())
                 .then(data => plot_demand_24h(data));
             fetchAndPlotPromises.push(fetchAndPlot6);
@@ -204,7 +204,7 @@ async function file_nodes_to_js(formData) {
 
 async function file_demand_to_db(formData) {
     try {
-        const response = await fetch('/import_demand' + '/' + project_id, {
+        const response = await fetch('/import_demand' + '/' + proj_id, {
             method: 'POST',
             body: formData
         });
@@ -457,7 +457,7 @@ async function load_results(project_id) {
         }
 
         const results = await response.json();
-
+//        TODO these results should be loaded in the view
         if (results['n_consumers'] > 0 || results['lcoe'] > 0) {
             document.getElementById('noResults').style.display = 'none';
             document.getElementById("nConsumers").innerText = Number(results['n_consumers']) - Number(results['n_shs_consumers']);
@@ -517,6 +517,7 @@ async function load_results(project_id) {
             if (results['do_grid_optimization'] === false) {
                 await hide_grid_results();
             }
+//            TODO this logic should be at the very beginning instead of loading all results and then replacing them
             if (results['lcoe'] === null || results['lcoe'] === undefined || results['lcoe'].includes('None')) {
                 if (results['responseMsg'].length === 0 && results['do_es_design_optimization'] === true) {
                     document.getElementById('responseMsg').innerHTML = 'Something went wrong. There are no results of the energy system optimization.';
@@ -526,12 +527,12 @@ async function load_results(project_id) {
                     await replaceSummaryChart()
                     await hide_es_results()
                     document.getElementById('responseMsg').innerHTML = results['responseMsg'];
-                    const response6 = await fetch('/get_demand_plot_data/' + project_id);
+                    const response6 = await fetch('/load-demand-plot-data/' + proj_id);
                     const data6 = await response6.json();
                     plot_demand_24h(data6);
                 }
             } else {
-                if (results['do_es_design_optimization'] === true) {
+                if (results['do_es_design_optimization'] === "True") {
                     await plot_results();
                 } else {
                     await replaceSummaryChart()
@@ -544,7 +545,7 @@ async function load_results(project_id) {
             document.getElementById('map').style.display = 'none';
             document.getElementById('noResults').style.display = 'block';
 
-            const res = await fetch("has_pending_task/" + project_id, {
+            const res = await fetch("has_pending_task/" + proj_id, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -626,7 +627,7 @@ async function save_project_setup(href) {
         return; // Exit the function to prevent fetching and navigation
     }
 
-    const url = "save_project_setup/" + project_id;
+    const url = "save_project_setup/" + proj_id;
     const data = {
         page_setup: {
             'project_name': projectName.value,
@@ -680,7 +681,7 @@ async function save_grid_design(href) {
             shs_max_grid_cost_value = document.getElementById('shs_max_grid_cost').value;
         }
 
-        await fetch("save_grid_design/" + project_id, {
+        await fetch("save_grid_design/" + proj_id, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -727,7 +728,7 @@ function save_demand_estimation(href) {
 
     // Conditional check for forwarding or displaying a modal
     if (!toggleSwitch.checked || useCustomDemand) {
-        fetch("save_demand_estimation/" + project_id, {
+        fetch("save_demand_estimation/" + proj_id, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -772,7 +773,7 @@ function save_demand_estimation(href) {
 
 function load_previous_data(page_name) {
     var xhr = new XMLHttpRequest();
-    url = "load_previous_data/" + page_name + "/" + project_id;
+    url = "load_previous_data/" + page_name + "/" + proj_id;
     xhr.open("GET", url, true);
     xhr.responseType = "json";
     xhr.send();
@@ -999,7 +1000,7 @@ async function wait_for_results(project_id, task_id, time, model) {
             if (response.ok) {
                 const res = await response.json();
                 if (res.finished === true) {
-                    window.location.href = window.location.origin + '/steps/simulation_results/' + project_id;
+                    window.location.href = window.location.origin + '/steps/simulation_results/' + proj_id;
                 } else if (!shouldStop) {
                     document.getElementById("statusMsg").innerHTML = res.status;
                     await wait_for_results(project_id, res.task_id, res.time, res.model);
@@ -1032,7 +1033,7 @@ async function forward_if_no_task_is_pending(project_id) {
             const res = await response.json();
 
             if (res.forward === true) {
-                window.location.href = window.location.origin + '/steps/calculating/' + project_id;
+                window.location.href = window.location.origin + '/steps/calculating/' + proj_id;
             } else {
                 document.getElementById('pendingTask').style.display = 'block';
             }
@@ -1112,7 +1113,7 @@ function start_calculation(project_id) {
 async function forward_if_consumer_selection_exists(project_id) {
     let href
     try {
-        const response = await fetch("forward_if_consumer_selection_exists/" + project_id, {
+        const response = await fetch("forward_if_consumer_selection_exists/" + proj_id, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -1123,7 +1124,7 @@ async function forward_if_consumer_selection_exists(project_id) {
         if (response.ok) {
             const res = await response.json();
             if (res.forward === true) {
-                href = window.location.origin + '/demand_estimation?project_id=' + project_id;
+                href = window.location.origin + '/demand_estimation?project_id=' + proj_id;
                 let updatedHref;
                 // Check if 'steps' and 'href' are defined
                 if (typeof steps !== 'undefined' && typeof href !== 'undefined') {
@@ -1148,7 +1149,7 @@ async function forward_if_consumer_selection_exists(project_id) {
 
 async function send_email_notification(project_id, is_active) {
     try {
-        const response = await fetch("/set_email_notification/" + project_id + '/' + is_active, {
+        const response = await fetch("/set_email_notification/" + proj_id + '/' + is_active, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -1430,7 +1431,7 @@ async function update_wizards_and_buttons_based_on_planning_step_selection(proje
                     prevButton.setAttribute('onclick', `save_demand_estimation(\`project_setup?project_id=${project_id}\`);`);
                 }
             } else if (results['do_grid_optimization'] === false && results['do_es_design_optimization'] === false) {
-                nextButton.setAttribute('onclick', `save_demand_estimation('/export_demand/` + project_id + '/' + document.getElementById('fileTypeDropdown').value + `/')`);
+                nextButton.setAttribute('onclick', `save_demand_estimation('/export_demand/` + proj_id + '/' + document.getElementById('fileTypeDropdown').value + `/')`);
                 nextButton.textContent = 'Export Demand';
             }
             if (results['do_demand_estimation'] === false) {
