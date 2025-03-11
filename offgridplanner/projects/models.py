@@ -15,6 +15,19 @@ def default_start_date():
     return datetime.datetime(current_year - 1, 1, 1)
 
 
+class BaseJsonData(models.Model):
+    # An abstract class for all models that only have a data JSONField
+    project = models.OneToOneField("Project", on_delete=models.CASCADE, null=True)
+    data = models.JSONField(null=True)
+
+    @property
+    def df(self):
+        return pd.read_json(StringIO(self.data)) if self.data else None
+
+    class Meta:
+        abstract = True
+
+
 class Options(models.Model):
     email_notification = models.BooleanField(default=False)
     do_demand_estimation = models.BooleanField(default=True)
@@ -96,14 +109,7 @@ class CustomDemand(models.Model):
         return calibration_option
 
 
-class Nodes(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    data = models.JSONField(null=True)
-
-    @property
-    def df(self):
-        return pd.read_json(StringIO(self.data))
-
+class Nodes(BaseJsonData):
     def filter_consumers(self, consumer_type):
         """
         Parameters:
@@ -134,13 +140,8 @@ class Nodes(models.Model):
         return False
 
 
-class Links(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    data = models.JSONField(null=True)
-
-    @property
-    def df(self):
-        return pd.read_json(StringIO(self.data))
+class Links(BaseJsonData):
+    pass
 
 
 class GridDesign(models.Model):
@@ -442,6 +443,7 @@ class Simulation(models.Model):
     status = models.CharField(max_length=25, default="not yet started")
 
 
+# TODO potentially make a separate "results" or "optimization" app - this may be getting a bit cluttered
 class Results(models.Model):
     # TODO potentially remove redundant fields that can just be calculated on the fly (e.g. upfront investment)
     simulation = models.OneToOneField(Simulation, on_delete=models.CASCADE, null=True)
@@ -504,3 +506,20 @@ class Results(models.Model):
     epc_inverter = models.FloatField(null=True, blank=True)
     epc_rectifier = models.FloatField(null=True, blank=True)
     epc_battery = models.FloatField(null=True, blank=True)
+
+
+# TODO check what is saved in these models and potentially restructure in db
+class Emissions(BaseJsonData):
+    pass
+
+
+class DurationCurve(BaseJsonData):
+    pass
+
+
+class EnergyFlow(BaseJsonData):
+    pass
+
+
+class DemandCoverage(BaseJsonData):
+    pass
