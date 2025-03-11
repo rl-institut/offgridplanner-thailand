@@ -772,6 +772,7 @@ function save_demand_estimation(href) {
 
 
 function load_previous_data(page_name) {
+//    TODO do we need this??
     var xhr = new XMLHttpRequest();
     url = "load_previous_data/" + page_name + "/" + proj_id;
     xhr.open("GET", url, true);

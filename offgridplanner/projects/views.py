@@ -27,7 +27,7 @@ from offgridplanner.projects.demand_estimation import get_demand_timeseries
 from offgridplanner.projects.helpers import check_imported_consumer_data
 from offgridplanner.projects.helpers import consumer_data_to_file
 from offgridplanner.projects.helpers import load_project_from_dict
-from offgridplanner.projects.models import CustomDemand
+from offgridplanner.projects.models import CustomDemand, Links
 from offgridplanner.projects.models import Energysystemdesign
 from offgridplanner.projects.models import GridDesign
 from offgridplanner.projects.models import Nodes
@@ -237,8 +237,8 @@ def db_links_to_js(request, proj_id):
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        # links = Links.objects.filter(project=project).first()
-        links = None
+        links_qs = Links.objects.filter(project=project)
+        links = links_qs.get() if links_qs.exists() else None
         links_json = json.loads(links.data) if links is not None else json.loads("{}")
         return JsonResponse(links_json, status=200)
 
