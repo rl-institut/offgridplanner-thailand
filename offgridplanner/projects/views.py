@@ -9,6 +9,7 @@ import numpy as np
 # from jsonview.decorators import json_view
 import pandas as pd
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.forms import model_to_dict
@@ -41,7 +42,14 @@ from offgridplanner.projects.tasks import task_supply_opt
 from offgridplanner.users.models import User
 
 
-# @login_required
+@require_http_methods(["GET"])
+def home(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("projects:projects_list"))
+    return render(request, "pages/landing_page.html")
+
+
+@login_required
 @require_http_methods(["GET"])
 def projects_list(request, proj_id=None):
     projects = (

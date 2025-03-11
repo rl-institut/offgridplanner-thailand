@@ -35,15 +35,6 @@ STEPS = [
 ]
 
 
-@require_http_methods(["GET"])
-def home(request):
-    return render(
-        request,
-        "pages/landing_page.html",
-        {"step_list": STEPS},
-    )
-
-
 # @login_required()
 @require_http_methods(["GET", "POST"])
 def project_setup(request, proj_id=None):
