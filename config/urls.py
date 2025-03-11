@@ -15,11 +15,6 @@ from rest_framework.authtoken.views import obtain_auth_token
 urlpatterns = (
     i18n_patterns(
         path(
-            "",
-            TemplateView.as_view(template_name="pages/landing_page.html"),
-            name="home",
-        ),
-        path(
             "about/",
             TemplateView.as_view(template_name="pages/about.html"),
             name="about",
@@ -43,13 +38,7 @@ urlpatterns = (
         path(settings.ADMIN_URL, admin.site.urls),
         # User management
         path("users/", include("offgridplanner.users.urls", namespace="users")),
-        path(
-            "dashboard/",
-            include("offgridplanner.dashboard.urls", namespace="dashboard"),
-        ),
-        path(
-            "projects/", include("offgridplanner.projects.urls", namespace="projects")
-        ),
+        path("", include("offgridplanner.projects.urls", namespace="projects")),
         path("steps/", include("offgridplanner.steps.urls", namespace="steps")),
         path("accounts/", include("allauth.urls")),
     )
