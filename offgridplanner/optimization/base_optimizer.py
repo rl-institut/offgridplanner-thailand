@@ -26,7 +26,8 @@ import os
 
 import pandas as pd
 
-from offgridplanner.projects.demand_estimation import get_demand_timeseries
+from offgridplanner.optimization.models import Results
+from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
 from offgridplanner.projects.models import *
 
 

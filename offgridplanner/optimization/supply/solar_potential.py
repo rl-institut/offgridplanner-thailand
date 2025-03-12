@@ -25,7 +25,7 @@ from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 from django.utils.timezone import make_aware
 
 from config.settings.base import CDS_API_KEY
-from offgridplanner.projects.models import WeatherData
+from offgridplanner.optimization.models import WeatherData
 
 # TODO this will no longer be needed, for local try to mode from oginal ogp mySQL
 # originally in sync_queries.py

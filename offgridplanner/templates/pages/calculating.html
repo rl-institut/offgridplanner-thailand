@@ -75,8 +75,8 @@
 <script>
   const proj_id = '{{ proj_id }}';
   const csrfToken = '{{ csrf_token }}';
-  const startCalculationUrl = `{% url 'projects:start_calculation' proj_id %}`;
-  const waitingForResultsUrl = `{% url 'projects:waiting_for_results' %}`;
+  const startCalculationUrl = `{% url 'optimization:start_calculation' proj_id %}`;
+  const waitingForResultsUrl = `{% url 'optimization:waiting_for_results' %}`;
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {

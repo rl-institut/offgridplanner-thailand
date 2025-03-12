@@ -12,16 +12,16 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.projects.forms import CustomDemandForm
-from offgridplanner.projects.forms import GridDesignForm
+from offgridplanner.steps.forms import CustomDemandForm
+from offgridplanner.steps.forms import GridDesignForm
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
-from offgridplanner.projects.models import CustomDemand
-from offgridplanner.projects.models import Energysystemdesign
-from offgridplanner.projects.models import GridDesign
+from offgridplanner.steps.models import CustomDemand
+from offgridplanner.steps.models import Energysystemdesign
+from offgridplanner.steps.models import GridDesign
 from offgridplanner.projects.models import Project
-from offgridplanner.projects.models import Simulation
-from offgridplanner.projects.tasks import task_is_finished
+from offgridplanner.optimization.models import Simulation
+from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.users.models import User
 
 STEPS = [
@@ -33,15 +33,6 @@ STEPS = [
     _("calculating"),
     _("simulation_results"),
 ]
-
-
-@require_http_methods(["GET"])
-def home(request):
-    return render(
-        request,
-        "pages/landing_page.html",
-        {"step_list": STEPS},
-    )
 
 
 # @login_required()

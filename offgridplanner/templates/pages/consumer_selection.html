@@ -341,12 +341,12 @@
       // url of API urls
       const csrfToken = '{{ csrf_token }}';
       //const project_id = {{ proj_id }};
-      const dbNodesToJsUrl = `{% url 'projects:db_nodes_to_js' proj_id %}`;
-      const dbLinksToJsUrl = `{% url 'projects:db_links_to_js' proj_id %}`;
-      const fileNodesToJsUrl = `{% url 'projects:file_nodes_to_js' %}`;
-      const consumerToDBUrl = `{% url 'projects:consumer_to_db' proj_id %}`;
-      const addBuildingsUrl = `{% url 'projects:add_buildings_inside_boundary' proj_id  %}`;
-      const removeBuildingsUrl = `{% url 'projects:remove_buildings_inside_boundary' proj_id  %}`;
+      const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
+      const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
+      const fileNodesToJsUrl = `{% url 'optimization:file_nodes_to_js' %}`;
+      const consumerToDBUrl = `{% url 'optimization:consumer_to_db' proj_id %}`;
+      const addBuildingsUrl = `{% url 'optimization:add_buildings_inside_boundary' proj_id  %}`;
+      const removeBuildingsUrl = `{% url 'optimization:remove_buildings_inside_boundary' proj_id  %}`;
       window.onload = function () {
         //redirect_if_cookie_is_missing(true, true); //for anonymous user --> do it pythonside
         db_nodes_to_js({{proj_id}}, false);

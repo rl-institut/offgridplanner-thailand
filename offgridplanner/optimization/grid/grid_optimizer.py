@@ -87,11 +87,11 @@ from k_means_constrained import KMeansConstrained
 from pyproj import Proj
 from scipy.sparse.csgraph import minimum_spanning_tree
 
-from offgridplanner.projects.models import Links
+from offgridplanner.optimization.models import Links
 
 logger = logging.getLogger(__name__)
 
-from offgridplanner.opt_models.base_optimizer import BaseOptimizer
+from offgridplanner.optimization.base_optimizer import BaseOptimizer
 
 pd.options.mode.chained_assignment = None  # default='warn'
 

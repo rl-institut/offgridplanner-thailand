@@ -12,8 +12,8 @@ or been revoked. This setup enables efficient, asynchronous processing of comple
 from celery import shared_task
 from celery.result import AsyncResult
 
-from offgridplanner.opt_models.grid_optimizer import optimize_grid
-from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
+from offgridplanner.optimization.grid.grid_optimizer import optimize_grid
+from offgridplanner.optimization.supply.supply_optimizer import optimize_energy_system
 
 
 @shared_task(
