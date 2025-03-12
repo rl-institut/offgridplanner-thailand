@@ -249,6 +249,7 @@ async function put_markers_on_map(array, markers_only) {
                 }
             }
         } else if (markers_only) {
+//          TODO it seems that when markers_only is true, all consumers show up as powerhouses. Not sure what this option is needed for in the first place, check and maybe delete
             selected_icon = markerPowerHouse;
         } else {
             selected_icon = icons[array[counter]["node_type"]];
@@ -275,10 +276,9 @@ async function put_markers_on_map(array, markers_only) {
     }
 
     zoomAll(map);
-    // TODO: Links seems like an old unused thing
-    //if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
-        // db_links_to_js();
-    //}
+    if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
+         db_links_to_js();
+    }
 }
 
 

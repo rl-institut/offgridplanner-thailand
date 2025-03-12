@@ -15,6 +15,19 @@ def default_start_date():
     return datetime.datetime(current_year - 1, 1, 1)
 
 
+class BaseJsonData(models.Model):
+    # An abstract class for all models that only have a data JSONField
+    project = models.OneToOneField("Project", on_delete=models.CASCADE, null=True)
+    data = models.JSONField(null=True)
+
+    @property
+    def df(self):
+        return pd.read_json(StringIO(self.data)) if self.data else None
+
+    class Meta:
+        abstract = True
+
+
 class Options(models.Model):
     email_notification = models.BooleanField(default=False)
     do_demand_estimation = models.BooleanField(default=True)
@@ -96,14 +109,7 @@ class CustomDemand(models.Model):
         return calibration_option
 
 
-class Nodes(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    data = models.JSONField(null=True)
-
-    @property
-    def df(self):
-        return pd.read_json(StringIO(self.data))
-
+class Nodes(BaseJsonData):
     def filter_consumers(self, consumer_type):
         """
         Parameters:
@@ -134,13 +140,8 @@ class Nodes(models.Model):
         return False
 
 
-class Links(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    data = models.JSONField(null=True)
-
-    @property
-    def df(self):
-        return pd.read_json(StringIO(self.data))
+class Links(BaseJsonData):
+    pass
 
 
 class GridDesign(models.Model):
@@ -161,12 +162,12 @@ class GridDesign(models.Model):
 
 class Energysystemdesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    battery_settings_is_selected = models.IntegerField(
+    battery_settings_is_selected = models.BooleanField(
         db_column="battery__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    battery_settings_design = models.IntegerField(
+    battery_settings_design = models.BooleanField(
         db_column="battery__settings__design",
         blank=True,
         null=True,
@@ -216,12 +217,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    diesel_genset_settings_is_selected = models.IntegerField(
+    diesel_genset_settings_is_selected = models.BooleanField(
         db_column="diesel_genset__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    diesel_genset_settings_design = models.IntegerField(
+    diesel_genset_settings_design = models.BooleanField(
         db_column="diesel_genset__settings__design",
         blank=True,
         null=True,
@@ -281,12 +282,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    inverter_settings_is_selected = models.IntegerField(
+    inverter_settings_is_selected = models.BooleanField(
         db_column="inverter__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    inverter_settings_design = models.IntegerField(
+    inverter_settings_design = models.BooleanField(
         db_column="inverter__settings__design",
         blank=True,
         null=True,
@@ -316,12 +317,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    pv_settings_is_selected = models.IntegerField(
+    pv_settings_is_selected = models.BooleanField(
         db_column="pv__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    pv_settings_design = models.IntegerField(
+    pv_settings_design = models.BooleanField(
         db_column="pv__settings__design",
         blank=True,
         null=True,
@@ -346,12 +347,12 @@ class Energysystemdesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    rectifier_settings_is_selected = models.IntegerField(
+    rectifier_settings_is_selected = models.BooleanField(
         db_column="rectifier__settings__is_selected",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    rectifier_settings_design = models.IntegerField(
+    rectifier_settings_design = models.BooleanField(
         db_column="rectifier__settings__design",
         blank=True,
         null=True,
@@ -429,8 +430,8 @@ class WeatherData(models.Model):
     dni = models.FloatField(null=True, blank=True)
     dhi = models.FloatField(null=True, blank=True)
 
-    class Meta:
-        unique_together = ("dt", "lat", "lon")
+    # class Meta:
+    #     unique_together = ("dt", "lat", "lon")
 
     def __str__(self):
         return f"WeatherData({self.dt}, {self.lat}, {self.lon})"
@@ -442,6 +443,7 @@ class Simulation(models.Model):
     status = models.CharField(max_length=25, default="not yet started")
 
 
+# TODO potentially make a separate "results" or "optimization" app - this may be getting a bit cluttered
 class Results(models.Model):
     # TODO potentially remove redundant fields that can just be calculated on the fly (e.g. upfront investment)
     simulation = models.OneToOneField(Simulation, on_delete=models.CASCADE, null=True)
@@ -504,3 +506,20 @@ class Results(models.Model):
     epc_inverter = models.FloatField(null=True, blank=True)
     epc_rectifier = models.FloatField(null=True, blank=True)
     epc_battery = models.FloatField(null=True, blank=True)
+
+
+# TODO check what is saved in these models and potentially restructure in db
+class Emissions(BaseJsonData):
+    pass
+
+
+class DurationCurve(BaseJsonData):
+    pass
+
+
+class EnergyFlow(BaseJsonData):
+    pass
+
+
+class DemandCoverage(BaseJsonData):
+    pass

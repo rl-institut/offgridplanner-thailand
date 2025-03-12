@@ -27,7 +27,7 @@ from offgridplanner.projects.demand_estimation import get_demand_timeseries
 from offgridplanner.projects.helpers import check_imported_consumer_data
 from offgridplanner.projects.helpers import consumer_data_to_file
 from offgridplanner.projects.helpers import load_project_from_dict
-from offgridplanner.projects.models import CustomDemand
+from offgridplanner.projects.models import CustomDemand, Links
 from offgridplanner.projects.models import Energysystemdesign
 from offgridplanner.projects.models import GridDesign
 from offgridplanner.projects.models import Nodes
@@ -35,7 +35,6 @@ from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
 from offgridplanner.projects.models import Simulation
 from offgridplanner.projects.tasks import get_status
-from offgridplanner.projects.tasks import hello
 from offgridplanner.projects.tasks import task_grid_opt
 from offgridplanner.projects.tasks import task_is_finished
 from offgridplanner.projects.tasks import task_supply_opt
@@ -238,8 +237,8 @@ def db_links_to_js(request, proj_id):
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        # links = Links.objects.filter(project=project).first()
-        links = None
+        links_qs = Links.objects.filter(project=project)
+        links = links_qs.get() if links_qs.exists() else None
         links_json = json.loads(links.data) if links is not None else json.loads("{}")
         return JsonResponse(links_json, status=200)
 
@@ -252,7 +251,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
         if project.user != request.user:
             raise PermissionDenied
         nodes = get_object_or_404(Nodes, project=project)
-        df = nodes.df if nodes is not None else pd.DataFrame()
+        df = nodes.df if not nodes.df.empty else pd.DataFrame()
         if not df.empty:
             df = df[
                 [
@@ -436,9 +435,85 @@ def load_demand_plot_data(request, proj_id=None):
         )
 
     timeseries["Average"] = timeseries["Average"].tolist()
-    return JsonResponse({"timeseries": timeseries}, status=200)
+    return JsonResponse({"timeseries": timeseries})
 
 
+def load_plot_data(request, proj_id, plot_type):
+    project = Project.objects.get(id=proj_id)
+    if plot_type == "energy_flow":
+        energy_flow = project.energyflow.df
+        energy_flow["battery"] = (
+            energy_flow["battery_discharge"] - energy_flow["battery_charge"]
+        )
+        energy_flow.drop(columns=["battery_charge", "battery_discharge"], inplace=True)
+        energy_flow.reset_index(drop=True, inplace=True)
+        energy_flow = energy_flow.dropna(how="all", axis=0).fillna(0).to_dict("list")
+        return JsonResponse({"energy_flow": energy_flow})
+    elif plot_type == "duration_curve":
+        duration_curve = project.durationcurve.df
+        duration_curve = (
+            duration_curve.dropna(how="all", axis=0).fillna(0).to_dict("list")
+        )
+        return JsonResponse({"duration_curve": duration_curve})
+    elif plot_type == "emissions":
+        emissions = project.emissions.df
+        emissions = emissions.dropna(how="all", axis=0).fillna(0).to_dict("list")
+        return JsonResponse({"emissions": emissions})
+    elif plot_type == "demand_coverage":
+        demand_coverage = project.demandcoverage.df
+        demand_coverage = (
+            demand_coverage.dropna(how="all", axis=0).fillna(0).to_dict("list")
+        )
+        return JsonResponse({"demand_coverage": demand_coverage})
+    elif plot_type == "other":
+        res = project.simulation.results
+        df = pd.Series(model_to_dict(res)).astype(str)
+        optimal_capacity_keys = [
+            "pv",
+            "battery",
+            "inverter",
+            "rectifier",
+            "diesel_genset",
+            "peak_demand",
+            "surplus",
+        ]
+        optimal_capacities = {
+            key: df[f"{key}_capacity"] for key in optimal_capacity_keys[:-2]
+        }
+        optimal_capacities.update({key: df[key] for key in optimal_capacity_keys[-2:]})
+        lcoe_breakdown_keys = [
+            "renewable_assets",
+            "non_renewable_assets",
+            "grid",
+            "fuel",
+        ]
+        lcoe_breakdown = {key: df[f"cost_{key}"] for key in lcoe_breakdown_keys}
+
+        sankey_keys = [
+            "fuel_to_diesel_genset",
+            "diesel_genset_to_rectifier",
+            "diesel_genset_to_demand",
+            "rectifier_to_dc_bus",
+            "pv_to_dc_bus",
+            "battery_to_dc_bus",
+            "dc_bus_to_battery",
+            "dc_bus_to_inverter",
+            "dc_bus_to_surplus",
+            "inverter_to_demand",
+        ]
+        sankey_data = {key: df[key] for key in sankey_keys}
+        return JsonResponse(
+            {
+                "optimal_capacities": optimal_capacities,
+                "lcoe_breakdown": lcoe_breakdown,
+                "sankey_data": sankey_data,
+            }
+        )
+    else:
+        return JsonResponse({"msg": "Plot type undefined"}, status=400)
+
+
+@require_http_methods(["POST"])
 def start_calculation(request, proj_id):
     project = get_object_or_404(Project, id=proj_id)
 
@@ -484,6 +559,7 @@ def optimization(proj_id):
     simulation = Simulation.objects.get(project=project)
     simulation.status = "queued"
     simulation.save()
+    # TODO I am not sure to understand why the supply optimisation does not solely depend on what the user ticked ...
     if opts.do_grid_optimization is True:
         task = task_grid_opt.delay(proj_id)
     else:
@@ -509,9 +585,7 @@ def waiting_for_results(request):
 
         # Grid opt is finished, proceed to supply opt
         if model == "grid" and project.options.do_es_design_optimization:
-            # TODO for testing purposes while supply_opt is not ready, fix later
-            # new_task = task_supply_opt.delay(project.id)
-            new_task = hello.delay()
+            new_task = task_supply_opt.delay(project.id)
             sim.task_id = new_task.id
             sim.save()
             finished = False
@@ -588,8 +662,6 @@ def load_results(request, proj_id):
     opts = project.options
     res = project.simulation.results
     df = pd.Series(model_to_dict(res))
-    # TODO delete
-    df.fillna(0.1, inplace=True)
     infeasible = bool(df["infeasible"]) if "infeasible" in df else False
     if df.empty:
         return JsonResponse({})
@@ -668,7 +740,7 @@ def load_results(request, proj_id):
         )
         if int(df["n_consumers"]) != int(df["n_shs_consumers"]) and not infeasible:
             df["upfront_invest_converters"] = sum(
-                df[col] for col in df.columns if "upfront" in col and "grid" not in col
+                df[ix] for ix in df.index if "upfront" in ix and "grid" not in ix
             )
             df["upfront_invest_total"] = (
                 df["upfront_invest_converters"] + df["upfront_invest_grid"]
@@ -680,7 +752,6 @@ def load_results(request, proj_id):
         df["upfront_invest_converters"] = None
         df["upfront_invest_total"] = None
         df["esLcoe"] = 0
-    df = df[list(unit_dict.keys())].round(1).astype(str)
     # TODO formatting, figure out later
     # for col in df.keys():
     #     if unit_dict[col] in ['%', 's', 'kW', 'kWh']:
@@ -691,23 +762,23 @@ def load_results(request, proj_id):
     #         if df[col].isna().sum() == 0 and df.loc[0, col] != 'None':
     #             df[col] = "{:,}".format(df[col].astype(float).astype(int).iat[0])
     #     df[col] = df[col] + ' ' + unit_dict[col]
+    df = df[list(unit_dict.keys())].astype(float).round(1)
     df["do_grid_optimization"] = opts.do_grid_optimization
     df["do_es_design_optimization"] = opts.do_es_design_optimization
-    results = df.to_dict()
     if infeasible is True:
-        results["responseMsg"] = (
+        df["responseMsg"] = (
             "There are no results of the energy system optimization. There were no feasible "
             "solution."
         )
-    elif int(results["n_consumers"]) == int(results["n_shs_consumers"]):
-        results["responseMsg"] = (
+    elif int(df["n_consumers"]) == int(df["n_shs_consumers"]):
+        df["responseMsg"] = (
             "Due to high grid costs, all consumers have been equipped with solar home "
             "systems. A grid was not built, therefore no optimization of the energy system was "
             "carried out."
         )
     else:
-        results["responseMsg"] = ""
-    return JsonResponse(results, status=200)
+        df["responseMsg"] = ""
+    return JsonResponse(df.astype(str).to_dict(), status=200)
 
 
 # TODO define later based on results models - could also be a method in the results model

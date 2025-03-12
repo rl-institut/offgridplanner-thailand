@@ -16,11 +16,6 @@ from offgridplanner.opt_models.grid_optimizer import optimize_grid
 from offgridplanner.opt_models.supply_optimizer import optimize_energy_system
 
 
-@shared_task
-def hello():
-    return "hello world"
-
-
 @shared_task(
     name="task_grid_opt",
     force=True,

@@ -570,6 +570,7 @@
       const proj_id = '{{ proj_id }}';
       const loadResultsUrl = `{% url 'projects:load_results' proj_id %}`;
       const dbNodesToJsUrl = `{% url 'projects:db_nodes_to_js' proj_id %}`;
+      const dbLinksToJsUrl = `{% url 'projects:db_links_to_js' proj_id %}`;
     </script>
   <script src="{% static 'js/integrate_map.js' %}"></script>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>

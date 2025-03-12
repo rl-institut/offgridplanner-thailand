@@ -47,18 +47,19 @@ class BaseOptimizer:
 
         # self.user_id = user_id
         # self.project_id = project_id
-        n_days = min(self.project_dict["n_days"], int(os.environ.get("MAX_DAYS", 365)))
+        self.n_days = min(
+            self.project_dict["n_days"], int(os.environ.get("MAX_DAYS", 365))
+        )
         # TODO fix date to actual start_date
         # self.start_datetime = pd.to_datetime(self.project_dict["start_date"]).to_pydatetime()
         # start_datetime hardcoded as only 2022 pv and demand data is available
         self.start_datetime = pd.to_datetime("2022").to_pydatetime()
         self.dt_index = pd.date_range(
             self.start_datetime,
-            self.start_datetime + pd.to_timedelta(n_days, unit="D"),
+            self.start_datetime + pd.to_timedelta(self.n_days, unit="D"),
             freq="h",
             inclusive="left",
         )
-        self.n_days = n_days
         self.project_lifetime = self.project_dict["lifetime"]
         self.wacc = self.project_dict["interest_rate"] / 100
         self.tax = 0
@@ -73,15 +74,17 @@ class BaseOptimizer:
         else:
             self.nodes = pd.DataFrame()
         if self.opts_dict["do_demand_estimation"]:
-            # self.demand_full_year \
-            #     = demand_estimation.get_demand_time_series(self.nodes, custom_demand_dict, df_only=True).sum(axis=1).to_frame('Demand')
+            self.demand_full_year = get_demand_timeseries(
+                self.project.nodes, self.project.customdemand
+            ).sum(axis=1)
+
             self.demand = get_demand_timeseries(
                 self.project.nodes,
                 self.project.customdemand,
-                time_range=range(n_days * 24),
+                time_range=range(self.n_days * 24),
             ).sum(axis=1)
         else:
-            # TODO check what is returned here
+            # TODO this should be the custom uploaded demand in demand_estimation
             # self.demand_full_year = pd.read_json(sync_queries.get_model_instance(sa_tables.CustomDemand,
             #                                                                      self.user_id,
             #                                                                      self.project_id).data).sort_index()

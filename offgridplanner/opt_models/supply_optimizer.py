@@ -53,7 +53,13 @@ from oemof import solph
 
 from config.settings.base import SOLVER_NAME
 from offgridplanner.opt_models import solar_potential
-from offgridplanner.projects.models import Links
+from offgridplanner.projects.models import (
+    Links,
+    DemandCoverage,
+    Emissions,
+    EnergyFlow,
+    DurationCurve,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +70,7 @@ def optimize_energy_system(proj_id):
     try:
         ensys_opt = EnergySystemOptimizer(proj_id=proj_id)
         ensys_opt.optimize()
-        # ensys_opt.results_to_db()
+        ensys_opt.results_to_db()
         return True
     except Exception as exc:
         logger.error(f"An error occurred during optimization: {exc}")
@@ -744,15 +750,11 @@ class EnergySystemOptimizer(BaseOptimizer):
         print(40 * "*")
 
     def results_to_db(self):
-        if self.model.solutions.__len__() == 0:
+        if len(self.model.solutions) == 0:
             if self.infeasible is True:
-                results = sync_queries.get_model_instance(
-                    sa_tables.Results,
-                    self.user_id,
-                    self.project_id,
-                )
-                results.infeasable = self.infeasible
-                sync_inserts.merge_model(results)
+                results = self.results
+                results.infeasible = self.infeasible
+                results.save()
             return False
         self._emissions_to_db()
         self._results_to_db()
@@ -763,22 +765,19 @@ class EnergySystemOptimizer(BaseOptimizer):
         return True
 
     def _update_project_status_in_db(self):
-        project_setup = sync_queries.get_model_instance(
-            sa_tables.ProjectSetup,
-            self.user_id,
-            self.project_id,
-        )
+        # TODO fixup later
+        project_setup = self.project
         project_setup.status = "finished"
-        if project_setup.email_notification is True:
-            user = sync_queries.get_user_by_id(self.user_id)
-            subject = "PeopleSun: Model Calculation finished"
-            msg = (
-                "The calculation of your optimization model is finished. You can view the results at: "
-                f"\n\n{config.DOMAIN}/simulation_results?project_id={self.project_id}\n"
-            )
-            send_mail(user.email, msg, subject=subject)
+        # if project_setup.email_notification is True:
+        #     user = sync_queries.get_user_by_id(self.user_id)
+        #     subject = "PeopleSun: Model Calculation finished"
+        #     msg = (
+        #         "The calculation of your optimization model is finished. You can view the results at: "
+        #         f"\n\n{config.DOMAIN}/simulation_results?project_id={self.project_id}\n"
+        #     )
+        #     send_mail(user.email, msg, subject=subject)
         project_setup.email_notification = False
-        sync_inserts.merge_model(project_setup)
+        project_setup.save()
 
     def _demand_coverage_to_db(self):
         df = pd.DataFrame()
@@ -789,11 +788,9 @@ class EnergySystemOptimizer(BaseOptimizer):
         df.index.name = "dt"
         df = df.reset_index()
         df = df.round(3)
-        demand_coverage = sa_tables.DemandCoverage()
-        demand_coverage.id = self.user_id
-        demand_coverage.project_id = self.project_id
+        demand_coverage, _ = DemandCoverage.objects.get_or_create(project=self.project)
         demand_coverage.data = df.reset_index(drop=True).to_json()
-        sync_inserts.merge_model(demand_coverage)
+        demand_coverage.save()
 
     def _emissions_to_db(self):
         if self.capacity_genset < 60:
@@ -810,18 +807,16 @@ class EnergySystemOptimizer(BaseOptimizer):
         df["hybrid_electricity_production"] = (
             np.cumsum(self.sequences_genset) * co2_emission_factor / 1000
         )  # tCO2 per year
-        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
+        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="h")
         df = df.resample("D").max().reset_index(drop=True)
-        emissions = sa_tables.Emissions()
-        emissions.id = self.user_id
-        emissions.project_id = self.project_id
+        emissions, _ = Emissions.objects.get_or_create(project=self.project)
         emissions.data = df.reset_index(drop=True).to_json()
+        emissions.save()
         self.co2_savings = (
             df["non_renewable_electricity_production"]
             - df["hybrid_electricity_production"]
         ).max()
         self.co2_emission_factor = co2_emission_factor
-        sync_inserts.merge_model(emissions)
 
     def _energy_flow_to_db(self):
         energy_flow_df = pd.DataFrame(
@@ -835,11 +830,9 @@ class EnergySystemOptimizer(BaseOptimizer):
                 "surplus": self.sequences_surplus,
             },
         ).round(3)
-        energy_flow = sa_tables.EnergyFlow()
-        energy_flow.id = self.user_id
-        energy_flow.project_id = self.project_id
+        energy_flow, _ = EnergyFlow.objects.get_or_create(project=self.project)
         energy_flow.data = energy_flow_df.reset_index(drop=True).to_json()
-        sync_inserts.merge_model(energy_flow)
+        energy_flow.save()
 
     def _demand_curve_to_db(self):
         df = pd.DataFrame()
@@ -878,22 +871,16 @@ class EnergySystemOptimizer(BaseOptimizer):
             100 * np.sort(self.sequences_battery_discharge)[::-1] / div
         )
         df = df.copy()
-        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="H")
+        df.index = pd.date_range("2022-01-01", periods=df.shape[0], freq="h")
         df = df.resample("D").min().reset_index(drop=True)
         df["pv_percentage"] = df.index.copy() / df.shape[0]
         df = df.round(3)
-        duration_curve = sa_tables.DurationCurve()
-        duration_curve.id = self.user_id
-        duration_curve.project_id = self.project_id
+        duration_curve, _ = DurationCurve.objects.get_or_create(project=self.project)
         duration_curve.data = df.reset_index(drop=True).to_json()
-        sync_inserts.merge_model(duration_curve)
+        duration_curve.save()
 
     def _results_to_db(self):
-        results = sync_queries.get_model_instance(
-            sa_tables.Results,
-            self.user_id,
-            self.project_id,
-        )
+        results = self.results
         if pd.isna(results.cost_grid) is True:
             results.n_consumers = 0
             results.n_shs_consumers = 0
@@ -958,17 +945,17 @@ class EnergySystemOptimizer(BaseOptimizer):
         results.inverter_to_demand = self.sequences_inverter.sum() / 1000
         results.time_energy_system_design = self.execution_time
         results.co2_savings = self.co2_savings / self.n_days * 365
-        results.total_annual_consumption = (
-            self.demand_full_year.iloc[:, 0].sum() * (100 - self.shortage) / 100
+        results.total_annual_consumption = self.demand_full_year.sum() * (
+            (100 - self.shortage) / 100
         )
         results.average_annual_demand_per_consumer = (
-            self.demand_full_year.iloc[:, 0].mean()
+            self.demand_full_year.mean()
             * (100 - self.shortage)
             / 100
             / self.num_households
             * 1000
         )
-        results.base_load = self.demand_full_year.iloc[:, 0].quantile(0.1)
+        results.base_load = self.demand_full_year.quantile(0.1)
         results.max_shortage = (self.sequences_shortage / self.demand).max() * 100
 
         results.upfront_invest_diesel_gen = (
@@ -1011,4 +998,4 @@ class EnergySystemOptimizer(BaseOptimizer):
         results.epc_inverter = self.epc["inverter"] * self.capacity_inverter
         results.epc_rectifier = self.epc["rectifier"] * self.capacity_rectifier
         results.epc_battery = self.epc["battery"] * self.capacity_battery
-        sync_inserts.merge_model(results)
+        results.save()

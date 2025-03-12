@@ -16,7 +16,8 @@ openpyxl
 shapely
 k-means-constrained
 pyproj
-oemof.solph
+oemof.network==0.5.0a1
+oemof.solph==0.5
 # TODO these packages should not be necessary once we set up the CDS weather data API
 geopandas
 pvlib
