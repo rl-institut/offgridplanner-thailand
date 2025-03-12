@@ -79,10 +79,15 @@ def get_weather_data(lat, lon, start, end):
 
     closest_lat, closest_lon = get_closest_grid_point(lat, lon)
 
+    # TODO the data in the DB is ty aware but set to UTC, we need to make the
+    #  DB data not tz aware, in the meantime this fixes it
     qs = WeatherData.objects.filter(
         lat=closest_lat,
         lon=closest_lon,
-        dt__range=(start, end),
+        dt__range=(
+            start.replace(tzinfo=pytz.timezone("UTC")),
+            end.replace(tzinfo=pytz.timezone("UTC")),
+        ),
     )
     # Convert QuerySet to DataFrame
     df = pd.DataFrame.from_records(qs.values()).set_index("dt").astype(float)
