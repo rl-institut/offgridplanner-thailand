@@ -20,8 +20,8 @@ from offgridplanner.projects.models import CustomDemand
 from offgridplanner.projects.models import Energysystemdesign
 from offgridplanner.projects.models import GridDesign
 from offgridplanner.projects.models import Project
-from offgridplanner.projects.models import Simulation
-from offgridplanner.projects.tasks import task_is_finished
+from offgridplanner.optimization.models import Simulation
+from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.users.models import User
 
 STEPS = [

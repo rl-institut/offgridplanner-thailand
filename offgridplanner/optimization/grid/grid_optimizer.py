@@ -87,7 +87,7 @@ from k_means_constrained import KMeansConstrained
 from pyproj import Proj
 from scipy.sparse.csgraph import minimum_spanning_tree
 
-from offgridplanner.projects.models import Links
+from offgridplanner.optimization.models import Links
 
 logger = logging.getLogger(__name__)
 

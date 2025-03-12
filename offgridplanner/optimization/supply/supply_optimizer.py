@@ -52,8 +52,8 @@ import pyomo.environ as po
 from oemof import solph
 
 from config.settings.base import SOLVER_NAME
-from offgridplanner.optimization import solar_potential
-from offgridplanner.projects.models import (
+from offgridplanner.optimization.supply import solar_potential
+from offgridplanner.optimization.models import (
     Links,
     DemandCoverage,
     Emissions,

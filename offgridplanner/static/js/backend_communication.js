@@ -39,7 +39,7 @@ async function plot_results(sequential = false) {
         // Sequential execution: wait for each fetch and plot to complete before starting the next
 
         // Fetch and plot 'other' data
-        const response3 = await fetch('/load-plot-data/' + proj_id + '/other');
+        const response3 = await fetch(loadPlotDataUrl + '/other');
         const data3 = await response3.json();
         plot_lcoe_pie(data3.lcoe_breakdown);
         plot_bar_chart(data3.optimal_capacities);
@@ -48,7 +48,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const response6 = await fetch('/load-demand-plot-data/' + proj_id);
+            const response6 = await fetch('load-demand-plot-data/' + proj_id);
             const data6 = await response6.json();
             plot_demand_24h(data6);
         } else {
@@ -60,22 +60,22 @@ async function plot_results(sequential = false) {
         }
 
         // Fetch and plot 'demand_coverage' data
-        const response1 = await fetch('/load-plot-data/' + proj_id + '/demand_coverage');
+        const response1 = await fetch(loadPlotDataUrl + '/demand_coverage');
         const data1 = await response1.json();
         plot_demand_coverage(data1.demand_coverage);
 
         // Fetch and plot 'energy_flow' data
-        const response2 = await fetch('/load-plot-data/' + proj_id + '/energy_flow');
+        const response2 = await fetch(loadPlotDataUrl + '/energy_flow');
         const data2 = await response2.json();
         plot_energy_flows(data2.energy_flow);
 
         // Fetch and plot 'duration_curve' data
-        const response4 = await fetch('/load-plot-data/' + proj_id + '/duration_curve');
+        const response4 = await fetch(loadPlotDataUrl + '/duration_curve');
         const data4 = await response4.json();
         plot_duration_curves(data4.duration_curve);
 
         // Fetch and plot 'emissions' data
-        const response5 = await fetch('/load-plot-data/' + proj_id + '/emissions');
+        const response5 = await fetch(loadPlotDataUrl + '/emissions');
         const data5 = await response5.json();
         plot_co2_emissions(data5.emissions);
 
@@ -86,19 +86,19 @@ async function plot_results(sequential = false) {
         const fetchAndPlotPromises = [];
 
         // Fetch and plot 'demand_coverage' data
-        const fetchAndPlot1 = fetch('/load-plot-data/' + proj_id + '/demand_coverage')
+        const fetchAndPlot1 = fetch(loadPlotDataUrl + '/demand_coverage')
             .then(response => response.json())
             .then(data => plot_demand_coverage(data.demand_coverage));
         fetchAndPlotPromises.push(fetchAndPlot1);
 
         // Fetch and plot 'energy_flow' data
-        const fetchAndPlot2 = fetch('/load-plot-data/' + proj_id + '/energy_flow')
+        const fetchAndPlot2 = fetch(loadPlotDataUrl + '/energy_flow')
             .then(response => response.json())
             .then(data => plot_energy_flows(data.energy_flow));
         fetchAndPlotPromises.push(fetchAndPlot2);
 
         // Fetch and plot 'other' data
-        const fetchAndPlot3 = fetch('/load-plot-data/' + proj_id + '/other')
+        const fetchAndPlot3 = fetch(loadPlotDataUrl + '/other')
             .then(response => response.json())
             .then(data => {
                 plot_lcoe_pie(data.lcoe_breakdown);
@@ -108,13 +108,13 @@ async function plot_results(sequential = false) {
         fetchAndPlotPromises.push(fetchAndPlot3);
 
         // Fetch and plot 'duration_curve' data
-        const fetchAndPlot4 = fetch('/load-plot-data/' + proj_id + '/duration_curve')
+        const fetchAndPlot4 = fetch(loadPlotDataUrl + '/duration_curve')
             .then(response => response.json())
             .then(data => plot_duration_curves(data.duration_curve));
         fetchAndPlotPromises.push(fetchAndPlot4);
 
         // Fetch and plot 'emissions' data
-        const fetchAndPlot5 = fetch('/load-plot-data/' + proj_id + '/emissions')
+        const fetchAndPlot5 = fetch(loadPlotDataUrl + '/emissions')
             .then(response => response.json())
             .then(data => plot_co2_emissions(data.emissions));
         fetchAndPlotPromises.push(fetchAndPlot5);
@@ -122,7 +122,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const fetchAndPlot6 = fetch('/load-demand-plot-data/' + proj_id)
+            const fetchAndPlot6 = fetch('load-demand-plot-data/' + proj_id)
                 .then(response => response.json())
                 .then(data => plot_demand_24h(data));
             fetchAndPlotPromises.push(fetchAndPlot6);
@@ -527,7 +527,7 @@ async function load_results(project_id) {
                     await replaceSummaryChart()
                     await hide_es_results()
                     document.getElementById('responseMsg').innerHTML = results['responseMsg'];
-                    const response6 = await fetch('/load-demand-plot-data/' + proj_id);
+                    const response6 = await fetch('load-demand-plot-data/' + proj_id);
                     const data6 = await response6.json();
                     plot_demand_24h(data6);
                 }

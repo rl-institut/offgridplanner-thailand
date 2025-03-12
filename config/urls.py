@@ -40,6 +40,10 @@ urlpatterns = (
         path("users/", include("offgridplanner.users.urls", namespace="users")),
         path("", include("offgridplanner.projects.urls", namespace="projects")),
         path("steps/", include("offgridplanner.steps.urls", namespace="steps")),
+        path(
+            "opt/",
+            include("offgridplanner.optimization.urls", namespace="optimization"),
+        ),
         path("accounts/", include("allauth.urls")),
     )
     + [path("i18n/", include("django.conf.urls.i18n"))]
