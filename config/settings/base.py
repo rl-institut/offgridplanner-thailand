@@ -99,8 +99,8 @@ LOCAL_APPS = [
     "offgridplanner.users",
     # Your stuff: custom apps go here
     "offgridplanner.projects",
-    "offgridplanner.dashboard",
     "offgridplanner.steps",
+    "offgridplanner.optimization",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -123,7 +123,7 @@ AUTH_USER_MODEL = "users.User"
 LOGIN_REDIRECT_URL = "projects:home"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "account_login"
-LOGOUT_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "projects:home"
 
 # PASSWORDS
 # ------------------------------------------------------------------------------

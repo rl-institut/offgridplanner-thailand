@@ -91,7 +91,7 @@ from offgridplanner.projects.models import Links
 
 logger = logging.getLogger(__name__)
 
-from offgridplanner.opt_models.base_optimizer import BaseOptimizer
+from offgridplanner.optimization.base_optimizer import BaseOptimizer
 
 pd.options.mode.chained_assignment = None  # default='warn'
 

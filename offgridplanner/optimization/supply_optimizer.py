@@ -52,7 +52,7 @@ import pyomo.environ as po
 from oemof import solph
 
 from config.settings.base import SOLVER_NAME
-from offgridplanner.opt_models import solar_potential
+from offgridplanner.optimization import solar_potential
 from offgridplanner.projects.models import (
     Links,
     DemandCoverage,
@@ -63,7 +63,7 @@ from offgridplanner.projects.models import (
 
 logger = logging.getLogger(__name__)
 
-from offgridplanner.opt_models.base_optimizer import BaseOptimizer
+from offgridplanner.optimization.base_optimizer import BaseOptimizer
 
 
 def optimize_energy_system(proj_id):
