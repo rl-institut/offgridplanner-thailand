@@ -12,13 +12,13 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.projects.forms import CustomDemandForm
-from offgridplanner.projects.forms import GridDesignForm
+from offgridplanner.steps.forms import CustomDemandForm
+from offgridplanner.steps.forms import GridDesignForm
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
-from offgridplanner.projects.models import CustomDemand
-from offgridplanner.projects.models import Energysystemdesign
-from offgridplanner.projects.models import GridDesign
+from offgridplanner.steps.models import CustomDemand
+from offgridplanner.steps.models import Energysystemdesign
+from offgridplanner.steps.models import GridDesign
 from offgridplanner.projects.models import Project
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.tasks import task_is_finished

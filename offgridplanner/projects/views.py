@@ -23,9 +23,9 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from offgridplanner.projects.helpers import load_project_from_dict
-from offgridplanner.projects.models import CustomDemand
-from offgridplanner.projects.models import Energysystemdesign
-from offgridplanner.projects.models import GridDesign
+from offgridplanner.steps.models import CustomDemand
+from offgridplanner.steps.models import Energysystemdesign
+from offgridplanner.steps.models import GridDesign
 from offgridplanner.optimization.models import Nodes
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project

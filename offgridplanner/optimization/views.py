@@ -27,7 +27,8 @@ from offgridplanner.optimization.supply.demand_estimation import (
     get_demand_timeseries,
     LOAD_PROFILES,
 )
-from offgridplanner.projects.models import Project, CustomDemand
+from offgridplanner.projects.models import Project
+from offgridplanner.steps.models import CustomDemand
 from offgridplanner.optimization.models import Nodes, Links, Simulation
 from offgridplanner.optimization.tasks import get_status
 from offgridplanner.optimization.tasks import task_grid_opt
