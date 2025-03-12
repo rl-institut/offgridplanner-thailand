@@ -251,7 +251,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
         if project.user != request.user:
             raise PermissionDenied
         nodes = get_object_or_404(Nodes, project=project)
-        df = nodes.df if nodes is not None else pd.DataFrame()
+        df = nodes.df if not nodes.df.empty else pd.DataFrame()
         if not df.empty:
             df = df[
                 [

@@ -151,7 +151,7 @@ function db_links_to_js() {
 }
 
 // customer_selection
-async function db_nodes_to_js(markers_only) {
+async function db_nodes_to_js(proj_id, markers_only=false) {
     fetch(dbNodesToJsUrl + '/' + markers_only)
         .then(response => response.json())
         .then(data => {
