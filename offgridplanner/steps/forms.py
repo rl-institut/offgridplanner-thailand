@@ -1,6 +1,16 @@
 from django.forms import ModelForm
 
+from offgridplanner.projects.helpers import csv_to_dict
 from offgridplanner.steps.models import CustomDemand, GridDesign
+
+FORM_FIELD_METADATA = csv_to_dict("data/form_parameters.csv")
+
+
+def set_field_metadata(field, meta):
+    field.label = meta.get("verbose", field.label.title())  # Set verbose name
+    field.help_text = meta.get("help_text", "")  # Set help text
+    field.widget.attrs["unit"] = meta.get("unit", "")  # Store unit as an attribute
+    return
 
 
 class CustomDemandForm(ModelForm):
@@ -23,7 +33,12 @@ class CustomDemandForm(ModelForm):
                 )
 
             kwargs["initial"] = initial
+
         super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name in FORM_FIELD_METADATA:
+                meta = FORM_FIELD_METADATA[field_name]
+                set_field_metadata(field, meta)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -63,3 +78,13 @@ class GridDesignForm(ModelForm):
     class Meta:
         model = GridDesign
         exclude = ["project"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name in FORM_FIELD_METADATA:
+                model_field = self._meta.model._meta.get_field(field_name)
+                # Set the db_column name as an attribute (important for splitting by double underscores in the view)
+                field.db_column = model_field.db_column
+                meta = FORM_FIELD_METADATA[field_name]
+                set_field_metadata(field, meta)

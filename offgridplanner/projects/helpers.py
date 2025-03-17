@@ -1,4 +1,8 @@
+import csv
 import io
+import os
+
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 import pandas as pd
 
@@ -91,3 +95,27 @@ def prepare_data_for_export(dataframes):
     input_df, energy_flow_df, results_df, nodes_df, links_df = dfs
 
     return input_df, energy_flow_df, results_df, nodes_df, links_df
+
+
+def csv_to_dict(filepath, label_col="label"):
+    """
+    Converts a CSV file into a nested dictionary using a specified label column as keys.
+
+    Parameters:
+        filepath (str): Path to the CSV file.
+        label_col (str): Column name to be used as the dictionary key.
+
+    Returns:
+        dict: Nested dictionary where each row is stored under its label.
+    """
+    result = {}
+
+    file_path = staticfiles_storage.path(filepath)
+    if os.path.exists(file_path):
+        with open(file_path, encoding="utf-8-sig") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=";")
+            for row in reader:
+                label = row.pop(label_col)  # Remove label from row data
+                result[label] = row  # Store remaining fields under this label
+
+    return result
