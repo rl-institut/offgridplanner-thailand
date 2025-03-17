@@ -34,18 +34,36 @@ class CustomDemand(models.Model):
 
 class GridDesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    distribution_cable_lifetime = models.PositiveSmallIntegerField(default=25)
-    distribution_cable_capex = models.FloatField(default=10)
-    distribution_cable_max_length = models.FloatField(default=50)
-    connection_cable_lifetime = models.PositiveSmallIntegerField(default=25)
-    connection_cable_capex = models.FloatField(default=4)
-    connection_cable_max_length = models.FloatField(default=20)
-    pole_lifetime = models.PositiveSmallIntegerField(default=25)
-    pole_capex = models.FloatField(default=800)
-    pole_max_n_connections = models.PositiveSmallIntegerField(default=5)
-    mg_connection_cost = models.FloatField(default=140)
-    include_shs = models.BooleanField(default=True)
-    shs_max_grid_cost = models.FloatField(default=0.6, blank=True, null=True)
+    distribution_cable_lifetime = models.PositiveSmallIntegerField(
+        default=25, db_column="distribution_cable__lifetime"
+    )
+    distribution_cable_capex = models.FloatField(
+        default=10, db_column="distribution_cable__capex"
+    )
+    distribution_cable_max_length = models.FloatField(
+        default=50, db_column="distribution_cable__max_length"
+    )
+    connection_cable_lifetime = models.PositiveSmallIntegerField(
+        default=25, db_column="connection_cable__lifetime"
+    )
+    connection_cable_capex = models.FloatField(
+        default=4, db_column="connection_cable__capex"
+    )
+    connection_cable_max_length = models.FloatField(
+        default=20, db_column="connection_cable__max_length"
+    )
+    pole_lifetime = models.PositiveSmallIntegerField(
+        default=25, db_column="pole__lifetime"
+    )
+    pole_capex = models.FloatField(default=800, db_column="pole__capex")
+    pole_max_n_connections = models.PositiveSmallIntegerField(
+        default=5, db_column="pole__max_n_connections"
+    )
+    mg_connection_cost = models.FloatField(default=140, db_column="mg__connection_cost")
+    include_shs = models.BooleanField(default=True, db_column="shs__include")
+    shs_max_grid_cost = models.FloatField(
+        default=0.6, blank=True, null=True, db_column="shs__max_grid_cost"
+    )
 
 
 class Energysystemdesign(models.Model):
