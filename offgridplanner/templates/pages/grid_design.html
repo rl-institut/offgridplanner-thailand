@@ -16,137 +16,155 @@
       <form method="post">
         {% csrf_token %}
         <div class="row">
-          <div class="col-md-8">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="box box--tiny">
-                  <div class="box__header">
-                    <span class="grid-title">Distribution Cable</span>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.distribution_cable_lifetime.label }}</span>
-                      {{ form.distribution_cable_lifetime  }}
-                      <span class="input-group-text">Year</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.distribution_cable_capex.label }}</span>
-                      {{ form.distribution_cable_capex }}
-                      <span class="input-group-text">USD/m</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <span class="input-group-text">{{ form.distribution_cable_max_length.label }}</span>
-                    <div class="input-group">
-                      {{ form.distribution_cable_max_length }}
-                      <span class="input-group-text">m</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="box box--tiny">
-                  <div class="box__header">
-                    <span class="grid-title">Connection Cable</span>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.connection_cable_lifetime.label }}</span>
-                      {{ form.connection_cable_lifetime  }}
-                      <span class="input-group-text">Year</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.connection_cable_capex.label }}</span>
-                      {{ form.connection_cable_capex }}
-                      <span class="input-group-text">USD/m</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <span class="input-group-text">{{ form.connection_cable_max_length.label }}</span>
-                    <div class="input-group">
-                      {{ form.connection_cable_max_length }}
-                      <span class="input-group-text">m</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="box box--tiny">
-                  <div class="box__header">
-                    <span class="grid-title">Pole</span>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.pole_lifetime.label }}</span>
-                      {{ form.pole_lifetime }}
-                      <span class="input-group-text">Year</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.pole_capex.label }}</span>
-                      {{ form.pole_capex }}
-                      <span class="input-group-text">USD/m</span>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <span class="input-group-text">{{ form.pole_max_length.label }}</span>
-                    <div class="input-group">
-                      {{ form.pole_max_n_connections }}
-                      <span class="input-group-text">-</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="box box--tiny">
-                  <div class="box__header">
-                    <span class="grid-title">Connection Cost</span>
-                  </div>
-                  <div class="row">
-                    <div class="input-group">
-                      <span class="input-group-text">{{ form.mg_connection_cost.label }}</span>
-                      {{ form.mg_connection_cost }}
-                      <span class="input-group-text">USD/con</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div id="selectShsBox" class="box box--tiny">
+          {% for component, fields in grouped_fields.items %}
+           <div class="col-md-6">
+              <div class="box box--tiny">
               <div class="box__header">
-                    {{ form.include_shs | as_crispy_field }}
+                <span class="grid-title">{{ component }}</span>
               </div>
-              <div class="row">
-                <div class="input-group">
+              {% for field_name, field in fields %}
+                <div class="row">
                   <div class="input-group">
-                    <span id="shsLifetimeLabel" class="input-group-text">{{ form.shs_max_grid_cost.label }}</span>
-                    {{ form.shs_max_grid_cost }}
-                    <span id="shsLifetimeUnit" class="input-group-text">USD/kWh</span>
+                    <span class="input-group-text">{{ field.label }}</span>
+                    {{ field }}
+                    <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
                   </div>
                 </div>
-                <img
-                  src="{% static 'assets/icons/qm.svg' %}"
-                  alt="Icon"
-                  style="width: 100px; cursor: pointer; padding-top: 0.5rem; padding-bottom: 0.5rem"
-                  onclick="document.getElementById('videoTutorial').style.display='block'"
-                />
-                <p style="margin-bottom: 5px; color: #8B0000;">
-                  <i>
-                    Watch video tutorial for further explanation of this parameter
-                  </i>
-                </p>
-              </div>
+              {% endfor %}
             </div>
-          </div>
+           </div>
+          {% endfor %}
+<!--          <div class="col-md-8">-->
+<!--            <div class="row">-->
+<!--              <div class="col-md-6">-->
+<!--                <div class="box box&#45;&#45;tiny">-->
+<!--                  <div class="box__header">-->
+<!--                    <span class="grid-title">Distribution Cable</span>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.distribution_cable_lifetime.label }}</span>-->
+<!--                      {{ form.distribution_cable_lifetime  }}-->
+<!--                      <span class="input-group-text">Year</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.distribution_cable_capex.label }}</span>-->
+<!--                      {{ form.distribution_cable_capex }}-->
+<!--                      <span class="input-group-text">USD/m</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <span class="input-group-text">{{ form.distribution_cable_max_length.label }}</span>-->
+<!--                    <div class="input-group">-->
+<!--                      {{ form.distribution_cable_max_length }}-->
+<!--                      <span class="input-group-text">m</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--              <div class="col-md-6">-->
+<!--                <div class="box box&#45;&#45;tiny">-->
+<!--                  <div class="box__header">-->
+<!--                    <span class="grid-title">Connection Cable</span>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.connection_cable_lifetime.label }}</span>-->
+<!--                      {{ form.connection_cable_lifetime  }}-->
+<!--                      <span class="input-group-text">Year</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.connection_cable_capex.label }}</span>-->
+<!--                      {{ form.connection_cable_capex }}-->
+<!--                      <span class="input-group-text">{{ form.connection_cable.unit }}</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <span class="input-group-text">{{ form.connection_cable_max_length.label }}</span>-->
+<!--                    <div class="input-group">-->
+<!--                      {{ form.connection_cable_max_length }}-->
+<!--                      <span class="input-group-text">m</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col-md-6">-->
+<!--                <div class="box box&#45;&#45;tiny">-->
+<!--                  <div class="box__header">-->
+<!--                    <span class="grid-title">Pole</span>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.pole_lifetime.label }}</span>-->
+<!--                      {{ form.pole_lifetime }}-->
+<!--                      <span class="input-group-text">Year</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.pole_capex.label }}</span>-->
+<!--                      {{ form.pole_capex }}-->
+<!--                      <span class="input-group-text">USD/m</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <span class="input-group-text">{{ form.pole_max_length.label }}</span>-->
+<!--                    <div class="input-group">-->
+<!--                      {{ form.pole_max_n_connections }}-->
+<!--                      <span class="input-group-text">-</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--              <div class="col-md-6">-->
+<!--                <div class="box box&#45;&#45;tiny">-->
+<!--                  <div class="box__header">-->
+<!--                    <span class="grid-title">Connection Cost</span>-->
+<!--                  </div>-->
+<!--                  <div class="row">-->
+<!--                    <div class="input-group">-->
+<!--                      <span class="input-group-text">{{ form.mg_connection_cost.label }}</span>-->
+<!--                      {{ form.mg_connection_cost }}-->
+<!--                      <span class="input-group-text">USD/con</span>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-4">-->
+<!--            <div id="selectShsBox" class="box box&#45;&#45;tiny">-->
+<!--              <div class="box__header">-->
+<!--                    {{ form.include_shs | as_crispy_field }}-->
+<!--              </div>-->
+<!--              <div class="row">-->
+<!--                <div class="input-group">-->
+<!--                  <div class="input-group">-->
+<!--                    <span id="shsLifetimeLabel" class="input-group-text">{{ form.shs_max_grid_cost.label }}</span>-->
+<!--                    {{ form.shs_max_grid_cost }}-->
+<!--                    <span id="shsLifetimeUnit" class="input-group-text">USD/kWh</span>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <img-->
+<!--                  src="{% static 'assets/icons/qm.svg' %}"-->
+<!--                  alt="Icon"-->
+<!--                  style="width: 100px; cursor: pointer; padding-top: 0.5rem; padding-bottom: 0.5rem"-->
+<!--                  onclick="document.getElementById('videoTutorial').style.display='block'"-->
+<!--                />-->
+<!--                <p style="margin-bottom: 5px; color: #8B0000;">-->
+<!--                  <i>-->
+<!--                    Watch video tutorial for further explanation of this parameter-->
+<!--                  </i>-->
+<!--                </p>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
         <input type="submit" id="submitFormBtn" hidden>
       </form>

@@ -1,5 +1,6 @@
 import json
 import os
+from collections import defaultdict
 
 import pandas as pd
 from django.core.exceptions import PermissionDenied
@@ -214,7 +215,20 @@ def grid_design(request, proj_id=None):
         if request.method == "GET":
             form = GridDesignForm(instance=grid_design)
 
+            grouped_fields = defaultdict(list)
+            for field_name, field in form.fields.items():
+                component_name = field.db_column.split("__")[0]
+                grouped_fields[component_name].append((field_name, form[field_name]))
+
+            for component in list(grouped_fields):
+                clean_name = component.title().replace("_", " ")
+                grouped_fields[clean_name] = grouped_fields.pop(component)
+
+            # Set the defaultdict property to None to be able to loop over dict in the template (https://stackoverflow.com/questions/4764110/django-template-cant-loop-defaultdict)
+            grouped_fields.default_factory = None
+
             context = {
+                "grouped_fields": grouped_fields,
                 "form": form,
                 "proj_id": proj_id,
                 "step_id": step_id,
