@@ -1048,9 +1048,9 @@ async function forward_if_no_task_is_pending(project_id) {
 }
 
 
-async function revoke_users_task() {
+async function abort_calculation(proj_id) {
     try {
-        const response = await fetch("revoke_users_task/", {
+        const response = await fetch(abortCalculationUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

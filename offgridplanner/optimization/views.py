@@ -32,7 +32,7 @@ from offgridplanner.projects.helpers import df_to_file
 from offgridplanner.projects.models import Project
 from offgridplanner.steps.models import CustomDemand
 from offgridplanner.optimization.models import Nodes, Links, Simulation
-from offgridplanner.optimization.tasks import get_status
+from offgridplanner.optimization.tasks import get_status, revoke_task
 from offgridplanner.optimization.tasks import task_grid_opt
 from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.optimization.tasks import task_supply_opt
@@ -604,6 +604,17 @@ def waiting_for_results(request):
         "model": model,
         "finished": finished,
     }
+    return JsonResponse(response)
+
+
+def abort_calculation(request, proj_id):
+    # TODO error handling in case there is an issue with task revoke?
+    simulation = Simulation.objects.get(project=proj_id)
+    task_id = simulation.task_id
+    revoke_task(task_id)
+    simulation.task_id = None
+    simulation.save()
+    response = {"msg": "Calculation aborted"}
     return JsonResponse(response)
 
 

@@ -50,4 +50,7 @@ urlpatterns = [
         name="start_calculation",
     ),
     path("waiting_for_results", waiting_for_results, name="waiting_for_results"),
+    path(
+        "abort_calculation/<int:proj_id>", abort_calculation, name="abort_calculation"
+    ),
 ]
