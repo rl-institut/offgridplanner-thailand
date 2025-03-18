@@ -66,7 +66,7 @@ class GridDesign(models.Model):
     )
 
 
-class Energysystemdesign(models.Model):
+class EnergySystemDesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     battery_settings_is_selected = models.BooleanField(
         db_column="battery__settings__is_selected",

@@ -20,6 +20,22 @@ def set_field_metadata(field, meta):
     return
 
 
+class CustomModelForm(ModelForm):
+    """Automatically assign labels, help_text and units to the fields"""
+
+    def __init__(self, *args, **kwargs):
+        set_db_column_attr = kwargs.pop("set_db_column_attribute", False)
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name in FORM_FIELD_METADATA:
+                meta = FORM_FIELD_METADATA[field_name]
+                set_field_metadata(field, meta)
+                # Set the db column as an attribute for the fields (relevant for group_form_by_component)
+                if set_db_column_attr is True:
+                    model_field = self._meta.model._meta.get_field(field_name)
+                    field.db_column = model_field.db_column
+
+
 class CustomDemandForm(ModelForm):
     percentage_fields = ["very_low", "low", "middle", "high", "very_high"]
 
@@ -42,10 +58,6 @@ class CustomDemandForm(ModelForm):
             kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if field_name in FORM_FIELD_METADATA:
-                meta = FORM_FIELD_METADATA[field_name]
-                set_field_metadata(field, meta)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -81,17 +93,13 @@ class CustomDemandForm(ModelForm):
         return value
 
 
-class GridDesignForm(ModelForm):
+class GridDesignForm(CustomModelForm):
     class Meta:
         model = GridDesign
         exclude = ["project"]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if field_name in FORM_FIELD_METADATA:
-                model_field = self._meta.model._meta.get_field(field_name)
-                # Set the db_column name as an attribute (important for splitting by double underscores in the view)
-                field.db_column = model_field.db_column
-                meta = FORM_FIELD_METADATA[field_name]
-                set_field_metadata(field, meta)
+
+class EnergySystemDesignForm(CustomModelForm):
+    class Meta:
+        model = EnergySystemDesign
+        exclude = ["project"]
