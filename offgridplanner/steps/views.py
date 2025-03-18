@@ -13,7 +13,8 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.steps.forms import CustomDemandForm
+from offgridplanner.projects.helpers import reorder_dict, group_form_by_component
+from offgridplanner.steps.forms import CustomDemandForm, EnergySystemDesignForm
 from offgridplanner.steps.forms import GridDesignForm
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
@@ -213,23 +214,23 @@ def grid_design(request, proj_id=None):
 
         grid_design, _ = GridDesign.objects.get_or_create(project=project)
         if request.method == "GET":
-            form = GridDesignForm(instance=grid_design)
-
-            grouped_fields = defaultdict(list)
-            for field_name, field in form.fields.items():
-                component_name = field.db_column.split("__")[0]
-                grouped_fields[component_name].append((field_name, form[field_name]))
+            form = GridDesignForm(instance=grid_design, set_db_column_attribute=True)
+            # Group form fields by component (for easier rendering inside boxes)
+            grouped_fields = group_form_by_component(form)
 
             for component in list(grouped_fields):
-                clean_name = component.title().replace("_", " ")
+                clean_name = (
+                    component.title().replace("_", " ")
+                    if component != "mg"
+                    else "Connection Costs"
+                )
                 grouped_fields[clean_name] = grouped_fields.pop(component)
 
-            # Set the defaultdict property to None to be able to loop over dict in the template (https://stackoverflow.com/questions/4764110/django-template-cant-loop-defaultdict)
-            grouped_fields.default_factory = None
+            # Reorder dictionary for easier rendering in the correct order in the template (move SHS fields to #3)
+            grouped_fields = reorder_dict(grouped_fields, 4, 2)
 
             context = {
                 "grouped_fields": grouped_fields,
-                "form": form,
                 "proj_id": proj_id,
                 "step_id": step_id,
                 "step_list": STEPS,

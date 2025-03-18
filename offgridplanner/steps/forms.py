@@ -7,9 +7,16 @@ FORM_FIELD_METADATA = csv_to_dict("data/form_parameters.csv")
 
 
 def set_field_metadata(field, meta):
-    field.label = meta.get("verbose", field.label.title())  # Set verbose name
+    label = (
+        field.label.title() if meta.get("verbose") == "" else meta.get("verbose")
+    )  # Set verbose name
+    question_icon = f'<span class="icon icon-question" data-bs-toggle="tooltip" title="{meta.get("help_text")}"></span>'
+    field.label = label + question_icon if meta.get("help_text") != "" else label
     field.help_text = meta.get("help_text", "")  # Set help text
-    field.widget.attrs["unit"] = meta.get("unit", "")  # Store unit as an attribute
+    # TODO change hard coded unit to customizable in the future
+    field.widget.attrs["unit"] = meta.get("unit", "").replace(
+        "currency", "USD"
+    )  # Store unit as an attribute
     return
 
 
