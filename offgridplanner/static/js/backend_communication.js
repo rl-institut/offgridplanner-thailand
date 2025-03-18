@@ -1313,7 +1313,7 @@ function copyProject(url) {
         });
 }
 
-// TODO what does this do?
+// Initializes the help text tooltips (for the hover divs to be nicely formatted instead of default)
 document.addEventListener('DOMContentLoaded', function () {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('.icon[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
