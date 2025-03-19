@@ -280,17 +280,10 @@ def energy_system_design(request, proj_id=None):
 
         return render(request, "pages/energy_system_design.html", context)
     if request.method == "POST":
-        data = json.loads(request.body)
-        df = pd.json_normalize(data, sep="_")
-        d_flat = df.to_dict(orient="records")[0]
-        EnergySystemDesign.objects.filter(project=project).delete()
-        es = EnergySystemDesign(**d_flat)
-        es.project = project
-        es.save()
-        return JsonResponse(
-            {"href": reverse(f"steps:{STEPS[step_id]}", args=[proj_id])},
-            status=200,
-        )
+        form = EnergySystemDesignForm(request.POST, instance=energy_system_design)
+        if form.is_valid():
+            form.save()
+        return redirect("steps:ogp_steps", proj_id, step_id + 1)
 
 
 def calculating(request, proj_id=None):
