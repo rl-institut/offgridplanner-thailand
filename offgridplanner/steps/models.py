@@ -70,13 +70,11 @@ class EnergySystemDesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     battery_settings_is_selected = models.BooleanField(
         db_column="battery__settings__is_selected",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     battery_settings_design = models.BooleanField(
         db_column="battery__settings__design",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     battery_parameters_nominal_capacity = models.FloatField(
         db_column="battery__parameters__nominal_capacity",
@@ -125,13 +123,11 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
     diesel_genset_settings_is_selected = models.BooleanField(
         db_column="diesel_genset__settings__is_selected",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     diesel_genset_settings_design = models.BooleanField(
         db_column="diesel_genset__settings__design",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     diesel_genset_parameters_nominal_capacity = models.FloatField(
         db_column="diesel_genset__parameters__nominal_capacity",
@@ -190,13 +186,11 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
     inverter_settings_is_selected = models.BooleanField(
         db_column="inverter__settings__is_selected",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     inverter_settings_design = models.BooleanField(
         db_column="inverter__settings__design",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     inverter_parameters_nominal_capacity = models.FloatField(
         db_column="inverter__parameters__nominal_capacity",
@@ -225,13 +219,11 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
     pv_settings_is_selected = models.BooleanField(
         db_column="pv__settings__is_selected",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     pv_settings_design = models.BooleanField(
         db_column="pv__settings__design",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     pv_parameters_nominal_capacity = models.FloatField(
         db_column="pv__parameters__nominal_capacity",
@@ -255,13 +247,11 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
     rectifier_settings_is_selected = models.BooleanField(
         db_column="rectifier__settings__is_selected",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     rectifier_settings_design = models.BooleanField(
         db_column="rectifier__settings__design",
-        blank=True,
-        null=True,
+        default=True,
     )  # Field renamed because it contained more than one '_' in a row.
     rectifier_parameters_nominal_capacity = models.FloatField(
         db_column="rectifier__parameters__nominal_capacity",
@@ -290,8 +280,7 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
     shortage_settings_is_selected = models.FloatField(
         db_column="shortage__settings__is_selected",
-        blank=True,
-        null=True,
+        default=False,
     )  # Field renamed because it contained more than one '_' in a row.
     shortage_parameters_max_shortage_total = models.FloatField(
         db_column="shortage__parameters__max_shortage_total",
