@@ -1,7 +1,8 @@
 from django.forms import ModelForm
 
 from offgridplanner.projects.helpers import csv_to_dict
-from offgridplanner.steps.models import CustomDemand, GridDesign
+from offgridplanner.projects.widgets import BatteryDesignWidget
+from offgridplanner.steps.models import CustomDemand, GridDesign, EnergySystemDesign
 
 FORM_FIELD_METADATA = csv_to_dict("data/form_parameters.csv")
 
@@ -27,6 +28,7 @@ class CustomModelForm(ModelForm):
         set_db_column_attr = kwargs.pop("set_db_column_attribute", False)
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
+            # Set metadata for the field (help text, units)
             if field_name in FORM_FIELD_METADATA:
                 meta = FORM_FIELD_METADATA[field_name]
                 set_field_metadata(field, meta)
@@ -34,6 +36,10 @@ class CustomModelForm(ModelForm):
                 if set_db_column_attr is True:
                     model_field = self._meta.model._meta.get_field(field_name)
                     field.db_column = model_field.db_column
+
+            # Set the custom widget for the optimized/fixed capacity field
+            if "settings_design" in field_name:
+                field.widget = BatteryDesignWidget()
 
 
 class CustomDemandForm(ModelForm):
