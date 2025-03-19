@@ -2037,7 +2037,7 @@ nav.navbar .dropdown-menu li {
     border-radius: 10px;
     -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
     box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
-    height: 34rem;
+    height: 40.75rem;
     margin-bottom: 1.0rem;
     border: 2px solid #198754;
 }
@@ -2127,11 +2127,11 @@ nav.navbar .dropdown-menu li {
 }
 
 .dashboard .box--small {
-    height: calc((34rem / 2) - ((1 * 0.75rem) / 2));
+    height: 18.5rem;
 }
 
 .dashboard .box--medium {
-    height: calc((34rem / 1.7) - ((1 * 0.75rem) / 2));
+    height: 21.5rem;
 }
 
 .dashboard .chart--small:not(:last-of-type) {
