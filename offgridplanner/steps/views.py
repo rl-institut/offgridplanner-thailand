@@ -19,7 +19,7 @@ from offgridplanner.steps.forms import GridDesignForm
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
 from offgridplanner.steps.models import CustomDemand
-from offgridplanner.steps.models import Energysystemdesign
+from offgridplanner.steps.models import EnergySystemDesign
 from offgridplanner.steps.models import GridDesign
 from offgridplanner.projects.models import Project
 from offgridplanner.optimization.models import Simulation
@@ -253,8 +253,27 @@ def energy_system_design(request, proj_id=None):
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
             raise PermissionDenied
+
+    energy_system_design, _ = EnergySystemDesign.objects.get_or_create(project=project)
     if request.method == "GET":
-        context = {"proj_id": project.id, "step_id": step_id, "step_list": STEPS}
+        form = EnergySystemDesignForm(
+            instance=energy_system_design, set_db_column_attribute=True
+        )
+
+        grouped_fields = group_form_by_component(form)
+
+        for component in list(grouped_fields):
+            clean_name = component.title().replace("_", " ")
+            grouped_fields[clean_name] = grouped_fields.pop(component)
+
+        grouped_fields.default_factory = None
+
+        context = {
+            "proj_id": project.id,
+            "step_id": step_id,
+            "step_list": STEPS,
+            "grouped_fields": grouped_fields,
+        }
 
         # TODO read js/pages/energy-system-design.js
         # todo restore using load_previous_data in the first place, then replace with Django forms
@@ -264,8 +283,8 @@ def energy_system_design(request, proj_id=None):
         data = json.loads(request.body)
         df = pd.json_normalize(data, sep="_")
         d_flat = df.to_dict(orient="records")[0]
-        Energysystemdesign.objects.filter(project=project).delete()
-        es = Energysystemdesign(**d_flat)
+        EnergySystemDesign.objects.filter(project=project).delete()
+        es = EnergySystemDesign(**d_flat)
         es.project = project
         es.save()
         return JsonResponse(
@@ -385,5 +404,5 @@ def load_previous_data(request, page_name=None, proj_id=None):
         # demand_estimation.calibration_options = 2 if len(demand_estimation.maximum_peak_load) > 0 else 1
         # return demand_estimation
         elif page_name == "energy_system_design":
-            energy_system_design = Energysystemdesign.objects.get(project=project)
+            energy_system_design = EnergySystemDesign.objects.get(project=project)
             return energy_system_design
