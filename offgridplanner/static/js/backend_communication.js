@@ -204,7 +204,8 @@ async function file_nodes_to_js(formData) {
 
 async function file_demand_to_db(formData) {
     try {
-        const response = await fetch('/import_demand' + '/' + proj_id, {
+        const response = await fetch(importDemandUrl, {
+            headers: {'X-CSRFToken': csrfToken },
             method: 'POST',
             body: formData
         });
@@ -1047,9 +1048,9 @@ async function forward_if_no_task_is_pending(project_id) {
 }
 
 
-async function revoke_users_task() {
+async function abort_calculation(proj_id) {
     try {
-        const response = await fetch("revoke_users_task/", {
+        const response = await fetch(abortCalculationUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
