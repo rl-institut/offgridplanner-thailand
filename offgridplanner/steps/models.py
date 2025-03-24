@@ -278,7 +278,7 @@ class EnergySystemDesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
-    shortage_settings_is_selected = models.FloatField(
+    shortage_settings_is_selected = models.BooleanField(
         db_column="shortage__settings__is_selected",
         default=False,
     )  # Field renamed because it contained more than one '_' in a row.
