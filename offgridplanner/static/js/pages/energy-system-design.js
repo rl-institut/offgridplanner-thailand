@@ -36,9 +36,24 @@ var lengthFlow = 90;
 var lineCorrectionWidthBlock = 1;
 var lineCorrectionLengthFlow = 1;
 
+const component = [
+    'pv',
+    'battery',
+    'diesel_genset',
+    'inverter',
+    'rectifier',
+    'shortage',
+    // 'surplus',
+];
+
 document.addEventListener('DOMContentLoaded', function () {
     refreshBlocksOnDiagramOnLoad();
     check_box_visibility('shortage');
+    component.forEach(id => {
+        var el = document.getElementById(assetCheckBox(id))
+        el.addEventListener("click", () => check_box_visibility(id));
+        el.addEventListener("click", () => refreshBlocksOnDiagram(id));
+    });
 });
 
 /************************************************************/
@@ -63,11 +78,11 @@ function check_optimization_strategy(id) {
     styleInformation(id);
 
     if (document.getElementById(optimizationCheckBox(id)).checked) {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = true;
+//        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = true;
 //        document.getElementById("lbl" + toTitleCase(id) + "NominalCapacity").classList.add('disabled');
 //        document.getElementById(id + "NominalCapacityUnit").classList.add('disabled');
     } else {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = false;
+//        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = false;
 //        document.getElementById("lbl" + toTitleCase(id) + "NominalCapacity").classList.remove('disabled');
 //        document.getElementById(id + "NominalCapacityUnit").classList.remove('disabled');
     }
@@ -116,7 +131,7 @@ function change_box_visibility(id) {
     box.classList.toggle('box--not-selected', !isChecked);
 
     // Find all relevant input fields within the box
-    let inputs = box.querySelectorAll("input, select, textarea, button");
+    let inputs = box.querySelectorAll("input:not(.form-check-input), select, textarea, button");
     let labels = box.querySelectorAll("label, span.input-group-text");
 
     inputs.forEach(input => {
@@ -134,26 +149,16 @@ function change_box_visibility(id) {
 }
 
 function refreshBlocksOnDiagramOnLoad() {
-    const component = [
-        'pv',
-        'battery',
-        'diesel_genset',
-        'inverter',
-        'rectifier',
-        'shortage',
-        // 'surplus',
-    ];
-
-    for (let i = 0; i < component.length; i++) {
-        refreshBlocksOnDiagram(component[i]);
-        if (component[i] !== 'shortage') {
-            // if (component[i] !== 'shortage' && component [i] !== 'surplus'){
-            check_box_visibility(component[i]);
-            check_optimization_strategy(component[i]);
+    component.forEach(id => {
+        refreshBlocksOnDiagram(id);
+        if (id !== 'shortage') {
+            // if (id !== 'shortage' && component [i] !== 'surplus'){
+            check_box_visibility(id);
+            check_optimization_strategy(id);
         } else {
-            change_box_visibility(component[i]);
+            change_box_visibility(id);
         }
-    }
+    });
     refreshBlocksOnDiagram('demand');
 }
 
