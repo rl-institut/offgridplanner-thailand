@@ -13,13 +13,13 @@
         {% csrf_token %}
       <div class="row">
         <div class="col-md-4">
-          <div class="box" id="selectDieselGensetBox">
+          <div class="box" id="selectDiesel_gensetBox">
             {% for field_name, field in grouped_fields|getkey:"Diesel Genset" %}
             {% if field_name == "diesel_genset_settings_is_selected" %}
             <div class="box__header">
               {{ field|add_class:"form-check-input" }}
                 <div class="form-check">
-                  <span class="grid-title" id="selectDieselGenset">{{ field.label }}</span>
+                  <span class="grid-title" id="selectDiesel_genset">{{ field.label }}</span>
                 </div>
             </div>
             {% elif field_name == "diesel_genset_settings_design" %}
@@ -31,7 +31,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
@@ -119,17 +119,17 @@
                 </text>
               </g>
               <!-- DIESEL GENSET -->
-              <g id="groupDieselGenset" visibility="hidden">
+              <g id="groupDiesel_genset" visibility="hidden">
                 <g>
-                  <line id="lineDieselGenset"></line>
-                  <polyline id="arrowOutDieselGenset"></polyline>
-                  <polyline id="arrowInDieselGenset"></polyline>
+                  <line id="lineDiesel_genset"></line>
+                  <polyline id="arrowOutDiesel_genset"></polyline>
+                  <polyline id="arrowInDiesel_genset"></polyline>
                 </g>
-                <rect id="blockDieselGenset" />
-                <text id="textDieselGenset" dominant-baseline="middle" text-anchor="middle">
+                <rect id="blockDiesel_genset" />
+                <text id="textDiesel_genset" dominant-baseline="middle" text-anchor="middle">
                   Diesel Genset
                 </text>
-                <text id="informationDieselGenset" dominant-baseline="bottom">
+                <text id="informationDiesel_genset" dominant-baseline="bottom">
                   design
                 </text>
               </g>
@@ -207,7 +207,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
@@ -233,7 +233,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
@@ -257,7 +257,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
@@ -280,7 +280,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
@@ -304,7 +304,7 @@
               <div class="input-group">
                 <span class="input-group-text">{{ field.label | safe }}</span>
                 {{ field|add_class:"form-control" }}
-                <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
               </div>
             </div>
             {% endif %}
