@@ -136,6 +136,7 @@ ignore = [
   "F841",  # unused variable
   "PD901", # Avoid using the generic variable name `df` for DataFrames
   "F405", # `...` may be undefined, or defined from star imports
+    "COM812" # Deactivated to avoid unexpecter behavior with the formatter (disable warning)
 ]
 # The fixes in extend-unsafe-fixes will require
 # provide the `--unsafe-fixes` flag when fixing.
