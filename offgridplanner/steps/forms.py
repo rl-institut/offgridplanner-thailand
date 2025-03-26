@@ -39,7 +39,12 @@ class CustomModelForm(ModelForm):
 
             # Set the custom widget for the optimized/fixed capacity field
             if "settings_design" in field_name:
-                field.widget = BatteryDesignWidget()
+                field.widget = BatteryDesignWidget(
+                    attrs={
+                        "value": str(self.initial[field_name]).lower(),
+                        "component": field.db_column.split("__")[0],
+                    }
+                )
 
 
 class CustomDemandForm(ModelForm):

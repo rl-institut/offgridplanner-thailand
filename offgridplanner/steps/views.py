@@ -280,7 +280,9 @@ def energy_system_design(request, proj_id=None):
 
         return render(request, "pages/energy_system_design.html", context)
     if request.method == "POST":
-        form = EnergySystemDesignForm(request.POST, instance=energy_system_design)
+        form = EnergySystemDesignForm(
+            request.POST, instance=energy_system_design, set_db_column_attribute=True
+        )
         if form.is_valid():
             form.save()
         return redirect("steps:ogp_steps", proj_id, step_id + 1)
