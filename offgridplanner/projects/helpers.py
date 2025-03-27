@@ -122,6 +122,20 @@ def csv_to_dict(filepath, label_col="label"):
     return result
 
 
+def convert_value(value, type):
+    if value == "":
+        return None
+
+    if type == "float":
+        return float(value)
+    elif type == "int":
+        return int(value)
+    elif type == "bool":
+        return bool(value)
+    else:
+        raise ValueError(f"Type {type} not supported")
+
+
 def get_param_from_metadata(param, model=None):
     """
     Extracts a specific parameter for all fields in the given model (or all fields if None) from the
@@ -136,13 +150,18 @@ def get_param_from_metadata(param, model=None):
     """
     if model is not None:
         param_dict = {
-            field: FORM_FIELD_METADATA[field][param]
+            field: convert_value(
+                FORM_FIELD_METADATA[field][param], FORM_FIELD_METADATA[field]["type"]
+            )
             for field in FORM_FIELD_METADATA
             if FORM_FIELD_METADATA[field]["model"] == model
         }
     else:
         param_dict = {
-            field: FORM_FIELD_METADATA[field][param] for field in FORM_FIELD_METADATA
+            field: convert_value(
+                FORM_FIELD_METADATA[field][param], FORM_FIELD_METADATA[field]["type"]
+            )
+            for field in FORM_FIELD_METADATA
         }
 
     return param_dict
