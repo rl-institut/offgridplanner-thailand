@@ -31,15 +31,15 @@ from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.users.models import User
 
-STEPS = [
-    _("project_setup"),
-    _("consumer_selection"),
-    _("demand_estimation"),
-    _("grid_design"),
-    _("energy_system_design"),
-    _("calculating"),
-    _("simulation_results"),
-]
+STEPS = {
+    "project_setup": _("Project Setup"),
+    "consumer_selection": _("Consumer Selection"),
+    "demand_estimation": _("Demand Estimation"),
+    "grid_design": _("Grid Design"),
+    "energy_system_design": _("Energy System Design"),
+    "calculating": _("Calculating"),
+    "simulation_results": _("Simulation Results"),
+}
 
 
 # @login_required()
@@ -67,8 +67,8 @@ def project_setup(request, proj_id=None):
                 "form": form,
                 "opts_form": opts,
                 "max_days": max_days,
-                "step_id": STEPS.index("project_setup") + 1,
-                "step_list": STEPS,
+                "step_id": list(STEPS.keys()).index("project_setup") + 1,
+                "step_list": list(STEPS.values()),
             },
         )
 
@@ -164,8 +164,8 @@ def consumer_selection(request, proj_id=None):
         "large_load_type": large_load_type,
         "enterpise_option": enterpise_option,
         "option_load": option_load,
-        "step_id": STEPS.index("consumer_selection") + 1,
-        "step_list": STEPS,
+        "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
+        "step_list": list(STEPS.values()),
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
@@ -182,7 +182,7 @@ def consumer_selection(request, proj_id=None):
 @require_http_methods(["GET", "POST"])
 def demand_estimation(request, proj_id=None):
     # TODO demand import and export from this step still needs to be handled
-    step_id = STEPS.index("demand_estimation") + 1
+    step_id = list(STEPS.keys()).index("demand_estimation") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -197,7 +197,7 @@ def demand_estimation(request, proj_id=None):
                 "form": form,
                 "proj_id": proj_id,
                 "step_id": step_id,
-                "step_list": STEPS,
+                "step_list": list(STEPS.values()),
             }
 
             return render(request, "pages/demand_estimation.html", context)
@@ -213,7 +213,7 @@ def demand_estimation(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET", "POST"])
 def grid_design(request, proj_id=None):
-    step_id = STEPS.index("grid_design") + 1
+    step_id = list(STEPS.keys()).index("grid_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -242,7 +242,7 @@ def grid_design(request, proj_id=None):
                 "grouped_fields": grouped_fields,
                 "proj_id": proj_id,
                 "step_id": step_id,
-                "step_list": STEPS,
+                "step_list": list(STEPS.values()),
             }
             return render(request, "pages/grid_design.html", context)
 
@@ -257,7 +257,7 @@ def grid_design(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET", "POST"])
 def energy_system_design(request, proj_id=None):
-    step_id = STEPS.index("energy_system_design") + 1
+    step_id = list(STEPS.keys()).index("energy_system_design") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
@@ -284,7 +284,7 @@ def energy_system_design(request, proj_id=None):
         context = {
             "proj_id": project.id,
             "step_id": step_id,
-            "step_list": STEPS,
+            "step_list": list(STEPS.values()),
             "grouped_fields": grouped_fields,
         }
 
@@ -352,7 +352,9 @@ def steps(request, proj_id, step_id=None):
     if step_id is None:
         return HttpResponseRedirect(reverse("steps:ogp_steps", args=[proj_id, 1]))
 
-    return HttpResponseRedirect(reverse(f"steps:{STEPS[step_id - 1]}", args=[proj_id]))
+    return HttpResponseRedirect(
+        reverse(f"steps:{list(STEPS.keys())[step_id - 1]}", args=[proj_id])
+    )
 
 
 @require_http_methods(["GET"])
