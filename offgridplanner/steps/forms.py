@@ -1,10 +1,8 @@
 from django.forms import ModelForm
 
-from offgridplanner.projects.helpers import csv_to_dict
+from offgridplanner.projects.helpers import FORM_FIELD_METADATA
 from offgridplanner.projects.widgets import BatteryDesignWidget
 from offgridplanner.steps.models import CustomDemand, GridDesign, EnergySystemDesign
-
-FORM_FIELD_METADATA = csv_to_dict("data/form_parameters.csv")
 
 
 def set_field_metadata(field, meta):

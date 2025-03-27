@@ -13,7 +13,12 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.projects.helpers import reorder_dict, group_form_by_component
+from offgridplanner.projects.helpers import (
+    reorder_dict,
+    group_form_by_component,
+    get_param_from_metadata,
+    FORM_FIELD_METADATA,
+)
 from offgridplanner.steps.forms import CustomDemandForm, EnergySystemDesignForm
 from offgridplanner.steps.forms import GridDesignForm
 from offgridplanner.projects.forms import OptionForm
@@ -55,7 +60,7 @@ def project_setup(request, proj_id=None):
             opts = OptionForm(instance=project.options)
             context.update({"proj_id": project.id})
         else:
-            form = ProjectForm()
+            form = ProjectForm(initial=get_param_from_metadata("default", "Project"))
             opts = OptionForm()
         context.update(
             {
@@ -183,7 +188,9 @@ def demand_estimation(request, proj_id=None):
         if project.user != request.user:
             raise PermissionDenied
 
-        custom_demand, _ = CustomDemand.objects.get_or_create(project=project)
+        custom_demand, _ = CustomDemand.objects.get_or_create(
+            project=project, defaults=get_param_from_metadata("default", "CustomDemand")
+        )
         if request.method == "GET":
             form = CustomDemandForm(instance=custom_demand)
             context = {
@@ -212,7 +219,9 @@ def grid_design(request, proj_id=None):
         if project.user != request.user:
             raise PermissionDenied
 
-        grid_design, _ = GridDesign.objects.get_or_create(project=project)
+        grid_design, _ = GridDesign.objects.get_or_create(
+            project=project, defaults=get_param_from_metadata("default", "GridDesign")
+        )
         if request.method == "GET":
             form = GridDesignForm(instance=grid_design, set_db_column_attribute=True)
             # Group form fields by component (for easier rendering inside boxes)
@@ -254,10 +263,14 @@ def energy_system_design(request, proj_id=None):
         if project.user.email != request.user.email:
             raise PermissionDenied
 
-    energy_system_design, _ = EnergySystemDesign.objects.get_or_create(project=project)
+    energy_system_design, _ = EnergySystemDesign.objects.get_or_create(
+        project=project,
+        defaults=get_param_from_metadata("default", "EnergySystemDesign"),
+    )
     if request.method == "GET":
         form = EnergySystemDesignForm(
-            instance=energy_system_design, set_db_column_attribute=True
+            instance=energy_system_design,
+            set_db_column_attribute=True,
         )
 
         grouped_fields = group_form_by_component(form)

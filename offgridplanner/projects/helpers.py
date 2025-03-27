@@ -122,6 +122,32 @@ def csv_to_dict(filepath, label_col="label"):
     return result
 
 
+def get_param_from_metadata(param, model=None):
+    """
+    Extracts a specific parameter for all fields in the given model (or all fields if None) from the
+    FORM_FIELD_METADATA dictionary and returns a dictionary with {fields: values} for the parameter.
+
+    Parameters:
+        param (str): Parameter to extract from the nested dictionary
+        model (str): Model by which to filter the fields
+
+    Returns:
+        dict: Field labels and the corresponding value for param
+    """
+    if model is not None:
+        param_dict = {
+            field: FORM_FIELD_METADATA[field][param]
+            for field in FORM_FIELD_METADATA
+            if FORM_FIELD_METADATA[field]["model"] == model
+        }
+    else:
+        param_dict = {
+            field: FORM_FIELD_METADATA[field][param] for field in FORM_FIELD_METADATA
+        }
+
+    return param_dict
+
+
 def group_form_by_component(form):
     """Create a nested dictionary of form fields split by component. This assumes that the db_column of the model field
     is formatted with a double underscore as 'component_name__parameter_name'.
@@ -143,3 +169,6 @@ def reorder_dict(d, old_index, new_index):
     item = items.pop(old_index)  # Remove the item at the old index
     items.insert(new_index, item)  # Insert it at the new index
     return dict(items)
+
+
+FORM_FIELD_METADATA = csv_to_dict("data/form_parameters.csv")

@@ -7,11 +7,11 @@ class CustomDemand(models.Model):
     # Corresponds to class Demand in tier_spatial planning, removed fields id (obsolete), use_custom_demand and use_custom_shares
     # (one or both of them should just be None in database if not used), and household_option (not sure what it is used for)
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    very_low = models.FloatField(default=0.663)
-    low = models.FloatField(default=0.215)
-    middle = models.FloatField(default=0.076)
-    high = models.FloatField(default=0.031)
-    very_high = models.FloatField(default=0.015)
+    very_low = models.FloatField(blank=True, null=True)
+    low = models.FloatField(blank=True, null=True)
+    middle = models.FloatField(blank=True, null=True)
+    high = models.FloatField(blank=True, null=True)
+    very_high = models.FloatField(blank=True, null=True)
     annual_total_consumption = models.FloatField(blank=True, null=True)
     annual_peak_consumption = models.FloatField(blank=True, null=True)
     uploaded_data = models.JSONField(null=True)
@@ -35,34 +35,36 @@ class CustomDemand(models.Model):
 class GridDesign(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     distribution_cable_lifetime = models.PositiveSmallIntegerField(
-        default=25, db_column="distribution_cable__lifetime"
+        blank=True, null=True, db_column="distribution_cable__lifetime"
     )
     distribution_cable_capex = models.FloatField(
-        default=10, db_column="distribution_cable__capex"
+        blank=True, null=True, db_column="distribution_cable__capex"
     )
     distribution_cable_max_length = models.FloatField(
-        default=50, db_column="distribution_cable__max_length"
+        blank=True, null=True, db_column="distribution_cable__max_length"
     )
     connection_cable_lifetime = models.PositiveSmallIntegerField(
-        default=25, db_column="connection_cable__lifetime"
+        blank=True, null=True, db_column="connection_cable__lifetime"
     )
     connection_cable_capex = models.FloatField(
-        default=4, db_column="connection_cable__capex"
+        blank=True, null=True, db_column="connection_cable__capex"
     )
     connection_cable_max_length = models.FloatField(
-        default=20, db_column="connection_cable__max_length"
+        blank=True, null=True, db_column="connection_cable__max_length"
     )
     pole_lifetime = models.PositiveSmallIntegerField(
-        default=25, db_column="pole__lifetime"
+        blank=True, null=True, db_column="pole__lifetime"
     )
-    pole_capex = models.FloatField(default=800, db_column="pole__capex")
+    pole_capex = models.FloatField(blank=True, null=True, db_column="pole__capex")
     pole_max_n_connections = models.PositiveSmallIntegerField(
-        default=5, db_column="pole__max_n_connections"
+        blank=True, null=True, db_column="pole__max_n_connections"
     )
-    mg_connection_cost = models.FloatField(default=140, db_column="mg__connection_cost")
-    include_shs = models.BooleanField(default=True, db_column="shs__include")
+    mg_connection_cost = models.FloatField(
+        blank=True, null=True, db_column="mg__connection_cost"
+    )
+    include_shs = models.BooleanField(db_column="shs__include")
     shs_max_grid_cost = models.FloatField(
-        default=0.6, blank=True, null=True, db_column="shs__max_grid_cost"
+        blank=True, null=True, db_column="shs__max_grid_cost"
     )
 
 
