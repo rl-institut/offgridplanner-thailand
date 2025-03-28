@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, Textarea
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -17,6 +17,7 @@ class ProjectForm(CustomModelForm):
             "user",
             "options",
         ]
+        widgets = {"description": Textarea(attrs={"rows": 7})}
 
 
 OPTIONS_LABELS = {
