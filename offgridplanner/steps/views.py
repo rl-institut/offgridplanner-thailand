@@ -66,6 +66,8 @@ def project_setup(request, proj_id=None):
             {
                 "form": form,
                 "opts_form": opts,
+                # fields that should be rendered in left column (for use in template tags)
+                "left_col_fields": ["name", "n_days", "description"],
                 "max_days": max_days,
                 "step_id": list(STEPS.keys()).index("project_setup") + 1,
                 "step_list": list(STEPS.values()),
