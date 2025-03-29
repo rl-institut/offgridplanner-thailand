@@ -2,6 +2,7 @@
 
 {% load crispy_forms_tags %}
 {% load custom_template_tags %}
+{% load widget_tweaks %}
 {% load static %}
 {% load i18n %}
 
@@ -39,7 +40,6 @@
                            type="checkbox"
                            data-bs-toggle="collapse"
                            data-bs-target="#consumerProperties, #demandUpload" />
-                    <!--                        <input id="toggleswitch2" type="checkbox" />-->
                     <span class="slider round"></span>
                   </label>
                 </button>
@@ -81,21 +81,13 @@
                         <em>The default values correspond to the national average of rural areas</em>
                       </p>
                       <!-- Input Fields Container -->
-                      <div style="display: grid;
-                                  grid-template-columns: auto auto;
-                                  grid-row-gap: 10px;
-                                  align-items: center">
-
+                      <div class="shares-container">
                         {% for field in form %}
                         {% if field.name != 'annual_total_consumption' and field.name != 'annual_peak_consumption' %}
-                        <div class="row align-items-center mb-2">
-                          <div class="col-md-3 text-end">
-                            <label class="form-label">{{ field.label }}</label>
-                          </div>
-                          <div class="col-md-5">{{ field }}</div>
-                          <div class="col-md-2">
-                            <span class="input-group-text">%</span>
-                          </div>
+                        <label class="form-label">{{ field.label | safe }}</label>
+                        <div class="input-group">
+                          {{ field|add_class:"form-control" }}
+                          <span class="input-group-text">%</span>
                         </div>
                         {% endif %}
                         {% endfor %}
@@ -116,25 +108,27 @@
                          href="javascript:void(0);">Reset</a>
                     </div>
                   </div>
+                  <div class="row">
+                    <p>
+                      <a>Demand Estimation</a>
+                    </p>
+                    <p>
+                      Several typical standardized household demand profiles have been developed from
+                      roughly 3600 energy appliance ownership and usage surveys that were conducted
+                      across Nigeria in 2020 in 3 prioritized geopolitical zones. Survey details can
+                      be found in the publication here: <a href="https://www.nature.com/articles/s41597-023-02185-0">PeopleSuN
+                      (2023) Electricity supply quality and use among rural and peri-urban
+                      households and small firms in Nigeria</a>
+                    </p>
+                    <p>
+                      The open-source Remote Area Multi-Energy Profiles simulation software (RAMP) has
+                      been used to develop 5 typical non-urban Nigerian household energy consumption
+                      categories (from Very Low to Very High). The pre-created default options below
+                      represent weighted combinations of each of these consumption categories that
+                      match the observed data in each of the geographic zones.
+                    </p>
+                  </div>
                 </div>
-                <p>
-                  <a>Demand Estimation</a>
-                </p>
-                <p>
-                  Several typical standardized household demand profiles have been developed from
-                  roughly 3600 energy appliance ownership and usage surveys that were conducted
-                  across Nigeria in 2020 in 3 prioritized geopolitical zones. Survey details can
-                  be found in the publication here: <a href="https://www.nature.com/articles/s41597-023-02185-0">PeopleSuN
-                  (2023) Electricity supply quality and use among rural and peri-urban
-                  households and small firms in Nigeria</a>
-                </p>
-                <p>
-                  The open-source Remote Area Multi-Energy Profiles simulation software (RAMP) has
-                  been used to develop 5 typical non-urban Nigerian household energy consumption
-                  categories (from Very Low to Very High). The pre-created default options below
-                  represent weighted combinations of each of these consumption categories that
-                  match the observed data in each of the geographic zones.
-                </p>
                 <p style="display: flex;
                         justify-content: space-between;
                         align-items: center;
@@ -197,31 +191,27 @@
                     accordingly.
                   </p>
                   <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                    <label for="option7">
-                      <input type="radio" name="options2" id="option7" autocomplete="off" checked>
-                      Set Average Total Annual Energy (kWh/year)
-                    </label>
-                    <div class="input-group" style="max-width: 200px">
-                      {{ form.annual_total_consumption }}
+                    <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
+                    <span id="option7" style="width: 450px; text-align: left;">
+                    <input type="radio" id="option7radio" name="options2" autocomplete="off" checked>
+                      <label for="option7radio">{{ form.annual_total_consumption.label | safe }}</label>
+                    </span>
+                      <div class="input-group" style="max-width: 200px">
+                        {{ form.annual_total_consumption|add_class:"form-control" }}
+                        <span class="input-group-text">{{ form.annual_total_consumption.field.attrs.unit }}</span>
+                      </div>
                     </div>
-                    <div class="col-md-4">
-                      <span class="input-group-text">kWh</span>
-                    </div>
-                  </div>
-
-                  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
-                    <label for="option8" class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
-                      <input type="radio" name="options2" id="option8" autocomplete="off">
-                      Set Maximum Peak Demand (kW)
-                    </label>
-                    <div class="input-group" style="max-width: 200px">
-                      {{ form.annual_peak_consumption }}
-                    </div>
-                    <div class="col-md-4">
-                      <span class="input-group-text">kW</span>
+                    <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start" for="option7">
+                    <span id="option8" style="width: 450px; text-align: left;">
+                    <input type="radio" id="option8radio" name="options2" autocomplete="off" checked>
+                      <label for="option8radio">{{ form.annual_peak_consumption.label | safe }}</label>
+                      </span>
+                      <div class="input-group" style="max-width: 200px">
+                        {{ form.annual_peak_consumption|add_class:"form-control" }}
+                        <span class="input-group-text">{{ form.annual_peak_consumption.field.attrs.unit }}</span>
+                      </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
@@ -270,10 +260,10 @@
 
 {% block end_body_scripts %}
 <script>
-const proj_id = '{{ proj_id }}';
-const csrfToken = '{{ csrf_token }}';
-const exportDemandUrl = `{% url 'optimization:export_demand' proj_id %}`;
-const importDemandUrl = `{% url 'optimization:import_demand' proj_id %}`;
+  const proj_id = '{{ proj_id }}';
+  const csrfToken = '{{ csrf_token }}';
+  const exportDemandUrl = `{% url 'optimization:export_demand' proj_id %}`;
+  const importDemandUrl = `{% url 'optimization:import_demand' proj_id %}`;
 </script>
 <script src="{% static 'js/pages/demand_estimation.js' %}"></script>
 <script src="{% static 'js/backend_communication.js' %}"></script>
