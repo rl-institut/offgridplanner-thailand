@@ -2,3 +2,17 @@ label {
     font-weight: bold; /* Makes the font bold */
     color: var(--ccb); /* Uses the color defined in the --ccb variable */
 }
+
+/* Container for label and toggle switch */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+/* Text label styling */
+.toggle-label {
+    font-weight: normal;
+    color: black;
+    flex-grow: 1;  /* Makes the text take up remaining space */
+}

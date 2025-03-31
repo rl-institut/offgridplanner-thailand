@@ -23,8 +23,7 @@
       }
     </style>
 {% endblock head_block %}
-  <body>
-    {% block content %}
+{% block progression_content %}
       <main>
         <section id="dashboard" class="dashboard">
           <div>
@@ -562,9 +561,7 @@
           </form>
         </div>
       </main>
-    {% endblock content %}
-  </body>
-
+{% endblock progression_content %}
 {% block end_body_scripts %}
     <script>
       const proj_id = '{{ proj_id }}';

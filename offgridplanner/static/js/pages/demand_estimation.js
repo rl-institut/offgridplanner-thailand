@@ -16,28 +16,12 @@ function debounce(func, wait) {
     };
 }
 
-// Adjust input fields based on radio button selection
-document.addEventListener('DOMContentLoaded', function () {
-    const proj_id = "{{ proj_id }}";
-    demand_ts(proj_id)
-    // TODO this seems to trip if bouncing around a bit, not sure if related to content laoding?
-    const option7Radio = document.getElementById('option7');
-    const option8Radio = document.getElementById('option8');
-    const totalEnergyInput = document.getElementById('id_annual_total_consumption');
-    const maximumPeakLoadInput = document.getElementById('id_annual_peak_consumption');
-
-    option7Radio.addEventListener('change', handleOptions2Change);
-    option8Radio.addEventListener('change', handleOptions2Change);
-
-    // Initial setup
-    handleOptions2Change();
-});
-
-
 // Store selected value from radio buttons with name 'options'
 const radioButtons = document.getElementsByName("options");
-const option7Radio = document.getElementById('option7');
-const option8Radio = document.getElementById('option8');
+const option7Container = document.getElementById("option7");
+const option8Container = document.getElementById("option8");
+const option7Radio = document.getElementById('option7radio');
+const option8Radio = document.getElementById('option8radio');
 const totalEnergyInput = document.getElementById('id_annual_total_consumption');
 const maximumPeakLoadInput = document.getElementById('id_annual_peak_consumption');
 const toggleSwitch = document.getElementById('toggleswitch');
@@ -45,6 +29,32 @@ const toggleSwitch = document.getElementById('toggleswitch');
 const radioTotalDemand = document.getElementById('optionTotalDemand');
 const radioSingleHousehold = document.getElementById('optionSingleHousehold');
 const plotElement = document.getElementById("demand_plot");
+
+
+// Adjust input fields based on radio button selection
+document.addEventListener('DOMContentLoaded', function () {
+    const proj_id = "{{ proj_id }}";
+    demand_ts(proj_id)
+
+document.querySelectorAll(".btn-custom").forEach((btn) => {
+    btn.addEventListener("click", function (event) {
+        // Prevent the event from affecting the form field inputs
+        if (!event.target.classList.contains("form-control")) {
+            console.log("alsjda")
+            const radioInput = btn.querySelector("input[type='radio']");
+            if (radioInput) {
+                console.log("slkdjf")
+                radioInput.checked = true;
+            }
+            handleOptions2Change();
+        }
+    });
+});
+
+    // Initial setup
+    handleOptions2Change();
+
+});
 
 // Handle change of calibration values (total vs. peak)
 function handleOptions2Change() {

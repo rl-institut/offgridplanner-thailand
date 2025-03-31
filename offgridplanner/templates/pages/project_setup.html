@@ -2,69 +2,77 @@
 
 {% load crispy_forms_tags %}
 {% load custom_template_tags %}
+{% load widget_tweaks %}
 {% load static %}
 {% load i18n %}
 
+{% block head_block %}
+<link href="{% static 'css/pages/project_setup.css' %}" rel="stylesheet">
+<link href="{% static 'css/main.css' %}" rel="stylesheet">
+{% endblock head_block %}
+
 {% block progression_content %}
-  <main>
-    <section class="dashboard" style="height: auto">
-      <div class="chart"
-           style="height: auto;
-                      padding-bottom: 10px;
-                      max-height: 350px">
-        <div class="chart__header">
-          <a class="title"></a>
-        </div>
+<main>
+  <section class="dashboard" style="height: auto">
+    <div class="chart"
+         style="height: auto;
+                      padding-bottom: 10px">
+      <div class="chart__header">
+        <a class="title"></a>
+      </div>
+      <form action="{% if proj_id %}{% url 'steps:project_setup' proj_id %}{% else %}{% url 'steps:project_setup' %}{% endif %}" method="POST">
 
-        <form action="{% if proj_id %}{% url 'steps:project_setup' proj_id %}{% else %}{% url 'steps:project_setup' %}{% endif %}" method="POST">
-
-
-
-          {% csrf_token %}
-          <div class="row" style="height: auto">
-            <div class="col-md-6" style="height: auto">
-              <div class="input-item">{{ form|get_field:"name"|as_crispy_field }}</div>
-              <div class="input-item">{{ form|get_field:"n_days"|as_crispy_field }}</div>
-              <div class="input-item optional">{{ form|get_field:"description"|as_crispy_field }}</div>
+        {% csrf_token %}
+        <div class="row" style="height: auto">
+          <div class="col-md-6" style="height: auto">
+            {% for field in form %}
+            {% if field.name in left_col_fields %}
+            <div class="input-item">
+              <label class="form-label">{{ field.label | safe }}</label>
+              <div class="input-group">
+                {{ field|add_class:"form-control" }}
+                {% if field.field.widget.attrs.unit != "" %}<span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>{% endif %}
+              </div>
             </div>
-            <div class="col-md-6" style="height: auto">
-              <div class="input-item">
-                <div class="input-group">
-                  {{ form|get_field:"interest_rate"|as_crispy_field }}
-                  <span class="input-group-text">%</span>
-                </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          <div class="col-md-6" style="height: auto">
+            {% for field in form %}
+            {% if field.name not in left_col_fields %}
+            <div class="input-item">
+              <label class="form-label">{{ field.label | safe }}</label>
+              <div class="input-group">
+                {{ field|add_class:"form-control" }}
+                {% if field.field.widget.attrs.unit != "" %}<span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>{% endif %}
               </div>
-              <div class="input-item">
-                <div class="input-group">
-                  {{ form|get_field:"lifetime"|as_crispy_field }}
-                  <span class="input-group-text">Years</span>
-                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <label class="form-label">
+              Planning Steps
+              <span class="icon icon-question"
+                    data-bs-toggle="tooltip"
+                    title="Offgridplanner was developed to guide users through the entire planning process of an off-grid system, from demand estimation and spatial grid optimization to design optimization and unit commitment of energy converters. However, individual planning steps can be skipped if needed; simply deselect the relevant options accordingly."></span>
+            </label>
+            <div class="form-control" style="background-color: var(--bcc)">
+              {% for field in opts_form %}
+              <div class="toggle-container">
+                <span class="toggle-label">{{ field.label | safe }}</span>
+                <label class="switch">
+                  {{ field }}
+                  <span class="slider round"></span>
+                </label>
               </div>
-              <label class="form-label">
-                Planning Steps
-                <span class="icon icon-question"
-                      data-bs-toggle="tooltip"
-                      title="Offgridplanner was developed to guide users through the entire planning process of an off-grid system, from demand estimation and spatial grid optimization to design optimization and unit commitment of energy converters. However, individual planning steps can be skipped if needed; simply deselect the relevant options accordingly."></span>
-              </label>
-              <div class="form-control" style="background-color: var(--bcc)">
-                <div style="display: flex;
-                                align-items: center;
-                                margin-bottom: 10px;
-                                margin-top: 10px">{{ opts_form|get_field:"do_demand_estimation"|as_crispy_field }}</div>
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                  {{ opts_form|get_field:"do_grid_optimization"|as_crispy_field }}
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                  {{ opts_form|get_field:"do_es_design_optimization"|as_crispy_field }}
-                </div>
-              </div>
+              {% endfor %}
               <input type="submit" id="submitFormBtn" hidden="true">
             </div>
           </div>
-        </form>
-      </div>
-    </section>
-  </main>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
 {% endblock progression_content %}
 {% block end_body_scripts %}
 <!-- TODO mostly not needed as JS -->

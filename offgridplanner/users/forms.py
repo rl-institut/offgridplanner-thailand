@@ -50,7 +50,7 @@ class UserSignupForm(SignupForm):
         privacy_url = kwargs.pop("privacy_url", "")
         super().__init__(*args, **kwargs)
         self.fields["accept_privacy"].label = _(
-            "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from open_plan",
+            "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from PeopleSun",
         ) % {"privacy_url": privacy_url}
 
     def save(self, request):
