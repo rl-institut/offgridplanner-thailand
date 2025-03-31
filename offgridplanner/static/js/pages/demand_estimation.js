@@ -36,15 +36,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const proj_id = "{{ proj_id }}";
     demand_ts(proj_id)
 
-    option7Container.addEventListener("click", function () {
-    option7Radio.checked = true;
-    handleOptions2Change();
+document.querySelectorAll(".btn-custom").forEach((btn) => {
+    btn.addEventListener("click", function (event) {
+        // Prevent the event from affecting the form field inputs
+        if (!event.target.classList.contains("form-control")) {
+            console.log("alsjda")
+            const radioInput = btn.querySelector("input[type='radio']");
+            if (radioInput) {
+                console.log("slkdjf")
+                radioInput.checked = true;
+            }
+            handleOptions2Change();
+        }
     });
-
-    option8Container.addEventListener("click", function () {
-    option8Radio.checked = true;
-    handleOptions2Change();
-    });
+});
 
     // Initial setup
     handleOptions2Change();

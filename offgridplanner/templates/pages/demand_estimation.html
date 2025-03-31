@@ -161,7 +161,7 @@
                     <input type="checkbox"
                            id="toggleswitch"
                            data-bs-toggle="collapse"
-                           data-bs-target="#collapseTwo" />
+                           data-bs-target="#collapseTwo" {% if calibration.active %}checked{% endif %}>
                     <span class="slider round"></span>
                   </label>
                 </span>
@@ -170,7 +170,7 @@
             </div>
             <div class="accordion-item" style="border-top: none; padding: 10px">
               <div id="collapseTwo"
-                   class="accordion-collapse collapse"
+                   class="accordion-collapse {% if not calibration.active %}collapse{% endif %}"
                    aria-labelledby="headingTwo">
                 <div class="accordion-body">
                   <p>
@@ -190,10 +190,11 @@
                     percentage shares of consumption categories, but the total will be re-scaled
                     accordingly.
                   </p>
-                  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons">
+                  <div class="btn-group-vertical">
                     <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
                     <span id="option7" style="width: 450px; text-align: left;">
-                    <input type="radio" id="option7radio" name="options2" autocomplete="off" checked>
+                    <input type="radio" id="option7radio" name="options2"
+                           autocomplete="off" {% if calibration.initial == "annual_total_consumption" %}checked{% endif %}>
                       <label for="option7radio">{{ form.annual_total_consumption.label | safe }}</label>
                     </span>
                       <div class="input-group" style="max-width: 200px">
@@ -203,7 +204,7 @@
                     </div>
                     <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start" for="option7">
                     <span id="option8" style="width: 450px; text-align: left;">
-                    <input type="radio" id="option8radio" name="options2" autocomplete="off" checked>
+                    <input type="radio" id="option8radio" name="options2" autocomplete="off"{% if calibration.initial == "annual_peak_consumption" %}checked{% endif %}>
                       <label for="option8radio">{{ form.annual_peak_consumption.label | safe }}</label>
                       </span>
                       <div class="input-group" style="max-width: 200px">
