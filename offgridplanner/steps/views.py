@@ -41,6 +41,9 @@ STEPS = {
     "simulation_results": _("Simulation Results"),
 }
 
+# Remove the calculating step from the top ribbon
+STEP_LIST_RIBBON = [step for step in STEPS.values() if step != _("Calculating")]
+
 
 # @login_required()
 @require_http_methods(["GET", "POST"])
@@ -70,7 +73,7 @@ def project_setup(request, proj_id=None):
                 "left_col_fields": ["name", "n_days", "description"],
                 "max_days": max_days,
                 "step_id": list(STEPS.keys()).index("project_setup") + 1,
-                "step_list": list(STEPS.values()),
+                "step_list": STEP_LIST_RIBBON,
             },
         )
 
@@ -167,7 +170,7 @@ def consumer_selection(request, proj_id=None):
         "enterpise_option": enterpise_option,
         "option_load": option_load,
         "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
-        "step_list": list(STEPS.values()),
+        "step_list": STEP_LIST_RIBBON,
     }
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
@@ -207,7 +210,7 @@ def demand_estimation(request, proj_id=None):
                 "form": form,
                 "proj_id": proj_id,
                 "step_id": step_id,
-                "step_list": list(STEPS.values()),
+                "step_list": STEP_LIST_RIBBON,
             }
 
             return render(request, "pages/demand_estimation.html", context)
@@ -252,7 +255,7 @@ def grid_design(request, proj_id=None):
                 "grouped_fields": grouped_fields,
                 "proj_id": proj_id,
                 "step_id": step_id,
-                "step_list": list(STEPS.values()),
+                "step_list": STEP_LIST_RIBBON,
             }
             return render(request, "pages/grid_design.html", context)
 
@@ -294,7 +297,7 @@ def energy_system_design(request, proj_id=None):
         context = {
             "proj_id": project.id,
             "step_id": step_id,
-            "step_list": list(STEPS.values()),
+            "step_list": STEP_LIST_RIBBON,
             "grouped_fields": grouped_fields,
         }
 
@@ -349,10 +352,15 @@ def calculating(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
+    step_id = list(STEPS.keys()).index("calculating") + 1
     return render(
         request,
         "pages/simulation_results.html",
-        context={"proj_id": proj_id},
+        context={
+            "proj_id": proj_id,
+            "step_id": step_id,
+            "step_list": STEP_LIST_RIBBON,
+        },
     )
 
 
