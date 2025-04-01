@@ -324,7 +324,7 @@ def calculating(request, proj_id=None):
             )
             email_opt = False
         # TODO there was also the condition len(project.task_id) > 20 but I'm not sure why it is needed
-        if simulation.task_id is not None and not task_is_finished(simulation.task_id):
+        if simulation.task_id != "" and not task_is_finished(simulation.task_id):
             msg = (
                 "CAUTION: You have a calculation in progress that has not yet been completed. Therefore you cannot"
                 " start another calculation. You can cancel the already running calculation by clicking on the"

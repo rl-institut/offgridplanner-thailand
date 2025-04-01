@@ -584,7 +584,7 @@ def waiting_for_results(request):
                 "finished" if status in ["success", "failure", "revoked"] else status
             )
             # TODO: decide whether to keep or clear task_id
-            # sim.task_id = None
+            # sim.task_id = ""
             sim.save()
             finished = True
             status = sim.status
@@ -610,7 +610,7 @@ def abort_calculation(request, proj_id):
     simulation = Simulation.objects.get(project=proj_id)
     task_id = simulation.task_id
     revoke_task(task_id)
-    simulation.task_id = None
+    simulation.task_id = ""
     simulation.save()
     response = {"msg": "Calculation aborted"}
     return JsonResponse(response)
