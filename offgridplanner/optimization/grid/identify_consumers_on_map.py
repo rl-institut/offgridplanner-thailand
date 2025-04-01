@@ -112,20 +112,19 @@ def obtain_areas_and_mean_coordinates_from_geojson(geojson: dict):
     if len(geojson["features"]) != 0:
         reference_coordinate = geojson["features"][0]["geometry"]["coordinates"][0][0]
         for building in geojson["features"]:
-            xy_coordinates = []
             latitudes_longitudes = list(building["geometry"]["coordinates"][0])
             latitudes = [x[0] for x in latitudes_longitudes]
             longitudes = [x[1] for x in latitudes_longitudes]
             mean_coord = [np.mean(latitudes), np.mean(longitudes)]
-            for edge in range(len(latitudes)):
-                xy_coordinates.append(
-                    xy_coordinates_from_latitude_longitude(
-                        latitude=latitudes_longitudes[edge][0],
-                        longitude=latitudes_longitudes[edge][1],
-                        ref_latitude=reference_coordinate[0],
-                        ref_longitude=reference_coordinate[1],
-                    ),
+            xy_coordinates = [
+                xy_coordinates_from_latitude_longitude(
+                    latitude=latitudes_longitudes[edge][0],
+                    longitude=latitudes_longitudes[edge][1],
+                    ref_latitude=reference_coordinate[0],
+                    ref_longitude=reference_coordinate[1],
                 )
+                for edge in range(len(latitudes))
+            ]
             polygon = geometry.Polygon(xy_coordinates)
             area = polygon.area
             perimeter = polygon.length

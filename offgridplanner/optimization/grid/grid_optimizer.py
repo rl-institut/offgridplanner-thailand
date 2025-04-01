@@ -1593,9 +1593,8 @@ class GridOptimizer(BaseOptimizer):
 
                 # In this part, the long links are broken into smaller links.
                 # `counter` represents the number of the added poles.
-                counter = 0
                 n_added_poles = added_poles.shape[0]
-                for index_added_pole in added_poles.index:
+                for counter, index_added_pole in enumerate(added_poles.index):
                     if counter == 0:
                         # The first `added poles` should be connected to
                         # the beginning or to the end of the long link,
@@ -1633,7 +1632,6 @@ class GridOptimizer(BaseOptimizer):
                             label_node_from=added_poles.index[counter - 1],
                             label_node_to=added_poles.index[counter],
                         )
-                    counter += 1
 
                     # Change the `how_added` tag for the new poles.
                     self.nodes.at[index_added_pole, "how_added"] = "long-distance"

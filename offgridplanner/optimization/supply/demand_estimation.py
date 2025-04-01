@@ -3,9 +3,10 @@ import logging
 import pandas as pd
 from django.forms import model_to_dict
 
-logger = logging.getLogger(__name__)
-
 from config.settings.base import FULL_PATH_PROFILES
+
+logging.basicConfig(format="%(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 LOAD_PROFILES = pd.read_parquet(path=FULL_PATH_PROFILES, engine="pyarrow")
 
@@ -123,7 +124,7 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
     # consumer_type does not exist
     except KeyError:
         logger.warning(
-            f"Can't compute demand for {consumer_type}, since none were selected",
+            "Can't compute demand for %s, since none were selected", consumer_type
         )
         total_demand = pd.Series(0, index=load_profiles.index)
 
