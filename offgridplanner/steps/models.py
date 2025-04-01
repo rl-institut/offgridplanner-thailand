@@ -18,6 +18,9 @@ class CustomDemand(models.Model):
     annual_peak_consumption = models.FloatField(blank=True, null=True)
     uploaded_data = models.JSONField(null=True)
 
+    def __str__(self):
+        return f"CustomDemand {self.id}: Project {self.project.name}"
+
     @property
     def calibration_option(self):
         if (
@@ -68,6 +71,9 @@ class GridDesign(models.Model):
     shs_max_grid_cost = models.FloatField(
         blank=True, null=True, db_column="shs__max_grid_cost"
     )
+
+    def __str__(self):
+        return f"GridDesign {self.id}: Project {self.project.name}"
 
 
 class EnergySystemDesign(models.Model):
@@ -301,6 +307,9 @@ class EnergySystemDesign(models.Model):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+
+    def __str__(self):
+        return f"EnergySystemDesign {self.id}: Project {self.project.name}"
 
     def to_nested_dict(self):
         def nested_dict():

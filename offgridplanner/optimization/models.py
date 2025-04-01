@@ -11,12 +11,15 @@ class BaseJsonData(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     data = models.JSONField(null=True)
 
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f"{self.__class__.__name__} {self.id}: Project {self.project.name}"
+
     @property
     def df(self):
         return pd.read_json(StringIO(self.data)) if self.data else None
-
-    class Meta:
-        abstract = True
 
 
 class Nodes(BaseJsonData):
@@ -73,6 +76,9 @@ class Simulation(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     task_id = models.CharField(max_length=80, null=True, blank=True)
     status = models.CharField(max_length=25, default="not yet started")
+
+    def __str__(self):
+        return f"Simulation {self.id}: Project {self.project.name}"
 
 
 class Results(models.Model):
@@ -137,6 +143,9 @@ class Results(models.Model):
     epc_inverter = models.FloatField(null=True, blank=True)
     epc_rectifier = models.FloatField(null=True, blank=True)
     epc_battery = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Results {self.id}: Project {self.project.name}"
 
 
 # TODO check what is saved in these models and potentially restructure in db

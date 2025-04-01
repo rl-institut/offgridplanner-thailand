@@ -18,6 +18,9 @@ class Options(models.Model):
     do_grid_optimization = models.BooleanField(default=True)
     do_es_design_optimization = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f"Options {self.id}: Project {self.project.name}"
+
 
 class Project(models.Model):
     def __str__(self):
