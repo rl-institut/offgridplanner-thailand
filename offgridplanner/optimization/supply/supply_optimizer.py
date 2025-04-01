@@ -52,14 +52,12 @@ import pyomo.environ as po
 from oemof import solph
 
 from config.settings.base import SOLVER_NAME
+from offgridplanner.optimization.models import DemandCoverage
+from offgridplanner.optimization.models import DurationCurve
+from offgridplanner.optimization.models import Emissions
+from offgridplanner.optimization.models import EnergyFlow
+from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.supply import solar_potential
-from offgridplanner.optimization.models import (
-    Links,
-    DemandCoverage,
-    Emissions,
-    EnergyFlow,
-    DurationCurve,
-)
 
 logger = logging.getLogger(__name__)
 

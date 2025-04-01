@@ -1,5 +1,7 @@
 from collections import defaultdict
+
 from django.db import models
+
 from offgridplanner.projects.models import Project
 
 

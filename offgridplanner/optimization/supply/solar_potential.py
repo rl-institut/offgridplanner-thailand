@@ -22,8 +22,6 @@ from pvlib.modelchain import ModelChain
 from pvlib.pvsystem import PVSystem
 from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 
-from django.utils.timezone import make_aware
-
 from config.settings.base import CDS_API_KEY
 from offgridplanner.optimization.models import WeatherData
 

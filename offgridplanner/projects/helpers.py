@@ -3,9 +3,8 @@ import io
 import os
 from collections import defaultdict
 
-from django.contrib.staticfiles.storage import staticfiles_storage
-
 import pandas as pd
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project

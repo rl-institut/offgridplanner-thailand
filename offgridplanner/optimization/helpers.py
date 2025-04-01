@@ -222,7 +222,7 @@ def check_imported_demand_data(df, project_dict):
     try:
         df = df.astype(float)
     except ValueError as e:
-        return None, f"Error converting demand to float: {str(e)}"
+        return None, f"Error converting demand to float: {e!s}"
 
     n_days = min(project_dict["n_days"], int(os.environ.get("MAX_DAYS", 365)))
     ts = pd.Series(

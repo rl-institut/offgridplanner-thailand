@@ -2,7 +2,9 @@ from django.forms import ModelForm
 
 from offgridplanner.projects.helpers import FORM_FIELD_METADATA
 from offgridplanner.projects.widgets import BatteryDesignWidget
-from offgridplanner.steps.models import CustomDemand, GridDesign, EnergySystemDesign
+from offgridplanner.steps.models import CustomDemand
+from offgridplanner.steps.models import EnergySystemDesign
+from offgridplanner.steps.models import GridDesign
 
 
 def set_field_metadata(field, meta):
@@ -16,7 +18,6 @@ def set_field_metadata(field, meta):
     field.widget.attrs["unit"] = meta.get("unit", "").replace(
         "currency", "USD"
     )  # Store unit as an attribute
-    return
 
 
 class CustomModelForm(ModelForm):

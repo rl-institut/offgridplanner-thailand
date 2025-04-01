@@ -1,10 +1,5 @@
 import io
-import json
 import os
-import time
-from collections import defaultdict
-
-import numpy as np
 
 # from jsonview.decorators import json_view
 import pandas as pd
@@ -13,25 +8,21 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.forms import model_to_dict
-from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.http import JsonResponse
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from offgridplanner.projects.helpers import (
-    load_project_from_dict,
-    prepare_data_for_export,
-)
+from offgridplanner.optimization.models import Nodes
+from offgridplanner.projects.helpers import load_project_from_dict
+from offgridplanner.projects.helpers import prepare_data_for_export
+from offgridplanner.projects.models import Options
+from offgridplanner.projects.models import Project
 from offgridplanner.steps.models import CustomDemand
 from offgridplanner.steps.models import EnergySystemDesign
 from offgridplanner.steps.models import GridDesign
-from offgridplanner.optimization.models import Nodes
-from offgridplanner.projects.models import Options
-from offgridplanner.projects.models import Project
 from offgridplanner.users.models import User
 
 
@@ -135,7 +126,7 @@ def export_project_results(request, proj_id):
         # format_right = workbook.add_format({"align": "right"})
         # format_left = workbook.add_format({"align": "left"})
 
-        for sheet_name, df in zip(dataframes.keys(), prepared_data):
+        for sheet_name, df in zip(dataframes.keys(), prepared_data, strict=False):
             df.astype(str).to_excel(writer, sheet_name=sheet_name, index=False)
             worksheet = writer.sheets[sheet_name]
             # set_column_width(worksheet, df, format_right if sheet_name != "results" else format_left)

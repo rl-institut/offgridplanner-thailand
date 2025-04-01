@@ -19,24 +19,22 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from offgridplanner.optimization.grid import identify_consumers_on_map
-from offgridplanner.optimization.helpers import (
-    consumer_data_to_file,
-    check_imported_consumer_data,
-    check_imported_demand_data,
-)
-from offgridplanner.optimization.supply.demand_estimation import (
-    get_demand_timeseries,
-    LOAD_PROFILES,
-)
-from offgridplanner.projects.helpers import df_to_file
-from offgridplanner.projects.models import Project
-from offgridplanner.steps.models import CustomDemand
-from offgridplanner.optimization.models import Nodes, Links, Simulation
-from offgridplanner.optimization.tasks import get_status, revoke_task
+from offgridplanner.optimization.helpers import check_imported_consumer_data
+from offgridplanner.optimization.helpers import check_imported_demand_data
+from offgridplanner.optimization.helpers import consumer_data_to_file
+from offgridplanner.optimization.models import Links
+from offgridplanner.optimization.models import Nodes
+from offgridplanner.optimization.models import Simulation
+from offgridplanner.optimization.supply.demand_estimation import LOAD_PROFILES
+from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
+from offgridplanner.optimization.tasks import get_status
+from offgridplanner.optimization.tasks import revoke_task
 from offgridplanner.optimization.tasks import task_grid_opt
 from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.optimization.tasks import task_supply_opt
-
+from offgridplanner.projects.helpers import df_to_file
+from offgridplanner.projects.models import Project
+from offgridplanner.steps.models import CustomDemand
 
 # @require_http_methods(["POST"])
 # def forward_if_no_task_is_pending(request, proj_id=None):
@@ -421,7 +419,7 @@ def import_demand(request, proj_id):
 
     except Exception as e:
         return JsonResponse(
-            {"responseMsg": f"Failed to process the file: {str(e)}"}, status=500
+            {"responseMsg": f"Failed to process the file: {e!s}"}, status=500
         )
 
 
