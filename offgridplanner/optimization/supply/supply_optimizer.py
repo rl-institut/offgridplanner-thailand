@@ -191,9 +191,10 @@ class EnergySystemOptimizer(BaseOptimizer):
 
         # -------------------- DIESEL GENSET --------------------
         # fuel density is assumed 0.846 kg/l
+        fuel_density_diesel = 0.846
         fuel_cost = (
             self.diesel_genset["parameters"]["fuel_cost"]
-            / 0.846
+            / fuel_density_diesel
             / self.diesel_genset["parameters"]["fuel_lhv"]
         )
         fuel_source = solph.components.Source(
@@ -791,12 +792,18 @@ class EnergySystemOptimizer(BaseOptimizer):
         demand_coverage.save()
 
     def _emissions_to_db(self):
-        if self.capacity_genset < 60:
-            co2_emission_factor = 1.580
-        elif self.capacity_genset < 300:
-            co2_emission_factor = 0.883
+        # TODO check what the source is for these values and link here
+        emissions_genset = {
+            "small": {"max_capacity": 60, "emission_factor": 1.580},
+            "medium": {"max_capacity": 300, "emission_factor": 0.883},
+            "large": {"emission_factor": 0.699},
+        }
+        if self.capacity_genset < emissions_genset["small"]["max_capacity"]:
+            co2_emission_factor = emissions_genset["small"]["emission_factor"]
+        elif self.capacity_genset < emissions_genset["medium"]["max_capacity"]:
+            co2_emission_factor = emissions_genset["medium"]["emission_factor"]
         else:
-            co2_emission_factor = 0.699
+            co2_emission_factor = emissions_genset["large"]["emission_factor"]
         # store fuel co2 emissions (kg_CO2 per L of fuel)
         df = pd.DataFrame()
         df["non_renewable_electricity_production"] = (

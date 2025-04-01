@@ -1828,7 +1828,8 @@ class GridOptimizer(BaseOptimizer):
         space = pd.Series(range(min_number_of_poles, n_mg_consumers, 1))
 
         for _ in range(min_number_of_poles, n_mg_consumers, 1):
-            if len(space) >= 5:
+            median_search_threshold = 5
+            if len(space) >= median_search_threshold:
                 next_n = int(space.median())
                 if self.is_enough_poles(next_n) is True:
                     space = space[space <= next_n]
@@ -1836,6 +1837,5 @@ class GridOptimizer(BaseOptimizer):
                     space = space[space > next_n]
             else:
                 for next_n in space:
-                    next_n = int(next_n)
                     if next_n == space.iloc[-1] or self.is_enough_poles(next_n) is True:
                         return next_n

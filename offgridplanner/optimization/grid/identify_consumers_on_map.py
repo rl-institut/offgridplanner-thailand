@@ -129,8 +129,17 @@ def obtain_areas_and_mean_coordinates_from_geojson(geojson: dict):
             polygon = geometry.Polygon(xy_coordinates)
             area = polygon.area
             perimeter = polygon.length
+            # TODO check what these magic numbers mean
+            min_valid_area = 4
+            compactness_lower_bound = 0.81
+            compactness_upper_bound = 1.91
+            max_compact_building_area = 8
+
             compactness = 4 * np.pi * area / (perimeter**2) if perimeter else 0
-            if area > 4 and not (0.81 < compactness < 1.19 and area < 8):
+            if area > min_valid_area and not (
+                compactness_lower_bound < compactness < compactness_upper_bound
+                and area < max_compact_building_area
+            ):
                 building_mean_coordinates[building["property"]["@id"]] = mean_coord
                 building_surface_areas[building["property"]["@id"]] = area
     return building_mean_coordinates, building_surface_areas
