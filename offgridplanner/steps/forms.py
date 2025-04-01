@@ -98,7 +98,8 @@ class CustomDemandForm(CustomModelForm):
         elif upper_limit == 100:
             value *= 100
         else:
-            raise ValueError("Upper limit must be either 1 or 100")
+            msg = "Upper limit must be either 1 or 100"
+            raise ValueError(msg)
 
         return value
 

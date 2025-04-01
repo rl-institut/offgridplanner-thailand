@@ -27,7 +27,7 @@ class Nodes(BaseJsonData):
         """
         nodes = self.df
         consumer_type_df = nodes[
-            (nodes["consumer_type"] == consumer_type) & (nodes["is_connected"] == True)
+            (nodes["consumer_type"] == consumer_type) & (nodes["is_connected"] is True)
         ]
         return consumer_type_df
 
@@ -45,9 +45,7 @@ class Nodes(BaseJsonData):
             .custom_specification.loc["enterprise"]
         )
         machinery.replace(";", "")
-        if not machinery.eq("").all():
-            return True
-        return False
+        return bool(not machinery.eq("").all())
 
 
 class Links(BaseJsonData):

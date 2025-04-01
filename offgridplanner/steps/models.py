@@ -303,7 +303,9 @@ class EnergySystemDesign(models.Model):
     )  # Field renamed because it contained more than one '_' in a row.
 
     def to_nested_dict(self):
-        nested_dict = lambda: defaultdict(nested_dict)
+        def nested_dict():
+            return defaultdict(nested_dict)
+
         data = nested_dict()
 
         for field in self._meta.fields:

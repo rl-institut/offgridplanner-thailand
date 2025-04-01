@@ -132,7 +132,8 @@ def convert_value(value, type):
     elif type == "bool":
         return bool(value)
     else:
-        raise ValueError(f"Type {type} not supported")
+        msg = f"Type {type} not supported"
+        raise ValueError(msg)
 
 
 def get_param_from_metadata(param, model=None):

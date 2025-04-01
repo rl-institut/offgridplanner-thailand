@@ -68,7 +68,8 @@ def calibrate_profiles(demand_df, custom_demand):
     elif calibration_option == "annual_total_consumption":
         calibration_factor = calibration_target / demand_df.sum().sum()
     else:
-        raise ValueError(f"Unknown calibration option: {calibration_option}")
+        msg = f"Unknown calibration option: {calibration_option}"
+        raise ValueError(msg)
 
     return demand_df * calibration_factor
 

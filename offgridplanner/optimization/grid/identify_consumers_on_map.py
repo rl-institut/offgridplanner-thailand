@@ -111,9 +111,7 @@ def obtain_areas_and_mean_coordinates_from_geojson(geojson: dict):
         reference_coordinate = geojson["features"][0]["geometry"]["coordinates"][0][0]
         for building in geojson["features"]:
             xy_coordinates = []
-            latitudes_longitudes = [
-                coord for coord in building["geometry"]["coordinates"][0]
-            ]
+            latitudes_longitudes = list(building["geometry"]["coordinates"][0])
             latitudes = [x[0] for x in latitudes_longitudes]
             longitudes = [x[1] for x in latitudes_longitudes]
             mean_coord = [np.mean(latitudes), np.mean(longitudes)]
@@ -166,8 +164,8 @@ def obtain_mean_coordinates_from_geojson(df):
         df1["nodes"] = df1_exploded.groupby(df1_exploded.index).agg({"nodes": list})
         building_mean_coordinates = {}
         if not df1.empty:
-            for row_idx, row in df1.iterrows():
-                latitudes_longitudes = [coord for coord in row["nodes"]]
+            for _row_idx, row in df1.iterrows():
+                latitudes_longitudes = list(row["nodes"])
                 latitudes = [x[0] for x in latitudes_longitudes]
                 longitudes = [x[1] for x in latitudes_longitudes]
                 mean_coord = [np.mean(latitudes), np.mean(longitudes)]

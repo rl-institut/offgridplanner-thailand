@@ -101,7 +101,7 @@ def add_buildings_inside_boundary(request, proj_id):
             },
         )
     nodes = defaultdict(list)
-    for label, coordinates in building_coordinates_within_boundaries.items():
+    for coordinates in building_coordinates_within_boundaries.values():
         nodes["latitude"].append(round(coordinates[0], 6))
         nodes["longitude"].append(round(coordinates[1], 6))
         nodes["how_added"].append("automatic")
@@ -154,7 +154,7 @@ def remove_buildings_inside_boundary(
             df,
             boundaries=boundaries,
         )
-        df = df[df["inside_boundary"] == False]
+        df = df[df["inside_boundary"] is False]
         df = df.drop(columns=["inside_boundary"])
         return JsonResponse({"map_elements": df.to_dict("records")})
 
@@ -430,8 +430,8 @@ def load_plot_data(request, proj_id, plot_type=None):
         energy_flow["battery"] = (
             energy_flow["battery_discharge"] - energy_flow["battery_charge"]
         )
-        energy_flow.drop(columns=["battery_charge", "battery_discharge"], inplace=True)
-        energy_flow.reset_index(drop=True, inplace=True)
+        energy_flow = energy_flow.drop(columns=["battery_charge", "battery_discharge"])
+        energy_flow = energy_flow.reset_index(drop=True)
         energy_flow = energy_flow.dropna(how="all", axis=0).fillna(0).to_dict("list")
         return JsonResponse({"energy_flow": energy_flow})
     elif plot_type == "duration_curve":

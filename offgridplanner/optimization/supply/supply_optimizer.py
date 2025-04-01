@@ -71,8 +71,8 @@ def optimize_energy_system(proj_id):
         ensys_opt.results_to_db()
         return True
     except Exception as exc:
-        logger.error(f"An error occurred during optimization: {exc}")
-        raise exc
+        logger.exception(f"An error occurred during optimization: {exc}")
+        raise
 
 
 class EnergySystemOptimizer(BaseOptimizer):
@@ -106,7 +106,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             self.num_households = len(
                 self.nodes[
                     (self.nodes["consumer_type"] == "household")
-                    & (self.nodes["is_connected"] == True)
+                    & (self.nodes["is_connected"] is True)
                 ].index,
             )
             links, _ = Links.objects.get_or_create(project=self.project)
@@ -549,7 +549,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             self._process_results()
         else:
             print("No solution found")
-        if list(res["Solver"])[0]["Termination condition"] == "infeasible":
+        if next(iter(res["Solver"]))["Termination condition"] == "infeasible":
             self.infeasible = True
 
     def _process_results(self):
@@ -837,22 +837,16 @@ class EnergySystemOptimizer(BaseOptimizer):
         df["diesel_genset_duration"] = (
             100 * np.sort(self.sequences_genset)[::-1] / self.sequences_genset.max()
         )
-        if self.sequences_pv.max() > 0:
-            div = self.sequences_pv.max()
-        else:
-            div = 1
+        div = self.sequences_pv.max() if self.sequences_pv.max() > 0 else 1
         df["pv_duration"] = 100 * np.sort(self.sequences_pv)[::-1] / div
-        if not self.sequences_rectifier.abs().sum() == 0:
+        if self.sequences_rectifier.abs().sum() != 0:
             df["rectifier_duration"] = 100 * np.nan_to_num(
                 np.sort(self.sequences_rectifier)[::-1]
                 / self.sequences_rectifier.max(),
             )
         else:
             df["rectifier_duration"] = 0
-        if self.sequences_inverter.max() > 0:
-            div = self.sequences_inverter.max()
-        else:
-            div = 1
+        div = self.sequences_inverter.max() if self.sequences_inverter.max() > 0 else 1
         df["inverter_duration"] = 100 * np.sort(self.sequences_inverter)[::-1] / div
         if not self.sequences_battery_charge.max() > 0:
             div = 1

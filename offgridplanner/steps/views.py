@@ -193,9 +193,7 @@ def demand_estimation(request, proj_id=None):
         if request.method == "GET":
             form = CustomDemandForm(instance=custom_demand)
             calibration_initial = custom_demand.calibration_option
-            calibration_active = (
-                True if custom_demand.calibration_option is not None else False
-            )
+            calibration_active = custom_demand.calibration_option is not None
             context = {
                 "calibration": {
                     "active": calibration_active,

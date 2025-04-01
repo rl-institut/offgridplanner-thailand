@@ -177,9 +177,12 @@ def get_project_data(project):
 
     missing_qs = [key for key, qs in model_qs.items() if not qs.exists()]
     if missing_qs:
-        raise ValueError(
+        msg = (
             f"The project does not contain all data required for the optimization."
-            f" The following models are missing: {missing_qs}",
+            f" The following models are missing: {missing_qs}"
+        )
+        raise ValueError(
+            msg,
         )
     proj_data = {key: qs.get() for key, qs in model_qs.items()}
     return proj_data
