@@ -1,9 +1,47 @@
+import io
 import os
 
 import numpy as np
 import pandas as pd
+from django.http import JsonResponse
 
 from offgridplanner.projects.helpers import df_to_file
+
+
+def validate_file_extension(filename):
+    allowed_extensions = ["csv", "xlsx"]
+    file_extension = filename.split(".")[-1].lower()
+    if file_extension not in allowed_extensions:
+        return False, "Unsupported file type. Please upload a CSV or Excel file."
+    return True, file_extension
+
+
+def convert_file_to_df(file, file_extension):
+    try:
+        if file_extension == "csv":
+            decoded_content = file.read().decode("utf-8")
+            df = pd.read_csv(io.StringIO(decoded_content))
+        else:  # "xlsx"
+            df = pd.read_excel(io.BytesIO(file.read()), engine="openpyxl")
+
+    except UnicodeDecodeError:
+        return JsonResponse(
+            {"responseMsg": "File encoding error. Please check the file format."},
+            status=400,
+        )
+    except pd.errors.ParserError:
+        return JsonResponse(
+            {"responseMsg": "Error parsing the file. Ensure it is properly formatted."},
+            status=400,
+        )
+    except OSError as e:
+        return JsonResponse(
+            {"responseMsg": f"File read/write error: {e!s}"}, status=500
+        )
+
+    if df.empty:
+        return JsonResponse({"responseMsg": "Uploaded file is empty."}, status=400)
+    return df
 
 
 def check_imported_consumer_data(df):

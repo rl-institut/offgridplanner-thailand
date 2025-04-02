@@ -1,6 +1,5 @@
 # TODO maybe link task to project and not to user...
 
-import io
 import json
 import os
 import time
@@ -12,7 +11,6 @@ import numpy as np
 import pandas as pd
 from django.core.exceptions import PermissionDenied
 from django.forms import model_to_dict
-from django.http import HttpResponse
 from django.http import JsonResponse
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
@@ -22,6 +20,8 @@ from offgridplanner.optimization.grid import identify_consumers_on_map
 from offgridplanner.optimization.helpers import check_imported_consumer_data
 from offgridplanner.optimization.helpers import check_imported_demand_data
 from offgridplanner.optimization.helpers import consumer_data_to_file
+from offgridplanner.optimization.helpers import convert_file_to_df
+from offgridplanner.optimization.helpers import validate_file_extension
 from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.models import Nodes
 from offgridplanner.optimization.models import Simulation
@@ -306,40 +306,32 @@ def consumer_to_db(request, proj_id=None):
 
 
 @require_http_methods(["POST"])
-def file_nodes_to_js(request):  # UploadFile = File(...)
+def file_nodes_to_js(request):
+    if "file" not in request.FILES:
+        return JsonResponse({"responseMsg": "No file uploaded."}, status=400)
+
     file = request.FILES["file"]
-    filename = file.name
-    file_extension = filename.split(".")[-1].lower()
-    if file_extension not in ["csv", "xlsx"]:
-        raise HttpResponse(
-            status=400,
-            reason="Unsupported file type. Please upload a CSV or Excel file.",
-        )
+    is_valid, result = validate_file_extension(file.name)
+
+    if not is_valid:
+        return JsonResponse({"responseMsg": result}, status=400)
+
+    file_extension = result
+    df = convert_file_to_df(file, file_extension)
+
     try:
-        if file_extension == "csv":
-            file_content = file.read()
-            # file_content = await file.read()
-            decoded_content = file_content.decode("utf-8")
-            df = pd.read_csv(io.StringIO(decoded_content))
-        elif file_extension == "xlsx":
-            df = pd.read_excel(io.BytesIO(file.read()), engine="openpyxl")
-            # df = pd.read_excel(io.BytesIO(await file.read()), engine='openpyxl')
-        if not df.empty:
-            print(df)
-            try:
-                df, msg = check_imported_consumer_data(df)
-                if df is None and msg is not None:
-                    return JsonResponse({"responseMsg": msg}, status=200)
-            except Exception as e:
-                err_msg = str(e)
-                msg = f"Failed to import file. Internal error message: {err_msg}"
-                return JsonResponse({"responseMsg": msg}, status=200)
-            return JsonResponse(
-                data={"is_load_center": False, "map_elements": df.to_dict("records")},
-                status=200,
-            )
-    except Exception as e:
-        raise HttpResponse(status=500, reason=f"Failed to process the file: {e}")
+        df, msg = check_imported_consumer_data(df)
+        if df is None and msg:
+            return JsonResponse({"responseMsg": msg}, status=400)
+    except ValueError as e:
+        return JsonResponse(
+            {"responseMsg": f"Failed to validate data: {e!s}"}, status=400
+        )
+
+    return JsonResponse(
+        data={"is_load_center": False, "map_elements": df.to_dict("records")},
+        status=200,
+    )
 
 
 def load_demand_plot_data(request, proj_id=None):
@@ -395,39 +387,25 @@ def export_demand(request, proj_id):
 def import_demand(request, proj_id):
     file = request.FILES["file"]
     project = Project.objects.get(id=proj_id)
-    filename = file.name
-    file_extension = filename.split(".")[-1].lower()
-    file_content = file.read()
+    is_valid, result = validate_file_extension(file.name)
 
-    if file_extension not in ["csv", "xlsx"]:
-        return JsonResponse(
-            {
-                "responseMsg": "Unsupported file type. Please upload a CSV or Excel file."
-            },
-            status=400,
-        )
+    if not is_valid:
+        return JsonResponse({"responseMsg": result}, status=400)
 
-    try:
-        df = (
-            pd.read_csv(io.StringIO(file_content.decode("utf-8")))
-            if file_extension == "csv"
-            else pd.read_excel(io.BytesIO(file_content), engine="openpyxl")
-        )
-        project_dict = model_to_dict(project)
+    file_extension = result
 
-        df, error_msg = check_imported_demand_data(df, project_dict)
-        if df is None:
-            return JsonResponse({"responseMsg": error_msg}, status=400)
+    df = convert_file_to_df(file, file_extension)
+    project_dict = model_to_dict(project)
 
-        custom_demand = project.customdemand
-        custom_demand.uploaded_data = df.to_json()
-        custom_demand.save()
-        return JsonResponse({"responseMsg": ""})
+    df, error_msg = check_imported_demand_data(df, project_dict)
+    if df is None:
+        return JsonResponse({"responseMsg": error_msg}, status=400)
 
-    except Exception as e:
-        return JsonResponse(
-            {"responseMsg": f"Failed to process the file: {e!s}"}, status=500
-        )
+    custom_demand = project.customdemand
+    custom_demand.uploaded_data = df.to_json()
+    custom_demand.save()
+
+    return JsonResponse({"responseMsg": ""})
 
 
 def load_plot_data(request, proj_id, plot_type=None):
