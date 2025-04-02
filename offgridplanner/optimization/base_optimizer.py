@@ -85,7 +85,7 @@ class BaseOptimizer:
             uploaded_data = self.project.customdemand.uploaded_data
             self.demand = pd.read_json(StringIO(uploaded_data))["demand"]
             # TODO error is thrown for annual total consumption if full year demand is not defined - tbd fix
-            if self.n_days == 365:
+            if self.n_days == 365:  # noqa: PLR2004
                 self.demand_full_year = self.demand
 
     def capex_multi_investment(self, capex_0, component_lifetime):

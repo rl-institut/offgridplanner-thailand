@@ -344,7 +344,7 @@ class GridOptimizer(BaseOptimizer):
         :return:
         """
         nodes_df = self.project.nodes.df
-        nodes_df.loc[nodes_df["shs_options"] == 2, "is_connected"] = False
+        nodes_df.loc[nodes_df["shs_options"] == 2, "is_connected"] = False  # noqa: PLR2004 -> TODO check what shs_options=2 means
         nodes_df["is_connected"] = True
         nodes_df.index = nodes_df.index.astype(str)
         nodes_df = nodes_df[nodes_df["node_type"].isin(["consumer", "power-house"])]

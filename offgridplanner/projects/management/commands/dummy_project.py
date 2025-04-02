@@ -14,7 +14,7 @@ class Command(BaseCommand):
         user, _ = User.objects.get_or_create(
             name="testUser",
             email="testUser@i.com",
-            password="pbkdf2_sha256$216000$1KxHDBWRSd4x$ieFKUFRElRR0rIRW0oDHy9/Mdw54k8tn0ifl5Xgu7ps=",
+            password="pbkdf2_sha256$216000$1KxHDBWRSd4x$ieFKUFRElRR0rIRW0oDHy9/Mdw54k8tn0ifl5Xgu7ps=",  # noqa: S106
             is_staff=False,
             is_active=True,
         )

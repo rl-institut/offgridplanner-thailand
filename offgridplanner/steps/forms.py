@@ -33,7 +33,7 @@ class CustomModelForm(ModelForm):
                 set_field_metadata(field, meta)
                 # Set the db column as an attribute for the fields (relevant for group_form_by_component)
                 if set_db_column_attr is True:
-                    model_field = self._meta.model._meta.get_field(field_name)
+                    model_field = self._meta.model._meta.get_field(field_name)  # noqa: SLF001
                     field.db_column = model_field.db_column
 
             # Set the custom widget for the optimized/fixed capacity field
