@@ -610,24 +610,24 @@ class GridOptimizer(BaseOptimizer):
         already defined in the 'Grid' object definition
         """
 
-        self.nodes.at[label, "longitude"] = longitude
-        self.nodes.at[label, "latitude"] = latitude
-        self.nodes.at[label, "x"] = x
-        self.nodes.at[label, "y"] = y
-        self.nodes.at[label, "node_type"] = node_type
-        self.nodes.at[label, "consumer_type"] = consumer_type
-        self.nodes.at[label, "consumer_detail"] = consumer_detail
-        self.nodes.at[label, "distance_to_load_center"] = distance_to_load_center
-        self.nodes.at[label, "is_connected"] = is_connected
-        self.nodes.at[label, "how_added"] = how_added
-        self.nodes.at[label, "type_fixed"] = type_fixed
-        self.nodes.at[label, "cluster_label"] = cluster_label
-        self.nodes.at[label, "n_connection_links"] = n_connection_links
-        self.nodes.at[label, "n_distribution_links"] = n_distribution_links
-        self.nodes.at[label, "parent"] = parent
-        self.nodes.at[label, "distribution_cost"] = distribution_cost
-        self.nodes.at[label, "custom_specification"] = custom_specification
-        self.nodes.at[label, "shs_options"] = shs_options
+        self.nodes.loc[label, "longitude"] = longitude
+        self.nodes.loc[label, "latitude"] = latitude
+        self.nodes.loc[label, "x"] = x
+        self.nodes.loc[label, "y"] = y
+        self.nodes.loc[label, "node_type"] = node_type
+        self.nodes.loc[label, "consumer_type"] = consumer_type
+        self.nodes.loc[label, "consumer_detail"] = consumer_detail
+        self.nodes.loc[label, "distance_to_load_center"] = distance_to_load_center
+        self.nodes.loc[label, "is_connected"] = is_connected
+        self.nodes.loc[label, "how_added"] = how_added
+        self.nodes.loc[label, "type_fixed"] = type_fixed
+        self.nodes.loc[label, "cluster_label"] = cluster_label
+        self.nodes.loc[label, "n_connection_links"] = n_connection_links
+        self.nodes.loc[label, "n_distribution_links"] = n_distribution_links
+        self.nodes.loc[label, "parent"] = parent
+        self.nodes.loc[label, "distribution_cost"] = distribution_cost
+        self.nodes.loc[label, "custom_specification"] = custom_specification
+        self.nodes.loc[label, "shs_options"] = shs_options
 
     def consumers(self):
         """
@@ -759,20 +759,20 @@ class GridOptimizer(BaseOptimizer):
 
         # define a label for the link and add all other characteristics to the grid object
         label = f"({label_node_from}, {label_node_to})"
-        self.links.at[label, "lat_from"] = self.nodes.latitude.loc[label_node_from]
-        self.links.at[label, "lon_from"] = self.nodes.longitude.loc[label_node_from]
-        self.links.at[label, "lat_to"] = self.nodes.latitude.loc[label_node_to]
-        self.links.at[label, "lon_to"] = self.nodes.longitude.loc[label_node_to]
-        self.links.at[label, "x_from"] = self.nodes.x.loc[label_node_from]
-        self.links.at[label, "y_from"] = self.nodes.y.loc[label_node_from]
-        self.links.at[label, "x_to"] = self.nodes.x.loc[label_node_to]
-        self.links.at[label, "y_to"] = self.nodes.y.loc[label_node_to]
-        self.links.at[label, "link_type"] = link_type
-        self.links.at[label, "length"] = length
-        self.links.at[label, "n_consumers"] = 0
-        self.links.at[label, "total_power"] = 0
-        self.links.at[label, "from_node"] = ""
-        self.links.at[label, "to_node"] = ""
+        self.links.loc[label, "lat_from"] = self.nodes.latitude.loc[label_node_from]
+        self.links.loc[label, "lon_from"] = self.nodes.longitude.loc[label_node_from]
+        self.links.loc[label, "lat_to"] = self.nodes.latitude.loc[label_node_to]
+        self.links.loc[label, "lon_to"] = self.nodes.longitude.loc[label_node_to]
+        self.links.loc[label, "x_from"] = self.nodes.x.loc[label_node_from]
+        self.links.loc[label, "y_from"] = self.nodes.y.loc[label_node_from]
+        self.links.loc[label, "x_to"] = self.nodes.x.loc[label_node_to]
+        self.links.loc[label, "y_to"] = self.nodes.y.loc[label_node_to]
+        self.links.loc[label, "link_type"] = link_type
+        self.links.loc[label, "length"] = length
+        self.links.loc[label, "n_consumers"] = 0
+        self.links.loc[label, "total_power"] = 0
+        self.links.loc[label, "from_node"] = ""
+        self.links.loc[label, "to_node"] = ""
 
     def total_length_distribution_cable(self):
         """
@@ -831,8 +831,8 @@ class GridOptimizer(BaseOptimizer):
                     self.nodes.y.loc[node_index],
                     inverse=inverse,
                 )
-                self.nodes.at[node_index, "longitude"] = lon
-                self.nodes.at[node_index, "latitude"] = lat
+                self.nodes.loc[node_index, "longitude"] = lon
+                self.nodes.loc[node_index, "latitude"] = lat
         else:
             for node_index in self.nodes.index:
                 x, y = p(
@@ -840,8 +840,8 @@ class GridOptimizer(BaseOptimizer):
                     self.nodes.latitude.loc[node_index],
                     inverse=inverse,
                 )
-                self.nodes.at[node_index, "x"] = x
-                self.nodes.at[node_index, "y"] = y
+                self.nodes.loc[node_index, "x"] = x
+                self.nodes.loc[node_index, "y"] = y
 
             # store reference values for (x,y) to use later when converting (x,y) to (lon,lat)
 
@@ -1634,7 +1634,7 @@ class GridOptimizer(BaseOptimizer):
                         )
 
                     # Change the `how_added` tag for the new poles.
-                    self.nodes.at[index_added_pole, "how_added"] = "long-distance"
+                    self.nodes.loc[index_added_pole, "how_added"] = "long-distance"
 
             # If `link_mst` does not belong to the list of long links, it is
             # simply connected without any further check.
