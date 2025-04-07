@@ -97,6 +97,7 @@ class EnergySystemOptimizer(BaseOptimizer):
         self.inverter = energy_system_design["inverter"]
         self.rectifier = energy_system_design["rectifier"]
         self.shortage = energy_system_design["shortage"]
+        self.fuel_density_diesel = 0.846
         if not self.nodes.empty:
             self.num_households = len(
                 self.nodes[
@@ -186,10 +187,9 @@ class EnergySystemOptimizer(BaseOptimizer):
 
         # -------------------- DIESEL GENSET --------------------
         # fuel density is assumed 0.846 kg/l
-        fuel_density_diesel = 0.846
         fuel_cost = (
             self.diesel_genset["parameters"]["fuel_cost"]
-            / fuel_density_diesel
+            / self.fuel_density_diesel
             / self.diesel_genset["parameters"]["fuel_lhv"]
         )
         fuel_source = solph.components.Source(
@@ -614,7 +614,7 @@ class EnergySystemOptimizer(BaseOptimizer):
         self.sequences_fuel_consumption = (
             results["fuel_source"]["sequences"][("fuel_source", "fuel"), "flow"]
             / self.diesel_genset["parameters"]["fuel_lhv"]
-            / 0.846
+            / self.fuel_density_diesel
         )
         self.sequences_fuel_consumption_kWh = results["fuel_source"]["sequences"][
             ("fuel_source", "fuel"), "flow"
