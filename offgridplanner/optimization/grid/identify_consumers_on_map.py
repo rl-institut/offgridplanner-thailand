@@ -32,7 +32,12 @@ def get_consumer_within_boundaries(df):
         f'way["building"="yes"];(._;>;);out;'
     )
     url_formatted = url.replace(" ", "+")
-    with urllib.request.urlopen(url_formatted) as url:
+
+    if not url_formatted.startswith(("http:", "https:")):
+        error = "URL must start with 'http:' or 'https:'"
+        raise ValueError(error)
+
+    with urllib.request.urlopen(url_formatted) as url:  # noqa: S310 (fixed with ValueError call above)
         res = url.read().decode()
         if len(res) > 0:
             data = json.loads(res)
