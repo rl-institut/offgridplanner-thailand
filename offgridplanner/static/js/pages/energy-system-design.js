@@ -78,13 +78,13 @@ function check_optimization_strategy(id) {
     styleInformation(id);
 
     if (document.getElementById(optimizationCheckBox(id)).checked) {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = true;
-        document.getElementById(id + "_parameters_nominal_capacity_label").classList.add('disabled');
-        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.add('disabled');
+        document.getElementById("id_" + id + "_parameters_nominal_capacity").readOnly = true;
+        document.getElementById(id + "_parameters_nominal_capacity_label").classList.add('readonly-disabled');
+        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.add('readonly-disabled');
     } else {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").disabled = false;
-        document.getElementById(id + "_parameters_nominal_capacity_label").classList.remove('disabled');
-        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.remove('disabled');
+        document.getElementById("id_" + id + "_parameters_nominal_capacity").readOnly = false;
+        document.getElementById(id + "_parameters_nominal_capacity_label").classList.remove('readonly-disabled');
+        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.remove('readonly-disabled');
     }
 }
 
@@ -135,11 +135,17 @@ function change_box_visibility(id) {
     let labels = box.querySelectorAll("label, span.input-group-text");
 
     inputs.forEach(input => {
-        input.disabled = !isChecked;
+        if (!isChecked) {
+            input.readOnly = true;
+            input.classList.add('readonly-disabled');
+        } else {
+            input.readOnly = false;
+            input.classList.remove('readonly-disabled');
+        }
     });
 
     labels.forEach(label => {
-        label.classList.toggle('disabled', !isChecked);
+        label.classList.toggle('readonly-disabled', !isChecked);
     });
 
     // Check optimization strategy if applicable
