@@ -32,8 +32,8 @@ repos:
     rev: v0.9.3
     hooks:
       # Linter
-#      - id: ruff
-#        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
       # Formatter
       - id: ruff-format
 

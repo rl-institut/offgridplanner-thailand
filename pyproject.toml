@@ -88,7 +88,7 @@ select = [
   "T10",
   "DJ",
   "EM",
-  "EXE",
+#  "EXE",
   "FA",
   'ISC',
   "ICN",
@@ -100,14 +100,14 @@ select = [
   'PT',
   "Q",
   "RSE",
-  #"RET", # would be nice as look for return statments
+#  "RET", # would be nice as look for return statments
   "SLF",
   "SLOT",
   "SIM",
   "TID",
   "TC",
   "INT",
-  # "ARG", # Unused function argument
+#   "ARG", # Unused function argument
   "PTH",
   "ERA",
   "PD",
@@ -115,11 +115,11 @@ select = [
   "PL",
   "TRY",
   "FLY",
-  # "NPY",
-  # "AIR",
+   "NPY",
+   "AIR",
   "PERF",
-  # "FURB",
-  # "LOG",
+   "FURB",
+   "LOG",
   "RUF",
 ]
 ignore = [
