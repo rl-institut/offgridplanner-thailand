@@ -158,7 +158,7 @@ def remove_buildings_inside_boundary(
             df,
             boundaries=boundaries,
         )
-        df = df[df["inside_boundary"] is False]
+        df = df[df["inside_boundary"] == False]  # noqa: E712
         df = df.drop(columns=["inside_boundary"])
         return JsonResponse({"map_elements": df.to_dict("records")})
 

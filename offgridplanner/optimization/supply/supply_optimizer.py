@@ -101,7 +101,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             self.num_households = len(
                 self.nodes[
                     (self.nodes["consumer_type"] == "household")
-                    & (self.nodes["is_connected"] is True)
+                    & (self.nodes["is_connected"] == True)  # noqa:E712
                 ].index,
             )
             links, _ = Links.objects.get_or_create(project=self.project)

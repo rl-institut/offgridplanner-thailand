@@ -30,7 +30,7 @@ class Nodes(BaseJsonData):
         """
         nodes = self.df
         consumer_type_df = nodes[
-            (nodes["consumer_type"] == consumer_type) & (nodes["is_connected"] is True)
+            (nodes["consumer_type"] == consumer_type) & (nodes["is_connected"] == True)  # noqa:E712
         ]
         return consumer_type_df
 

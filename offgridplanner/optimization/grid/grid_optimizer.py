@@ -317,7 +317,7 @@ class GridOptimizer(BaseOptimizer):
         num_households = len(
             self.nodes[
                 (self.nodes["consumer_type"] == "household")
-                & (self.nodes["is_connected"] is True)
+                & (self.nodes["is_connected"] == True)  # noqa:E712
             ].index,
         )
         results.upfront_invest_grid = (
@@ -359,7 +359,7 @@ class GridOptimizer(BaseOptimizer):
         This function obtains the ideal location for the power house, which is
         at the load centroid of the village.
         """
-        grid_consumers = self.nodes[self.nodes["is_connected"] is True]
+        grid_consumers = self.nodes[self.nodes["is_connected"] == True]  # noqa:E712
         lat = np.average(grid_consumers["latitude"])
         lon = np.average(grid_consumers["longitude"])
         self.load_centroid = [lat, lon]
@@ -483,14 +483,14 @@ class GridOptimizer(BaseOptimizer):
 
     def get_grid_consumers(self):
         df = self.nodes[
-            (self.nodes["is_connected"] is True)
+            (self.nodes["is_connected"] == True)  # noqa:E712
             & (self.nodes["node_type"] == "consumer")
         ]
         return df.copy()
 
     def get_shs_consumers(self):
         df = self.nodes[
-            (self.nodes["is_connected"] is False)
+            (self.nodes["is_connected"] == False)  # noqa:E712
             & (self.nodes["node_type"] == "consumer")
         ]
         return df.copy()
@@ -842,7 +842,7 @@ class GridOptimizer(BaseOptimizer):
         # get the number of poles, consumers and links from the grid
         n_poles = self._poles().shape[0]
         n_mg_consumers = self.consumers()[
-            self.consumers()["is_connected"] is True
+            self.consumers()["is_connected"] == True  # noqa:E712
         ].shape[0]
         n_links = self.get_links().shape[0]
 
@@ -1024,7 +1024,7 @@ class GridOptimizer(BaseOptimizer):
 
         def _(branch):
             branch_df = self.nodes[
-                (self.nodes["branch"] == branch) & (self.nodes["is_connected"] is True)
+                (self.nodes["branch"] == branch) & (self.nodes["is_connected"] == True)  # noqa:E712
             ].copy()
             cost_per_branch = self.nodes[self.nodes.index.isin(branch_df.index)][
                 "cost_per_pole"
@@ -1047,7 +1047,7 @@ class GridOptimizer(BaseOptimizer):
         links = self.get_links()
         grid_consumers = self.nodes[
             (self.nodes["node_type"] == "consumer")
-            & (self.nodes["is_connected"] is True)
+            & (self.nodes["is_connected"] == True)  # noqa:E712
         ].index
         for consumer in grid_consumers:
             parent_pole = self.nodes[self.nodes.index == consumer]["parent"].iloc[0]
@@ -1086,7 +1086,7 @@ class GridOptimizer(BaseOptimizer):
         consumers = self.nodes[
             (self.nodes["node_type"] == "consumer")
             & (self.nodes["branch"].isin(branches))
-            & (self.nodes["is_connected"] is True)
+            & (self.nodes["is_connected"] == True)  # noqa:E712
         ].index
         return consumers
 
@@ -1094,7 +1094,7 @@ class GridOptimizer(BaseOptimizer):
         consumers = self.nodes[
             (self.nodes["node_type"] == "consumer")
             & (self.nodes["branch"].isin(branch))
-            & (self.nodes["is_connected"] is True)
+            & (self.nodes["is_connected"] == True)  # noqa:E712
         ].index
         return consumers
 
@@ -1106,7 +1106,7 @@ class GridOptimizer(BaseOptimizer):
     def _distribute_cost_among_consumers(self):
         self.nodes["total_grid_cost_per_consumer_per_a"] = np.nan
         self.nodes.loc[
-            self.nodes[self.nodes["is_connected"] is True].index,
+            self.nodes[self.nodes["is_connected"] == True].index,  # noqa:E712
             "total_grid_cost_per_consumer_per_a",
         ] = self.nodes["connection_cost_per_consumer"]
         leaf_branches = self.nodes[self.nodes["n_distribution_links"] == 1][
@@ -1122,7 +1122,7 @@ class GridOptimizer(BaseOptimizer):
                     for _ in range(len(poles_of_branch)):
                         consumers_of_pole = poles_of_branch[
                             (poles_of_branch["node_type"] == "consumer")
-                            & (poles_of_branch["is_connected"] is True)
+                            & (poles_of_branch["is_connected"] == True)  # noqa:E712
                             & (poles_of_branch["parent"] == next_pole.index[0])
                         ]
                         consumers_down_the_line = list(consumers_of_pole.index)
@@ -1483,7 +1483,7 @@ class GridOptimizer(BaseOptimizer):
         self._clear_links(link_type="connection")
 
         # calculate the number of clusters and their labels obtained from kmeans clustering
-        n_clusters = self._poles()[self._poles()["type_fixed"] is False].shape[0]
+        n_clusters = len(self._poles()[self._poles()["type_fixed"] == False])  # noqa: E712
         cluster_labels = self._poles()["cluster_label"]
 
         # create links between each node and the corresponding centroid
@@ -1564,11 +1564,11 @@ class GridOptimizer(BaseOptimizer):
         deal with the direction of adding additional poles.
         """
         added_poles_from_to = self._poles()[
-            (self._poles()["type_fixed"] is True)
+            (self._poles()["type_fixed"] == True)  # noqa:E712
             & (self._poles()["how_added"] == mst_from_to)
         ]
         added_poles_to_from = self._poles()[
-            (self._poles()["type_fixed"] is True)
+            (self._poles()["type_fixed"] == True)  # noqa:E712
             & (self._poles()["how_added"] == mst_to_from)
         ]
 
