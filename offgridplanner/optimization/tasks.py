@@ -48,12 +48,10 @@ def get_status(task_id):
 
 def revoke_task(task_id):
     task = AsyncResult(task_id)
-    task.revoke(terminate=True, signal="SIGKILL")
+    task.revoke(terminate=True)
     return "Task aborted"
 
 
 def task_is_finished(task_id):
     status = get_status(task_id)
-    if status in ["success", "failure", "revoked"]:
-        return True
-    return False
+    return status in ["success", "failure", "revoked"]

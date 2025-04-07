@@ -1,6 +1,5 @@
 # TODO maybe link task to project and not to user...
 
-import io
 import json
 import os
 import time
@@ -12,31 +11,30 @@ import numpy as np
 import pandas as pd
 from django.core.exceptions import PermissionDenied
 from django.forms import model_to_dict
-from django.http import HttpResponse
 from django.http import JsonResponse
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from offgridplanner.optimization.grid import identify_consumers_on_map
-from offgridplanner.optimization.helpers import (
-    consumer_data_to_file,
-    check_imported_consumer_data,
-    check_imported_demand_data,
-)
-from offgridplanner.optimization.supply.demand_estimation import (
-    get_demand_timeseries,
-    LOAD_PROFILES,
-)
-from offgridplanner.projects.helpers import df_to_file
-from offgridplanner.projects.models import Project
-from offgridplanner.steps.models import CustomDemand
-from offgridplanner.optimization.models import Nodes, Links, Simulation
-from offgridplanner.optimization.tasks import get_status, revoke_task
+from offgridplanner.optimization.helpers import check_imported_consumer_data
+from offgridplanner.optimization.helpers import check_imported_demand_data
+from offgridplanner.optimization.helpers import consumer_data_to_file
+from offgridplanner.optimization.helpers import convert_file_to_df
+from offgridplanner.optimization.helpers import validate_file_extension
+from offgridplanner.optimization.models import Links
+from offgridplanner.optimization.models import Nodes
+from offgridplanner.optimization.models import Simulation
+from offgridplanner.optimization.supply.demand_estimation import LOAD_PROFILES
+from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
+from offgridplanner.optimization.tasks import get_status
+from offgridplanner.optimization.tasks import revoke_task
 from offgridplanner.optimization.tasks import task_grid_opt
 from offgridplanner.optimization.tasks import task_is_finished
 from offgridplanner.optimization.tasks import task_supply_opt
-
+from offgridplanner.projects.helpers import df_to_file
+from offgridplanner.projects.models import Project
+from offgridplanner.steps.models import CustomDemand
 
 # @require_http_methods(["POST"])
 # def forward_if_no_task_is_pending(request, proj_id=None):
@@ -103,7 +101,7 @@ def add_buildings_inside_boundary(request, proj_id):
             },
         )
     nodes = defaultdict(list)
-    for label, coordinates in building_coordinates_within_boundaries.items():
+    for coordinates in building_coordinates_within_boundaries.values():
         nodes["latitude"].append(round(coordinates[0], 6))
         nodes["longitude"].append(round(coordinates[1], 6))
         nodes["how_added"].append("automatic")
@@ -135,7 +133,7 @@ def add_buildings_inside_boundary(request, proj_id):
     df = df.drop_duplicates(subset=["longitude", "latitude"], keep="first")
     df["shs_options"] = df["shs_options"].fillna(0)
     df["custom_specification"] = df["custom_specification"].fillna("")
-    df["is_connected"] = df["is_connected"].fillna(True)
+    df["is_connected"] = df["is_connected"].fillna(value=True)
     nodes_list = df.to_dict("records")
     return JsonResponse({"executed": True, "msg": "", "new_consumers": nodes_list})
 
@@ -149,14 +147,18 @@ def remove_buildings_inside_boundary(
     data = json.loads(request.body)
     df = pd.DataFrame.from_records(data["map_elements"])
     if not df.empty:
-        boundaries = pd.DataFrame.from_records(
-            data["boundary_coordinates"][0][0],
-        ).values.tolist()
+        boundaries = (
+            pd.DataFrame.from_records(
+                data["boundary_coordinates"][0][0],
+            )
+            .to_numpy()
+            .tolist()
+        )
         df["inside_boundary"] = identify_consumers_on_map.are_points_in_boundaries(
             df,
             boundaries=boundaries,
         )
-        df = df[df["inside_boundary"] == False]
+        df = df[df["inside_boundary"] == False]  # noqa: E712
         df = df.drop(columns=["inside_boundary"])
         return JsonResponse({"map_elements": df.to_dict("records")})
 
@@ -176,7 +178,7 @@ def db_links_to_js(request, proj_id):
 
 # @json_view
 @require_http_methods(["GET"])
-def db_nodes_to_js(request, proj_id=None, markers_only=False):
+def db_nodes_to_js(request, proj_id=None, *, markers_only=False):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
@@ -199,7 +201,10 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
             ]
             power_house = df[df["node_type"] == "power-house"]
             if markers_only is True:
-                if len(power_house) > 0 and power_house["how_added"].iat[0] == "manual":
+                if (
+                    len(power_house) > 0
+                    and power_house["how_added"].iloc[0] == "manual"
+                ):
                     df = df[df["node_type"].isin(["power-house", "consumer"])]
                 else:
                     df = df[df["node_type"] == "consumer"]
@@ -213,7 +218,7 @@ def db_nodes_to_js(request, proj_id=None, markers_only=False):
             is_load_center = True
             if (
                 len(power_house.index) > 0
-                and power_house["how_added"].iat[0] == "manual"
+                and power_house["how_added"].iloc[0] == "manual"
             ):
                 is_load_center = False
             return JsonResponse(
@@ -301,40 +306,32 @@ def consumer_to_db(request, proj_id=None):
 
 
 @require_http_methods(["POST"])
-def file_nodes_to_js(request):  # UploadFile = File(...)
+def file_nodes_to_js(request):
+    if "file" not in request.FILES:
+        return JsonResponse({"responseMsg": "No file uploaded."}, status=400)
+
     file = request.FILES["file"]
-    filename = file.name
-    file_extension = filename.split(".")[-1].lower()
-    if file_extension not in ["csv", "xlsx"]:
-        raise HttpResponse(
-            status=400,
-            reason="Unsupported file type. Please upload a CSV or Excel file.",
-        )
+    is_valid, result = validate_file_extension(file.name)
+
+    if not is_valid:
+        return JsonResponse({"responseMsg": result}, status=400)
+
+    file_extension = result
+    df = convert_file_to_df(file, file_extension)
+
     try:
-        if file_extension == "csv":
-            file_content = file.read()
-            # file_content = await file.read()
-            decoded_content = file_content.decode("utf-8")
-            df = pd.read_csv(io.StringIO(decoded_content))
-        elif file_extension == "xlsx":
-            df = pd.read_excel(io.BytesIO(file.read()), engine="openpyxl")
-            # df = pd.read_excel(io.BytesIO(await file.read()), engine='openpyxl')
-        if not df.empty:
-            print(df)
-            try:
-                df, msg = check_imported_consumer_data(df)
-                if df is None and msg is not None:
-                    return JsonResponse({"responseMsg": msg}, status=200)
-            except Exception as e:
-                err_msg = str(e)
-                msg = f"Failed to import file. Internal error message: {err_msg}"
-                return JsonResponse({"responseMsg": msg}, status=200)
-            return JsonResponse(
-                data={"is_load_center": False, "map_elements": df.to_dict("records")},
-                status=200,
-            )
-    except Exception as e:
-        raise HttpResponse(status=500, reason=f"Failed to process the file: {e}")
+        df, msg = check_imported_consumer_data(df)
+        if df is None and msg:
+            return JsonResponse({"responseMsg": msg}, status=400)
+    except ValueError as e:
+        return JsonResponse(
+            {"responseMsg": f"Failed to validate data: {e!s}"}, status=400
+        )
+
+    return JsonResponse(
+        data={"is_load_center": False, "map_elements": df.to_dict("records")},
+        status=200,
+    )
 
 
 def load_demand_plot_data(request, proj_id=None):
@@ -356,10 +353,10 @@ def load_demand_plot_data(request, proj_id=None):
     for tier in ["very_low", "low", "middle", "high", "very_high"]:
         tier_verbose = f"{tier.title().replace('_', ' ')} Consumption"
         profile_col = f"Household_Distribution_Based_{tier_verbose}"
-        timeseries[tier_verbose] = load_profiles[profile_col].values.tolist()
+        timeseries[tier_verbose] = load_profiles[profile_col].to_numpy().tolist()
         timeseries["Average"] = np.add(
             getattr(custom_demand, tier)
-            * np.array(load_profiles[profile_col].values.tolist()),
+            * np.array(load_profiles[profile_col].to_numpy().tolist()),
             timeseries["Average"],
         )
 
@@ -390,39 +387,25 @@ def export_demand(request, proj_id):
 def import_demand(request, proj_id):
     file = request.FILES["file"]
     project = Project.objects.get(id=proj_id)
-    filename = file.name
-    file_extension = filename.split(".")[-1].lower()
-    file_content = file.read()
+    is_valid, result = validate_file_extension(file.name)
 
-    if file_extension not in ["csv", "xlsx"]:
-        return JsonResponse(
-            {
-                "responseMsg": "Unsupported file type. Please upload a CSV or Excel file."
-            },
-            status=400,
-        )
+    if not is_valid:
+        return JsonResponse({"responseMsg": result}, status=400)
 
-    try:
-        df = (
-            pd.read_csv(io.StringIO(file_content.decode("utf-8")))
-            if file_extension == "csv"
-            else pd.read_excel(io.BytesIO(file_content), engine="openpyxl")
-        )
-        project_dict = model_to_dict(project)
+    file_extension = result
 
-        df, error_msg = check_imported_demand_data(df, project_dict)
-        if df is None:
-            return JsonResponse({"responseMsg": error_msg}, status=400)
+    df = convert_file_to_df(file, file_extension)
+    project_dict = model_to_dict(project)
 
-        custom_demand = project.customdemand
-        custom_demand.uploaded_data = df.to_json()
-        custom_demand.save()
-        return JsonResponse({"responseMsg": ""})
+    df, error_msg = check_imported_demand_data(df, project_dict)
+    if df is None:
+        return JsonResponse({"responseMsg": error_msg}, status=400)
 
-    except Exception as e:
-        return JsonResponse(
-            {"responseMsg": f"Failed to process the file: {str(e)}"}, status=500
-        )
+    custom_demand = project.customdemand
+    custom_demand.uploaded_data = df.to_json()
+    custom_demand.save()
+
+    return JsonResponse({"responseMsg": ""})
 
 
 def load_plot_data(request, proj_id, plot_type=None):
@@ -432,8 +415,8 @@ def load_plot_data(request, proj_id, plot_type=None):
         energy_flow["battery"] = (
             energy_flow["battery_discharge"] - energy_flow["battery_charge"]
         )
-        energy_flow.drop(columns=["battery_charge", "battery_discharge"], inplace=True)
-        energy_flow.reset_index(drop=True, inplace=True)
+        energy_flow = energy_flow.drop(columns=["battery_charge", "battery_discharge"])
+        energy_flow = energy_flow.reset_index(drop=True)
         energy_flow = energy_flow.dropna(how="all", axis=0).fillna(0).to_dict("list")
         return JsonResponse({"energy_flow": energy_flow})
     elif plot_type == "duration_curve":
@@ -586,7 +569,7 @@ def waiting_for_results(request):
                 "finished" if status in ["success", "failure", "revoked"] else status
             )
             # TODO: decide whether to keep or clear task_id
-            # sim.task_id = None
+            # sim.task_id = ""
             sim.save()
             finished = True
             status = sim.status
@@ -612,7 +595,7 @@ def abort_calculation(request, proj_id):
     simulation = Simulation.objects.get(project=proj_id)
     task_id = simulation.task_id
     revoke_task(task_id)
-    simulation.task_id = None
+    simulation.task_id = ""
     simulation.save()
     response = {"msg": "Calculation aborted"}
     return JsonResponse(response)

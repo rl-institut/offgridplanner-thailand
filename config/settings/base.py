@@ -6,6 +6,7 @@ import ssl
 from pathlib import Path
 
 import environ
+from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # offgridplanner/
@@ -29,7 +30,6 @@ TIME_ZONE = "CET"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
-from django.utils.translation import gettext_lazy as _
 
 LANGUAGES = [
     ("en", _("English")),
@@ -58,8 +58,8 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # External data files
-DATA_DIR = os.path.join(APPS_DIR, "static", "data")
-FULL_PATH_PROFILES = os.path.join(DATA_DIR, "1-hour_mean_365_days_all_users.parquet")
+DATA_DIR = Path(APPS_DIR) / "static" / "data"
+FULL_PATH_PROFILES = Path(DATA_DIR) / "1-hour_mean_365_days_all_users.parquet"
 
 # URLS
 # ------------------------------------------------------------------------------
