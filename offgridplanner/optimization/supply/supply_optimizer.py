@@ -538,7 +538,7 @@ class EnergySystemOptimizer(BaseOptimizer):
             cmdline_options=solver_option[self.solver],
         )
         self.model = model
-        if model.solutions.__len__() > 0:
+        if len(model.solutions) > 0:
             energy_system.results["meta"] = solph.processing.meta_results(model)
             self.results_main = solph.processing.results(model)
 

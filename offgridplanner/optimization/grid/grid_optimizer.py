@@ -159,10 +159,8 @@ class GridOptimizer(BaseOptimizer):
         print("Optimizing distribution grid...")
         self.convert_lonlat_xy()
         self._clear_poles()
-        n_total_consumers = self.nodes.index.__len__()
-        n_shs_consumers = self.nodes[
-            self.nodes["is_connected"] is False
-        ].index.__len__()
+        n_total_consumers = len(self.nodes)
+        n_shs_consumers = len(self.nodes[self.nodes["is_connected"] == False])  # noqa: E712
         n_grid_consumers = n_total_consumers - n_shs_consumers
         self.nodes = self.nodes.sort_index(key=lambda x: x.astype("int64"))
         if self.power_house is not None:
@@ -290,9 +288,7 @@ class GridOptimizer(BaseOptimizer):
     def _results_to_db(self):
         results = self.results
         results.n_consumers = len(self.consumers())
-        results.n_shs_consumers = self.nodes[
-            self.nodes["is_connected"] is False
-        ].index.__len__()
+        results.n_shs_consumers = len(self.nodes[self.nodes["is_connected"] == False])  # noqa:E712
         results.n_poles = len(self._poles())
         results.length_distribution_cable = int(
             self.links[self.links.link_type == "distribution"]["length"].sum(),
@@ -300,7 +296,7 @@ class GridOptimizer(BaseOptimizer):
         results.length_connection_cable = int(
             self.links[self.links.link_type == "connection"]["length"].sum(),
         )
-        results.cost_grid = int(self.cost()) if self.links.index.__len__() > 0 else 0
+        results.cost_grid = int(self.cost()) if len(self.links) > 0 else 0
         results.cost_shs = 0
         results.time_grid_design = round(
             time.monotonic() - self.start_execution_time,
@@ -439,7 +435,7 @@ class GridOptimizer(BaseOptimizer):
         consumers = self.nodes[
             self.nodes["distance_to_load_center"] <= max_length
         ].copy()
-        if consumers.index.__len__() > 0:
+        if len(consumers) > 0:
             self.nodes = self.nodes.drop(index=consumers.index)
         return consumers
 
@@ -1149,7 +1145,7 @@ class GridOptimizer(BaseOptimizer):
                         next_pole = self.nodes[
                             self.nodes.index == next_pole["parent"].iloc[0]
                         ]
-                        if next_pole.index.__len__() == 0 or (
+                        if len(next_pole) == 0 or (
                             self.nodes[self.nodes.index == next_pole.index[0]][
                                 "branch"
                             ].iloc[0]
