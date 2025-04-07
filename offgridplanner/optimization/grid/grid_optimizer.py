@@ -659,7 +659,7 @@ class GridOptimizer(BaseOptimizer):
             y2 = self.nodes.y.loc[label_node_2]
 
             return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        return np.infty
+        return np.inf
 
     # -------------------- LINKS -------------------- #
 
@@ -849,7 +849,7 @@ class GridOptimizer(BaseOptimizer):
         # if there is no poles in the grid, or there is no link,
         # the function returns an infinite value
         if (n_poles == 0) or (n_links == 0):
-            return np.infty
+            return np.inf
 
         # calculate the total length of the cable used between poles [m]
         total_length_distribution_cable = self.total_length_distribution_cable()
