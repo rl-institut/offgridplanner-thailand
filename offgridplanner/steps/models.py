@@ -5,6 +5,31 @@ from django.db import models
 from offgridplanner.projects.models import Project
 
 
+class NestedModel(models.Model):
+    class Meta:
+        abstract = True
+
+    def to_nested_dict(self):
+        def nested_dict():
+            return defaultdict(nested_dict)
+
+        data = nested_dict()
+
+        for field in self._meta.fields:
+            if field.db_column is not None:
+                value = getattr(self, field.name)
+                parts = field.db_column.split("__")
+
+                d = data
+                for part in parts[:-1]:  # Traverse the dictionary except the last key
+                    d = d[part]
+                d[parts[-1]] = (
+                    value / 100 if "efficiency" in parts[-1] else value
+                )  # Set the final value
+
+        return data
+
+
 class CustomDemand(models.Model):
     # Corresponds to class Demand in tier_spatial planning, removed fields id (obsolete), use_custom_demand and use_custom_shares
     # (one or both of them should just be None in database if not used), and household_option (not sure what it is used for)
@@ -37,7 +62,7 @@ class CustomDemand(models.Model):
         return calibration_option
 
 
-class GridDesign(models.Model):
+class GridDesign(NestedModel):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     distribution_cable_lifetime = models.PositiveSmallIntegerField(
         blank=True, null=True, db_column="distribution_cable__lifetime"
@@ -76,7 +101,7 @@ class GridDesign(models.Model):
         return f"GridDesign {self.id}: Project {self.project.name}"
 
 
-class EnergySystemDesign(models.Model):
+class EnergySystemDesign(NestedModel):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     battery_settings_is_selected = models.BooleanField(
         db_column="battery__settings__is_selected",
@@ -310,22 +335,3 @@ class EnergySystemDesign(models.Model):
 
     def __str__(self):
         return f"EnergySystemDesign {self.id}: Project {self.project.name}"
-
-    def to_nested_dict(self):
-        def nested_dict():
-            return defaultdict(nested_dict)
-
-        data = nested_dict()
-
-        for field in self._meta.fields:
-            if field.db_column is not None:
-                value = getattr(self, field.name)
-                parts = field.db_column.split("__")
-
-                d = data
-                for part in parts[:-1]:  # Traverse the dictionary except the last key
-                    d = d[part]
-                d[parts[-1]] = (
-                    value / 100 if "efficiency" in parts[-1] else value
-                )  # Set the final value
-        return data
