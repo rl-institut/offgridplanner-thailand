@@ -314,6 +314,16 @@ def calculating(request, proj_id=None):
             raise PermissionDenied
 
         simulation, _ = Simulation.objects.get_or_create(project=project)
+        preprocessor = PreProcessor(proj_id)
+        supply_opt_json = preprocessor.collect_supply_opt_json_data()
+        grid_opt_json = preprocessor.collect_grid_opt_json_data()
+        es_optimizer = EnergySystemOptimizer(supply_opt_json)
+        grid_optimizer = GridOptimizer(grid_opt_json)
+        es_results = es_optimizer.optimize()
+        grid_results = grid_optimizer.optimize()
+        import pdb
+
+        pdb.set_trace()
         if "anonymous" in project.user.email:
             msg = "You will be forwarded after the model calculation is completed."
             email_opt = False

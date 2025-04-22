@@ -13,6 +13,15 @@ from offgridplanner.optimization.supply.solar_potential import (
 from offgridplanner.projects.models import Project
 
 
+class OptimizationDataHandler:
+    def __init__(self, proj_id):
+        self.project = get_object_or_404(Project, id=proj_id)
+        self.energy_system_dict = self.project.energysystemdesign.to_nested_dict()
+        self.supply_components = self.energy_system_dict.keys()
+        self.grid_design_dict = self.project.griddesign.to_nested_dict()
+        self.grid_components = self.grid_design_dict.keys()
+
+
 class PreProcessor:
     """
     Replaces the previous class BaseOptimizer by calculating values needed for the optimization. Used to create
@@ -28,7 +37,11 @@ class PreProcessor:
         self.crf = (self.wacc * (1 + self.wacc) ** self.project_lifetime) / (
             (1 + self.wacc) ** self.project_lifetime - 1
         )
+        self.demand = self.collect_project_demand()
         self.energy_system_dict = self.project.energysystemdesign.to_nested_dict()
+        self.supply_components = self.energy_system_dict.keys()
+        self.grid_design_dict = self.project.griddesign.to_nested_dict()
+        self.grid_components = self.grid_design_dict.keys()
 
     @staticmethod
     def annualize(n_days, value):
@@ -68,17 +81,16 @@ class PreProcessor:
             ) / ((1 + self.wacc) ** self.project_lifetime)
         return capex
 
-    def epc(self, component):
-        component_dict = self.energy_system_dict[component]
-        epc = (
+    def epc(self, capex, opex, lifetime):
+        epc = self.annualize(
+            self.project.n_days,
             self.crf
             * self.capex_multi_investment(
-                capex_0=component_dict["parameters"]["capex"],
-                component_lifetime=component_dict["parameters"]["lifetime"],
+                capex_0=capex,
+                component_lifetime=lifetime,
             )
-            + component_dict["parameters"]["opex"]
+            + opex,
         )
-        epc = self.annualize(self.project.n_days, epc)
 
         return epc
 
@@ -122,14 +134,53 @@ class PreProcessor:
 
         return lat, lon
 
+    def replace_capex_with_epc(self, nested_dict, components):
+        """
+        Replaces the parameters "capex", "opex" and "lifetime" inside a nested dictionary with "epc" for all components
+        specified in components.
+        Parameters:
+            nested_dict (dict): Nested dictionary from a NestedModel object
+            components (list): List of strings with the component names
+        Returns:
+            dict: Edited dict with the epc values
+        """
+        if set(components).issubset(self.supply_components):
+            for component in components:
+                capex = nested_dict[component]["parameters"]["capex"]
+                opex = nested_dict[component]["parameters"]["opex"]
+                lifetime = nested_dict[component]["parameters"]["lifetime"]
+                # add periodical costs to dict
+                nested_dict[component]["parameters"]["epc"] = self.epc(
+                    capex, opex, lifetime
+                )
+                # delete parameters that are no longer needed for the optimization (reduce size of the json)
+                del nested_dict[component]["parameters"]["capex"]
+                del nested_dict[component]["parameters"]["opex"]
+                del nested_dict[component]["parameters"]["lifetime"]
+
+        elif set(components).issubset(self.grid_components):
+            for component in components:
+                capex = nested_dict[component]["capex"]
+                opex = 0
+                lifetime = nested_dict[component]["lifetime"]
+                # add periodical costs to dict
+                nested_dict[component]["epc"] = self.epc(capex, opex, lifetime)
+                # delete parameters that are no longer needed for the optimization (reduce size of the json)
+                del nested_dict[component]["lifetime"]
+
+        else:
+            raise ValueError(
+                "Components found neither in grid nor energy system models"
+            )
+
+        return nested_dict
+
     def collect_supply_opt_json_data(self):
         """
         Dumps the necessary data for the supply optimization into a single json object to be sent to the simulation server
-        :param proj_id:
-        :return: json
+        Returns:
+             json: Json data containing oemof component parameters and necessary timeseries
         """
-
-        demand = self.collect_project_demand()
         lat, lon = self.get_site_coordinates()
         # TODO fix date to actual start_date
         # self.start_datetime = pd.to_datetime(self.project_dict["start_date"]).to_pydatetime()
@@ -142,30 +193,45 @@ class PreProcessor:
             inclusive="left",
         )
 
-        # TODO why does this need .loc[dt_index], it should directly be fetching only the necessary timesteps
         solar_potential = get_dc_feed_in_sync_db_query(
             lat,
             lon,
             dt_index,
         )
+
         sequences = {
-            "index": demand.index.strftime("%Y-%m-%dT%H:%M:%S").tolist(),
-            "demand": demand.to_numpy().tolist(),
+            "index": self.demand.index.strftime("%Y-%m-%dT%H:%M:%S").tolist(),
+            "demand": self.demand.to_numpy().tolist(),
             "solar_potential": solar_potential.to_numpy().tolist(),
         }
         energy_system_design = self.energy_system_dict
-        for component in energy_system_design.keys():  # noqa:SIM118 (avoid changing dictionary in loop, using keys copy instead)
-            if component != "shortage":
-                energy_system_design[component]["parameters"]["epc"] = self.epc(
-                    component
-                )
-                # delete parameters that are no longer needed for the optimization (reduce size of the json)
-                del energy_system_design[component]["parameters"]["capex"]
-                del energy_system_design[component]["parameters"]["opex"]
-                del energy_system_design[component]["parameters"]["lifetime"]
 
+        # calculate periodical costs of components out of input capex, opex and lifetime
+        energy_system_design = self.replace_capex_with_epc(
+            energy_system_design,
+            ["battery", "diesel_genset", "inverter", "rectifier", "pv"],
+        )
         supply_opt_json = json.dumps(
             {"sequences": sequences, "energy_system_design": energy_system_design}
         )
 
         return supply_opt_json
+
+    def collect_grid_opt_json_data(self):
+        # calculate periodical costs of components out of input capex, opex and lifetime
+
+        grid_design = self.replace_capex_with_epc(
+            self.grid_design_dict, ["distribution_cable", "connection_cable", "pole"]
+        )
+        grid_design["mg"]["epc"] = self.epc(
+            self.grid_design_dict["mg"]["connection_cost"], 0, self.project.lifetime
+        )
+
+        grid_opt_json = json.dumps(
+            {
+                "nodes": self.project.nodes.df.to_json(),
+                "grid_design": grid_design,
+                "yearly_demand": self.demand.sum(),
+            }
+        )
+        return grid_opt_json
