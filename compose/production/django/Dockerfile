@@ -102,5 +102,5 @@ RUN DATABASE_URL="" \
   python manage.py compilemessages \
   python manage.py compilejsi18n -d django \
 
-ENTRYPOINT ["/entrypoint"]
+#ENTRYPOINT ["/entrypoint"]
 CMD ${STARTUP_COMMAND}
