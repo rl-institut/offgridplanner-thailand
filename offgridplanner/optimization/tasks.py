@@ -9,35 +9,31 @@ Additionally, it includes functions to check the status of these tasks, identify
 or been revoked. This setup enables efficient, asynchronous processing of complex tasks and user management.
 """
 
-from celery import shared_task
 from celery.result import AsyncResult
 
-from offgridplanner.optimization.grid.grid_optimizer import optimize_grid
-from offgridplanner.optimization.supply.supply_optimizer import optimize_energy_system
+# TODO the celery queue could still be used to send the simulation request and fetch its status
+# @shared_task(
+#     name="task_grid_opt",
+#     force=True,
+#     track_started=True,
+#     autoretry_for=(Exception,),
+#     retry_kwargs={"max_retries": 1, "countdown": 10},
+# )
+# def task_grid_opt(proj_id):
+#     result = optimize_grid(proj_id)
+#     return result
 
 
-@shared_task(
-    name="task_grid_opt",
-    force=True,
-    track_started=True,
-    autoretry_for=(Exception,),
-    retry_kwargs={"max_retries": 1, "countdown": 10},
-)
-def task_grid_opt(proj_id):
-    result = optimize_grid(proj_id)
-    return result
-
-
-@shared_task(
-    name="task_supply_opt",
-    force=True,
-    track_started=True,
-    autoretry_for=(Exception,),
-    retry_kwargs={"max_retries": 1, "countdown": 10},
-)
-def task_supply_opt(proj_id):
-    result = optimize_energy_system(proj_id)
-    return result
+# @shared_task(
+#     name="task_supply_opt",
+#     force=True,
+#     track_started=True,
+#     autoretry_for=(Exception,),
+#     retry_kwargs={"max_retries": 1, "countdown": 10},
+# )
+# def task_supply_opt(energy_system_json):
+#     result = optimize_energy_system(energy_system_json)
+#     return result
 
 
 def get_status(task_id):
