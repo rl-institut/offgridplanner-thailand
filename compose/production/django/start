@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-
+echo COLLECTSTATIC
 python /app/manage.py collectstatic --noinput
 python manage.py compilejsi18n -d django
 
@@ -27,4 +27,5 @@ if compress_enabled; then
   # NOTE this command will fail if django-compressor is disabled
   python /app/manage.py compress
 fi
+echo RUNNING
 exec /usr/local/bin/gunicorn config.asgi --bind 0.0.0.0:5000 --chdir=/app -k uvicorn_worker.UvicornWorker
