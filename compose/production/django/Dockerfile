@@ -97,10 +97,10 @@ RUN chown -R django:django ${APP_HOME}
 
 USER django
 
-RUN DATABASE_URL="" \
-  DJANGO_SETTINGS_MODULE="config.settings.test" \
-  python manage.py compilemessages \
-  python manage.py compilejsi18n -d django \
+#RUN DATABASE_URL="" \
+#  DJANGO_SETTINGS_MODULE="config.settings.test" \
+#  python manage.py compilemessages \
+#  python manage.py compilejsi18n -d django
 
 #ENTRYPOINT ["/entrypoint"]
 CMD ${STARTUP_COMMAND}
