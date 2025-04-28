@@ -2,7 +2,10 @@ import json
 import logging
 
 import httpx
+import pandas as pd
 
+from config.settings.base import RN_API_HOST
+from config.settings.base import RN_API_TOKEN
 from config.settings.base import SIM_GET_URL
 from config.settings.base import SIM_GRID_POST_URL
 from config.settings.base import SIM_SUPPLY_POST_URL
@@ -56,3 +59,30 @@ def optimization_check_status(token):
     else:
         logger.info("Success!")
         return json.loads(response.text)
+
+
+def request_renewables_ninja_pv_output(lat, lon):
+    headers = {"Authorization": "Token " + RN_API_TOKEN}
+    url = RN_API_HOST + "data/pv"
+
+    args = {
+        "lat": lat,
+        "lon": lon,
+        "date_from": "2019-01-01",
+        "date_to": "2019-12-31",
+        "dataset": "merra2",
+        "capacity": 1.0,
+        "system_loss": 0.1,
+        "tracking": 0,
+        "tilt": lat,
+        "azim": 180,
+        "format": "json",
+    }
+    response = httpx.get(url, headers=headers, params=args)
+
+    # Parse JSON to get a pandas.DataFrame of data and dict of metadata
+    parsed_response = json.loads(response.text)
+
+    pv_data = pd.read_json(json.dumps(parsed_response["data"]), orient="index")
+
+    return pv_data

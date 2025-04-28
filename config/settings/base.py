@@ -394,5 +394,9 @@ SIMULATION_STATUS = (
     (MODIFIED, MODIFIED),
 )
 
+# Renewables.ninja data
+RN_API_HOST = os.getenv("RN_API_HOST", "")
+RN_API_TOKEN = os.getenv("RN_API_TOKEN", "")
+
 SOLVER_NAME = os.environ.get("SOLVER_NAME", "cbc")
 CDS_API_KEY = os.environ.get("CDS_API_KEY")

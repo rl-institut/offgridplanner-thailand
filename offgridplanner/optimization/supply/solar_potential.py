@@ -24,6 +24,7 @@ from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 
 from config.settings.base import CDS_API_KEY
 from offgridplanner.optimization.models import WeatherData
+from offgridplanner.optimization.requests import request_renewables_ninja_pv_output
 
 # TODO this will no longer be needed, for local try to mode from oginal ogp mySQL
 # originally in sync_queries.py
@@ -277,8 +278,15 @@ def retrieve_grid_points(ds):
 
 
 def get_dc_feed_in_sync_db_query(lat, lon, dt_index):
-    weather_df = get_weather_data(lat, lon, dt_index[0], dt_index[-1])
-    return _get_dc_feed_in(lat, lon, weather_df)
+    try:
+        weather_df = get_weather_data(lat, lon, dt_index[0], dt_index[-1])
+        solar_potential = _get_dc_feed_in(lat, lon, weather_df)
+    # If the weather data db is not set up, send API call to renewables.ninja instead
+    except KeyError:
+        # TODO the results between the pvlib modeling and the RN potential output vary greatly, double check
+        solar_potential = request_renewables_ninja_pv_output(lat, lon)["electricity"]
+        solar_potential.index = dt_index
+    return solar_potential
 
 
 def _get_dc_feed_in(lat, lon, weather_df):
