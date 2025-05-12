@@ -243,6 +243,8 @@ EMAIL_BACKEND = env(
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
 
+USE_CUSTOM_SENDMAIL = env("USE_CUSTOM_SENDMAIL", default=False)
+
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.
