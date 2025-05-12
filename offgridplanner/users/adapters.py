@@ -8,8 +8,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.core import context  # noqa:F401
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.core import context
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.translation import gettext_lazy as _
@@ -25,7 +25,7 @@ class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request: HttpRequest) -> bool:
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
-    def send_mail(self, template_prefix: str, email: str, context: dict) -> None:
+    def send_mail(self, template_prefix: str, email: str, context: dict) -> None:  # noqa:F811
         request = globals()["context"].request
         ctx = {
             "request": request,
