@@ -5,7 +5,9 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 from django.shortcuts import get_object_or_404
+from jsonschema import validate
 
+from offgridplanner.optimization.helpers import GRID_V2_SCHEMA
 from offgridplanner.optimization.models import DemandCoverage
 from offgridplanner.optimization.models import DurationCurve
 from offgridplanner.optimization.models import Emissions
@@ -265,11 +267,21 @@ class PreProcessor(OptimizationDataHandler):
         ]
 
         grid_opt_json = {
+            # this belongs to V2
             "node_fields": node_fields,
             "nodes": nodes_values,
+            # this belongs to V1
+            # "nodes": self.project.nodes.df.to_dict(), # one could also use the orient="list" option
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }
+
+        # remove this code after testing
+        import pdb
+
+        pdb.set_trace()
+
+        validate(instance=grid_opt_json, schema=GRID_V2_SCHEMA)  # or GRID_SCHEMA
 
         return grid_opt_json
 
