@@ -397,12 +397,31 @@ GRID_V2_SCHEMA = {
                 "type": "array",
                 "items": [
                     {"type": "integer"},  # id
-                    {"type": "string"},  # how_added
-                    {"type": "string"},  # node_type
-                    {"type": "string"},  # consumer_type
+                    {"type": "string", "enum": ["automatic", "k-means"]},  # how_added
+                    {
+                        "type": "string",
+                        "enum": ["consumer", "power-house"],
+                    },  # node_type
+                    {
+                        "type": "string",
+                        "enum": ["enterprise", "household", "n.a.", "public_service"],
+                    },  # consumer_type
                     {"type": "string"},  # custom_specification
-                    {"type": "integer"},  # shs_options
-                    {"type": "string"},  # consumer_detail
+                    {"type": "integer", "enum": [0]},  # shs_options
+                    {
+                        "type": "string",
+                        "enum": [
+                            "Education_School",
+                            "Food_Bar",
+                            "Food_Drinks",
+                            "Health_CHPS",
+                            "Retail_Other",
+                            "Trades_Beauty or Hair",
+                            "Trades_Car or Motorbike Repair",
+                            "default",
+                            "n.a.",
+                        ],
+                    },  # consumer_detail
                     {"type": "boolean"},  # is_connected
                     {
                         "type": "array",  # coordinates
