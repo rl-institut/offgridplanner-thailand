@@ -502,11 +502,18 @@ SUPPLY_SCHEMA = {
             "type": "object",
             "properties": {
                 "index": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "date-time"},
-                }
+                    "type": "object",
+                    "properties": {
+                        "start_date": {"type": "string", "format": "date-time"},
+                        "n_days": {"type": "integer", "minimum": 1},
+                        "freq": {"type": "string", "enum": ["h"]},
+                    },
+                    "required": ["start_date", "n_days", "freq"],
+                },
+                "demand": {"type": "array", "items": {"type": "number"}},
+                "solar_potential": {"type": "array", "items": {"type": "number"}},
             },
-            "required": ["index"],
+            "required": ["index", "demand", "solar_potential"],
         },
         "energy_system_design": {
             "type": "object",
