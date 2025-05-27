@@ -223,7 +223,7 @@ class PreProcessor(OptimizationDataHandler):
         )
 
         sequences = {
-            "index": self.demand.index.strftime("%Y-%m-%dT%H:%M:%S").tolist(),
+            "index": {"start_date": start_datetime, "n_days": self.project.n_days, "freq": "h"},
             "demand": self.demand.to_numpy().tolist(),
             "solar_potential": solar_potential.to_numpy().tolist(),
         }
