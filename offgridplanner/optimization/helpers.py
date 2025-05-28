@@ -314,11 +314,11 @@ GRID_SCHEMA = {
                 },
                 "custom_specification": {
                     "type": "object",
-                    "additionalProperties": {"type": "string"},
+                    "additionalProperties": {"type": ["string", "null"]},
                 },
                 "shs_options": {
                     "type": "object",
-                    "additionalProperties": {"type": "integer"},
+                    "additionalProperties": {"type": "number"},
                 },
                 "consumer_detail": {
                     "type": "object",
@@ -327,6 +327,18 @@ GRID_SCHEMA = {
                 "is_connected": {
                     "type": "object",
                     "additionalProperties": {"type": "boolean"},
+                },
+                "distance_to_load_center": {
+                    "type": "object",
+                    "additionalProperties": {"type": "number"},
+                },
+                "distribution_cost": {
+                    "type": "object",
+                    "additionalProperties": {"type": "number"},
+                },
+                "parent": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"},
                 },
             },
             "additionalProperties": False,
