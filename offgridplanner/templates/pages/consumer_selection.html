@@ -341,6 +341,9 @@
       // url of API urls
       const csrfToken = '{{ csrf_token }}';
       //const project_id = {{ proj_id }};
+      const public_service_list = {{ public_service_list | safe }};
+      const enterprise_list = {{ enterprise_list | safe }};
+      const large_load_list = {{ large_load_list | safe }};
       const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
       const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
       const fileNodesToJsUrl = `{% url 'optimization:file_nodes_to_js' %}`;

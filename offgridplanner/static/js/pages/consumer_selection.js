@@ -38,17 +38,6 @@ let consumer_type = "H";
 })();
 
 
-
-let public_service_list = {
-    'group1': 'Health_Health Centre',
-    'group2': 'Health_Clinic',
-    'group3': 'Health_CHPS',
-    'group4': 'Education_School',
-    'group5': 'Education_School_noICT'
-}
-
-let enterprise_list = {
-
 let enterprise_option = '';
 
 function dropDownMenu(dropdown_list) {
@@ -61,18 +50,6 @@ function dropDownMenu(dropdown_list) {
     }
 }
 
-let large_load_list = {
-    'group1': 'Milling Machine (7.5kW)',
-    'group2': 'Crop Dryer (8kW)',
-    'group3': 'Thresher (8kW)',
-    'group4': 'Grinder (5.2kW)',
-    'group5': 'Sawmill (2.25kW)',
-    'group6': 'Circular Wood Saw (1.5kW)',
-    'group7': 'Jigsaw (0.4kW)',
-    'group8': 'Drill (0.4kW)',
-    'group9': 'Welder (5.25kW)',
-    'group10': 'Angle Grinder (2kW)',
-};
 let large_load_type = "group1";
 
 let option_load = '';
