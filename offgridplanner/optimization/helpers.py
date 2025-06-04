@@ -146,14 +146,21 @@ def check_imported_consumer_data(df):
     ]:
         if col == "custom_specification":
             custom_loads = df.loc[df[col] != "", col].tolist()
-            processed_loads = [
-                (
-                    load.split(" x ", 1)[1]
-                    if " x " in load and load[0].isdigit()
-                    else load
-                )
-                for load in custom_loads
-            ]
+            processed_loads = []
+            for entry in custom_loads:
+                # split if multiple machinery entries in one enterprise
+                machinery = entry.split(";")
+                # separate machine name for validation
+                processed_entry = [
+                    (
+                        load.split(" x ", 1)[1]
+                        if " x " in load and load[0].isdigit()
+                        else load
+                    )
+                    for load in machinery
+                ]
+                # add to processed loads list
+                processed_loads.extend(processed_entry)
             validate_column_inputs(processed_loads, col)
         else:
             validate_column_inputs(set(df[col]), col)
