@@ -49,41 +49,14 @@ let public_service_list = {
 
 let enterprise_list = {
 
-    'group1': 'Food_Groceries',
-    'group2': 'Food_Restaurant',
-    'group3': 'Food_Bar',
-    'group4': 'Food_Drinks',
-    'group5': 'Food_Fruits or vegetables',
-    'group6': 'Trades_Tailoring',
-    'group7': 'Trades_Beauty or Hair',
-    'group8': 'Trades_Metalworks',
-    'group9': 'Trades_Car or Motorbike Repair',
-    'group10': 'Trades_Carpentry',
-    'group11': 'Trades_Laundry',
-    'group12': 'Trades_Cycle Repair',
-    'group13': 'Trades_Shoemaking',
-    'group14': 'Retail_Medical',
-    'group15': 'Retail_Clothes and accessories',
-    'group16': 'Retail_Electronics',
-    'group17': 'Retail_Other',
-    'group18': 'Retail_Agricultural',
-    'group19': 'Digital_Mobile or Electronics Repair',
-    'group20': 'Digital_Digital Other',
-    'group21': 'Digital_Cybercafé',
-    'group22': 'Digital_Cinema or Betting',
-    'group23': 'Digital_Photostudio',
-    'group24': 'Agricultural_Mill or Thresher or Grater',
-    'group25': 'Agricultural_Other'
-};
-
-let enterpise_option = '';
+let enterprise_option = '';
 
 function dropDownMenu(dropdown_list) {
-    enterpise_option = '';
+    enterprise_option = '';
     for (let enterprise_code in dropdown_list) {
         let selected = (enterprise_code == consumer_type) ? ' selected' : '';
-        enterpise_option += '<option value="' + enterprise_code + '"' + selected + '>' + dropdown_list[enterprise_code] + '</option>';
-        document.getElementById('enterprise').innerHTML = enterpise_option;
+        enterprise_option += '<option value="' + enterprise_code + '"' + selected + '>' + dropdown_list[enterprise_code] + '</option>';
+        document.getElementById('enterprise').innerHTML = enterprise_option;
         document.getElementById('enterprise').disabled = false;
     }
 }
@@ -121,7 +94,7 @@ document.getElementById('consumer').addEventListener('change', function () {
         deactivate_large_loads();
     } else if (this.value === 'E') {
         dropDownMenu(enterprise_list);
-        document.getElementById('enterprise').innerHTML = enterpise_option;
+        document.getElementById('enterprise').innerHTML = enterprise_option;
         document.getElementById('enterprise').value = 'group1';
         document.getElementById('enterprise').disabled = false;
         activate_large_loads();

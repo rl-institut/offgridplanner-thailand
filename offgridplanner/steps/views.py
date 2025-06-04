@@ -138,7 +138,7 @@ def consumer_selection(request, proj_id=None):
         "group25": "Agricultural_Other",
     }
 
-    enterpise_option = ""
+    enterprise_option = ""
 
     large_load_list = {
         "group1": "Milling Machine (7.5kW)",
@@ -161,7 +161,7 @@ def consumer_selection(request, proj_id=None):
         "enterprise_list": enterprise_list,
         "large_load_list": large_load_list,
         "large_load_type": large_load_type,
-        "enterpise_option": enterpise_option,
+        "enterprise_option": enterprise_option,
         "option_load": option_load,
         "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
         "step_list": STEP_LIST_RIBBON,
