@@ -6,6 +6,10 @@ import pandas as pd
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 
+from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
+from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
+from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
+from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_LIST
 from offgridplanner.projects.helpers import df_to_file
 
 
@@ -66,53 +70,14 @@ def validate_column_inputs(input_values, column):
     allowed_values = {
         "consumer_type": {"household", "enterprise", "public_service"},
         "shs_options": {0, 1},
-        "consumer_detail": {
-            "Food_Groceries",
-            "Food_Restaurant",
-            "Food_Bar",
-            "Food_Drinks",
-            "Food_Fruits or vegetables",
-            "Trades_Tailoring",
-            "Trades_Beauty or Hair",
-            "Trades_Metalworks",
-            "Trades_Car or Motorbike Repair",
-            "Trades_Carpentry",
-            "Trades_Laundry",
-            "Trades_Cycle Repair",
-            "Trades_Shoemaking",
-            "Retail_Medical",
-            "Retail_Clothes and accessories",
-            "Retail_Electronics",
-            "Retail_Other",
-            "Retail_Agricultural",
-            "Digital_Mobile or Electronics Repair",
-            "Digital_Digital Other",
-            "Digital_Cybercafé",
-            "Digital_Cinema or Betting",
-            "Digital_Photostudio",
-            "Agricultural_Mill or Thresher or Grater",
-            "Agricultural_Other",
-            "",
-            "default",
-            "Health_Health Centre",
-            "Health_Clinic",
-            "Health_CHPS",
-            "Education_School",
-            "Education_School_noICT",
-        },
+        "consumer_detail": {"", "default"}
+        | set(ENTERPRISE_LIST)
+        | set(PUBLIC_SERVICE_LIST),
         "custom_specification": {
-            "Milling Machine (7.5kW)",
-            "Crop Dryer (8kW)",
-            "Thresher (8kW)",
-            "Grinder (5.2kW)",
-            "Sawmill (2.25kW)",
-            "Circular Wood Saw (1.5kW)",
-            "Jigsaw (0.4kW)",
-            "Drill (0.4kW)",
-            "Welder (5.25kW)",
-            "Angle Grinder (2kW)",
-            "",
-        },
+            f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
+            for machine in LARGE_LOAD_LIST
+        }
+        | {""},
     }
     invalid_values = set(input_values) - allowed_values[column]
     if invalid_values:
@@ -181,14 +146,21 @@ def check_imported_consumer_data(df):
     ]:
         if col == "custom_specification":
             custom_loads = df.loc[df[col] != "", col].tolist()
-            processed_loads = [
-                (
-                    load.split(" x ", 1)[1]
-                    if " x " in load and load[0].isdigit()
-                    else load
-                )
-                for load in custom_loads
-            ]
+            processed_loads = []
+            for entry in custom_loads:
+                # split if multiple machinery entries in one enterprise
+                machinery = entry.split(";")
+                # separate machine name for validation
+                processed_entry = [
+                    (
+                        load.split(" x ", 1)[1]
+                        if " x " in load and load[0].isdigit()
+                        else load
+                    )
+                    for load in machinery
+                ]
+                # add to processed loads list
+                processed_loads.extend(processed_entry)
             validate_column_inputs(processed_loads, col)
         else:
             validate_column_inputs(set(df[col]), col)

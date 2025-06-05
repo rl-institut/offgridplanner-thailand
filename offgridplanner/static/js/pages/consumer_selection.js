@@ -38,68 +38,18 @@ let consumer_type = "H";
 })();
 
 
-
-let public_service_list = {
-    'group1': 'Health_Health Centre',
-    'group2': 'Health_Clinic',
-    'group3': 'Health_CHPS',
-    'group4': 'Education_School',
-    'group5': 'Education_School_noICT'
-}
-
-let enterprise_list = {
-
-    'group1': 'Food_Groceries',
-    'group2': 'Food_Restaurant',
-    'group3': 'Food_Bar',
-    'group4': 'Food_Drinks',
-    'group5': 'Food_Fruits or vegetables',
-    'group6': 'Trades_Tailoring',
-    'group7': 'Trades_Beauty or Hair',
-    'group8': 'Trades_Metalworks',
-    'group9': 'Trades_Car or Motorbike Repair',
-    'group10': 'Trades_Carpentry',
-    'group11': 'Trades_Laundry',
-    'group12': 'Trades_Cycle Repair',
-    'group13': 'Trades_Shoemaking',
-    'group14': 'Retail_Medical',
-    'group15': 'Retail_Clothes and accessories',
-    'group16': 'Retail_Electronics',
-    'group17': 'Retail_Other',
-    'group18': 'Retail_Agricultural',
-    'group19': 'Digital_Mobile or Electronics Repair',
-    'group20': 'Digital_Digital Other',
-    'group21': 'Digital_Cybercafé',
-    'group22': 'Digital_Cinema or Betting',
-    'group23': 'Digital_Photostudio',
-    'group24': 'Agricultural_Mill or Thresher or Grater',
-    'group25': 'Agricultural_Other'
-};
-
-let enterpise_option = '';
+let enterprise_option = '';
 
 function dropDownMenu(dropdown_list) {
-    enterpise_option = '';
+    enterprise_option = '';
     for (let enterprise_code in dropdown_list) {
         let selected = (enterprise_code == consumer_type) ? ' selected' : '';
-        enterpise_option += '<option value="' + enterprise_code + '"' + selected + '>' + dropdown_list[enterprise_code] + '</option>';
-        document.getElementById('enterprise').innerHTML = enterpise_option;
+        enterprise_option += '<option value="' + enterprise_code + '"' + selected + '>' + dropdown_list[enterprise_code] + '</option>';
+        document.getElementById('enterprise').innerHTML = enterprise_option;
         document.getElementById('enterprise').disabled = false;
     }
 }
 
-let large_load_list = {
-    'group1': 'Milling Machine (7.5kW)',
-    'group2': 'Crop Dryer (8kW)',
-    'group3': 'Thresher (8kW)',
-    'group4': 'Grinder (5.2kW)',
-    'group5': 'Sawmill (2.25kW)',
-    'group6': 'Circular Wood Saw (1.5kW)',
-    'group7': 'Jigsaw (0.4kW)',
-    'group8': 'Drill (0.4kW)',
-    'group9': 'Welder (5.25kW)',
-    'group10': 'Angle Grinder (2kW)',
-};
 let large_load_type = "group1";
 
 let option_load = '';
@@ -121,7 +71,7 @@ document.getElementById('consumer').addEventListener('change', function () {
         deactivate_large_loads();
     } else if (this.value === 'E') {
         dropDownMenu(enterprise_list);
-        document.getElementById('enterprise').innerHTML = enterpise_option;
+        document.getElementById('enterprise').innerHTML = enterprise_option;
         document.getElementById('enterprise').value = 'group1';
         document.getElementById('enterprise').disabled = false;
         activate_large_loads();

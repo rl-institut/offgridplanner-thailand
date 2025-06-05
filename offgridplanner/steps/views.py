@@ -11,6 +11,10 @@ from django.views.decorators.http import require_http_methods
 
 from config.settings.base import PENDING
 from offgridplanner.optimization.models import Simulation
+from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
+from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
+from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
+from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_LIST
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
 from offgridplanner.projects.helpers import get_param_from_metadata
@@ -101,68 +105,23 @@ def project_setup(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def consumer_selection(request, proj_id=None):
-    # TODO replace these with lists from LOAD_PROFILES.columns
     public_service_list = {
-        "group1": "Health_Health Centre",
-        "group2": "Health_Clinic",
-        "group3": "Health_CHPS",
-        "group4": "Education_School",
-        "group5": "Education_School_noICT",
+        f"group{ix}": service
+        for ix, service in enumerate(sorted(PUBLIC_SERVICE_LIST), 1)
     }
-
     enterprise_list = {
-        "group1": "Food_Groceries",
-        "group2": "Food_Restaurant",
-        "group3": "Food_Bar",
-        "group4": "Food_Drinks",
-        "group5": "Food_Fruits or vegetables",
-        "group6": "Trades_Tailoring",
-        "group7": "Trades_Beauty or Hair",
-        "group8": "Trades_Metalworks",
-        "group9": "Trades_Car or Motorbike Repair",
-        "group10": "Trades_Carpentry",
-        "group11": "Trades_Laundry",
-        "group12": "Trades_Cycle Repair",
-        "group13": "Trades_Shoemaking",
-        "group14": "Retail_Medical",
-        "group15": "Retail_Clothes and accessories",
-        "group16": "Retail_Electronics",
-        "group17": "Retail_Other",
-        "group18": "Retail_Agricultural",
-        "group19": "Digital_Mobile or Electronics Repair",
-        "group20": "Digital_Digital Other",
-        "group21": "Digital_Cybercafé",
-        "group22": "Digital_Cinema or Betting",
-        "group23": "Digital_Photostudio",
-        "group24": "Agricultural_Mill or Thresher or Grater",
-        "group25": "Agricultural_Other",
+        f"group{ix}": enterprise
+        for ix, enterprise in enumerate(sorted(ENTERPRISE_LIST), 1)
     }
-
-    enterpise_option = ""
-
     large_load_list = {
-        "group1": "Milling Machine (7.5kW)",
-        "group2": "Crop Dryer (8kW)",
-        "group3": "Thresher (8kW)",
-        "group4": "Grinder (5.2kW)",
-        "group5": "Sawmill (2.25kW)",
-        "group6": "Circular Wood Saw (1.5kW)",
-        "group7": "Jigsaw (0.4kW)",
-        "group8": "Drill (0.4kW)",
-        "group9": "Welder (5.25kW)",
-        "group10": "Angle Grinder (2kW)",
+        f"group{ix}": f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
+        for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
     }
-    large_load_type = "group1"
-
-    option_load = ""
 
     context = {
         "public_service_list": public_service_list,
         "enterprise_list": enterprise_list,
         "large_load_list": large_load_list,
-        "large_load_type": large_load_type,
-        "enterpise_option": enterpise_option,
-        "option_load": option_load,
         "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
         "step_list": STEP_LIST_RIBBON,
     }

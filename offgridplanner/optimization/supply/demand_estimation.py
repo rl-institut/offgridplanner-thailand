@@ -10,6 +10,40 @@ logger = logging.getLogger(__name__)
 
 LOAD_PROFILES = pd.read_parquet(path=FULL_PATH_PROFILES, engine="pyarrow")
 
+PUBLIC_SERVICE_LIST = [
+    profile.split("_", maxsplit=1)[1]
+    for profile in LOAD_PROFILES.columns
+    if profile.split("_", maxsplit=1)[0] == "Public Service"
+]
+ENTERPRISE_LIST = [
+    profile.split("_", maxsplit=1)[1]
+    for profile in LOAD_PROFILES.columns
+    if (
+        profile.split("_", maxsplit=1)[0] == "Enterprise"
+        and not profile.split("_", maxsplit=1)[1].startswith("Large Load")
+    )
+]
+LARGE_LOAD_LIST = [
+    profile.split("_")[2]
+    for profile in LOAD_PROFILES.columns
+    if (
+        profile.split("_", maxsplit=1)[0] == "Enterprise"
+        and profile.split("_", maxsplit=1)[1].startswith("Large Load")
+    )
+]
+LARGE_LOAD_KW_MAPPING = {
+    "Milling Machine": 7.5,
+    "Crop Dryer": 8,
+    "Thresher": 8,
+    "Grinder": 5.2,
+    "Sawmill": 2.25,
+    "Circular Wood Saw": 1.5,
+    "Jigsaw": 0.4,
+    "Drill": 0.4,
+    "Welder": 5.25,
+    "Angle Grinder": 2,
+}
+
 
 def get_demand_timeseries(nodes, custom_demand, time_range=None):
     """
