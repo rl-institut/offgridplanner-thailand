@@ -4,11 +4,10 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
+import requests
 from django.shortcuts import get_object_or_404
 from jsonschema import validate
 
-from offgridplanner.optimization.helpers import GRID_V2_SCHEMA, GRID_SCHEMA
-from offgridplanner.optimization.helpers import SUPPLY_SCHEMA
 from offgridplanner.optimization.models import DemandCoverage
 from offgridplanner.optimization.models import DurationCurve
 from offgridplanner.optimization.models import Emissions
@@ -244,8 +243,10 @@ class PreProcessor(OptimizationDataHandler):
             "energy_system_design": energy_system_design,
         }
 
-        validate(instance=supply_opt_json, schema=SUPPLY_SCHEMA)
+        response = requests.get("http://127.0.0.1:5001/supply_schema", timeout=10)
+        supply_schema = response.json()
 
+        validate(instance=supply_opt_json, schema=supply_schema)
         return supply_opt_json
 
     def collect_grid_opt_json_data(self):
@@ -285,8 +286,11 @@ class PreProcessor(OptimizationDataHandler):
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }
-        validate(instance=grid_opt_json, schema=GRID_SCHEMA)  # or GRID_SCHEMA
 
+        response = requests.get("http://127.0.0.1:5001/grid_schema", timeout=10)
+        grid_schema = response.json()
+
+        validate(instance=grid_opt_json, schema=grid_schema)
         return grid_opt_json
 
 
