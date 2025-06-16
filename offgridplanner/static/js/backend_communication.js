@@ -911,6 +911,7 @@ async function check_optimization(project_id, token, time, model) {
                 return { results: res.results }; // Return the result for batch processing
             } else {
                 document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
+                await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
                 return await check_optimization(project_id, res.token, res.time, res.model);
             }
         } else {
@@ -923,6 +924,7 @@ async function check_optimization(project_id, token, time, model) {
         console.error("Fetch error:", error.message);
     }
 }
+
 async function forward_if_no_task_is_pending(project_id) {
     try {
         const response = await fetch("forward_if_no_task_is_pending/", {
