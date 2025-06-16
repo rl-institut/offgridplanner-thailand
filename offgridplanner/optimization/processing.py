@@ -303,8 +303,8 @@ class GridProcessor(OptimizationDataHandler):
         self.nodes_obj, _ = Nodes.objects.get_or_create(project=self.project)
         self.links_obj, _ = Links.objects.get_or_create(project=self.project)
         self.grid_results = results_json
-        self.nodes_df = pd.read_json(self.grid_results["nodes"])
-        self.links_df = pd.read_json(self.grid_results["links"])
+        self.nodes_df = pd.DataFrame(self.grid_results["nodes"])
+        self.links_df = pd.DataFrame(self.grid_results["links"])
 
     def grid_results_to_db(self):
         # read the nodes and links data and save to the database
