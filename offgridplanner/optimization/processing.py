@@ -8,6 +8,7 @@ import requests
 from django.shortcuts import get_object_or_404
 from jsonschema import validate
 
+from config.settings.base import SIM_API_HOST
 from offgridplanner.optimization.models import DemandCoverage
 from offgridplanner.optimization.models import DurationCurve
 from offgridplanner.optimization.models import Emissions
@@ -243,7 +244,7 @@ class PreProcessor(OptimizationDataHandler):
             "energy_system_design": energy_system_design,
         }
 
-        response = requests.get("http://127.0.0.1:5001/supply_schema", timeout=10)
+        response = requests.get("{SIM_API_HOST}/supply_schema/input", timeout=10)
         supply_schema = response.json()
 
         validate(instance=supply_opt_json, schema=supply_schema)
@@ -278,16 +279,12 @@ class PreProcessor(OptimizationDataHandler):
         ]
 
         grid_opt_json = {
-            # this belongs to V2
-            # "node_fields": node_fields,
-            # "nodes": nodes_values,
-            # this belongs to V1
             "nodes": self.project.nodes.df.to_dict(orient="list"),
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }
 
-        response = requests.get("http://127.0.0.1:5001/grid_schema", timeout=10)
+        response = requests.get("{SIM_API_HOST}/grid_schema", timeout=10)
         grid_schema = response.json()
 
         validate(instance=grid_opt_json, schema=grid_schema)
@@ -296,6 +293,7 @@ class PreProcessor(OptimizationDataHandler):
 
 class GridProcessor(OptimizationDataHandler):
     def __init__(self, results_json, proj_id):
+        self.validate_results_json(results_json)
         super().__init__(proj_id)
         self.results_obj, _ = Results.objects.get_or_create(
             simulation=self.project.simulation
@@ -305,6 +303,11 @@ class GridProcessor(OptimizationDataHandler):
         self.grid_results = results_json
         self.nodes_df = pd.DataFrame(self.grid_results["nodes"])
         self.links_df = pd.DataFrame(self.grid_results["links"])
+
+    def validate_results_json(self, results_json):
+        response = requests.get(f"{SIM_API_HOST}/grid_schema", timeout=10)
+        grid_schema = response.json()
+        validate(instance=results_json, schema=grid_schema)
 
     def grid_results_to_db(self):
         # read the nodes and links data and save to the database
@@ -425,6 +428,7 @@ class GridProcessor(OptimizationDataHandler):
 
 class SupplyProcessor(OptimizationDataHandler):
     def __init__(self, results_json, proj_id):
+        self.validate_results_json(results_json)
         super().__init__(proj_id)
         self.results_obj, _ = Results.objects.get_or_create(
             simulation=self.project.simulation
@@ -437,6 +441,11 @@ class SupplyProcessor(OptimizationDataHandler):
                 & (nodes_df["is_connected"] == True)  # noqa:E712
             ]
         )
+
+    def validate_results_json(self, results_json):
+        response = requests.get(f"{SIM_API_HOST}/supply_schema/output", timeout=10)
+        supply_schema_output = response.json()
+        validate(instance=results_json, schema=supply_schema_output)
 
     def _process_supply_optimization_results(self):
         # nodes = [
