@@ -244,7 +244,7 @@ class PreProcessor(OptimizationDataHandler):
             "energy_system_design": energy_system_design,
         }
 
-        response = requests.get("{SIM_API_HOST}/supply_schema/input", timeout=10)
+        response = requests.get(f"{SIM_API_HOST}/schema/supply/input", timeout=10)
         supply_schema = response.json()
 
         validate(instance=supply_opt_json, schema=supply_schema)
@@ -284,7 +284,8 @@ class PreProcessor(OptimizationDataHandler):
             "yearly_demand": self.demand.sum(),
         }
 
-        response = requests.get("{SIM_API_HOST}/grid_schema", timeout=10)
+        # validate the JSON with the schema from the simulation server
+        response = requests.get(f"{SIM_API_HOST}/schema/grid", timeout=10)
         grid_schema = response.json()
 
         validate(instance=grid_opt_json, schema=grid_schema)
@@ -304,8 +305,9 @@ class GridProcessor(OptimizationDataHandler):
         self.nodes_df = pd.DataFrame(self.grid_results["nodes"])
         self.links_df = pd.DataFrame(self.grid_results["links"])
 
-    def validate_results_json(self, results_json):
-        response = requests.get(f"{SIM_API_HOST}/grid_schema", timeout=10)
+    @staticmethod
+    def validate_results_json(results_json):
+        response = requests.get(f"{SIM_API_HOST}/schema/grid", timeout=10)
         grid_schema = response.json()
         validate(instance=results_json, schema=grid_schema)
 
