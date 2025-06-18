@@ -7,6 +7,10 @@
 <!DOCTYPE html>
 <html lang="en-us">
 
+{% block head_block %}
+<link href="{% static 'css/pages/calculating.css' %}" rel="stylesheet">
+{% endblock head_block %}
+
 {% block progression_content %}
 <body>
 <main>
@@ -19,7 +23,7 @@
                             <a class="title">Model Calculation</a>
                         </div>
                         <hr>
-                        <div class="loader" align="center"></div>
+                        <div id="loader" class="loader"></div>
                         <a>Status: </a>
                         <a id="statusMsg">task status is retrieved...</a>
                         <hr>
