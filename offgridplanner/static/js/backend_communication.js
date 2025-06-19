@@ -912,7 +912,7 @@ async function check_optimization(project_id, token, time, model) {
                     return { results: res.results }; // Return the result for batch processing
                 } else {
                     document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
-                    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+                    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
                     return await check_optimization(project_id, res.token, res.time, res.model);
                 }
             } else {
