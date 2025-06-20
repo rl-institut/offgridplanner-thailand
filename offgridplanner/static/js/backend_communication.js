@@ -907,11 +907,19 @@ async function check_optimization(project_id, token, time, model) {
 
         if (response.ok) {
             const res = await response.json();
-            if (res.finished === true) {
-                return { results: res.results }; // Return the result for batch processing
+            if (res.status != "ERROR") {
+                if (res.finished === true) {
+                    return { results: res.results }; // Return the result for batch processing
+                } else {
+                    document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
+                    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+                    return await check_optimization(project_id, res.token, res.time, res.model);
+                }
             } else {
-                document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
-                return await check_optimization(project_id, res.token, res.time, res.model);
+                shouldStop = true;
+                document.getElementById("loader").classList.remove("loader");
+                document.getElementById("loader").classList.add("error-cross");
+                document.getElementById("statusMsg").classList.add("There was an error fetching the optimization");
             }
         } else {
             if (response.status === 303 || response.status === 422) {
@@ -923,6 +931,7 @@ async function check_optimization(project_id, token, time, model) {
         console.error("Fetch error:", error.message);
     }
 }
+
 async function forward_if_no_task_is_pending(project_id) {
     try {
         const response = await fetch("forward_if_no_task_is_pending/", {
@@ -982,15 +991,11 @@ function start_calculation(project_id) {
     })
     .then(response => response.json())
     .then(res => {
-        if (res.redirect && res.redirect.length > 0) {
-            const msg = 'Input data is missing for the opt_models. It appears that you have not gone' +
-                    ' through all the pages to enter the input data. You will be redirected to the ' +
-                    ' corresponding page.';
-                console.log(msg);
-            document.getElementById('responseMsg').innerHTML = msg;
-            const redirectLink = window.location.origin + res.redirect;
-            document.getElementById('redirectLink').href = redirectLink;
-            document.getElementById('msgBox').style.display = 'block';
+        if (res.error && res.error.length > 0) {
+            shouldStop = true;
+            document.getElementById("loader").classList.remove("loader");
+            document.getElementById("loader").classList.add("error-cross");
+            document.getElementById("statusMsg").innerHTML = res.error;
         } else {
             wait_for_both_results(project_id, res.token_supply, res.token_grid);
         }

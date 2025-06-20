@@ -500,23 +500,32 @@ def start_calculation(request, proj_id):
     preprocessor = PreProcessor(proj_id)
     supply_opt_json = preprocessor.collect_supply_opt_json_data()
     grid_opt_json = preprocessor.collect_grid_opt_json_data()
-    token_grid = (
-        optimization_server_request(grid_opt_json, "grid")["id"]
-        if opts.do_grid_optimization is True
-        else ""
-    )
-    token_supply = (
-        optimization_server_request(supply_opt_json, "supply")["id"]
-        if opts.do_es_design_optimization is True
-        else ""
-    )
+    try:
+        token_grid = (
+            optimization_server_request(grid_opt_json, "grid")["id"]
+            if opts.do_grid_optimization
+            else ""
+        )
+        token_supply = (
+            optimization_server_request(supply_opt_json, "supply")["id"]
+            if opts.do_es_design_optimization
+            else ""
+        )
+
+    except RuntimeError as e:
+        logger.exception("Error getting optimization tokens")
+        return JsonResponse(
+            {
+                "error": "There was an error with the simulation request. Hint: check the server connection and/or the outgoing JSON format"
+            },
+            status=500,
+        )
+
     simulation.token_grid = token_grid
     simulation.token_supply = token_supply
     simulation.save()
 
-    return JsonResponse(
-        {"token_supply": token_supply, "token_grid": token_grid, "redirect": ""}
-    )
+    return JsonResponse({"token_supply": token_supply, "token_grid": token_grid})
 
 
 # async def check_data_availability(user_id, project_id):
@@ -562,7 +571,7 @@ def waiting_for_results(request, proj_id):
 
     # Check the optimization server
     response = optimization_check_status(token=token)
-    status = response.get("status")
+    status = response.get("status") if response is not None else ERROR
     print(f"{model} {status}")
     if status not in [DONE, ERROR, PENDING]:
         logger.warning("Simulation returned unexpected status")
@@ -586,7 +595,6 @@ def waiting_for_results(request, proj_id):
     else:
         simulation.status_supply = status
     simulation.save()
-    # time.sleep(wait_time)
     return JsonResponse(
         {
             "token": token,
@@ -614,7 +622,7 @@ def process_optimization_results(request, proj_id):
 
 
 def abort_calculation(request, proj_id):
-    # TODO error handling in case there is an issue with task revoke?
+    # TODO send an abort request to the simulation server
     simulation = Simulation.objects.get(project=proj_id)
     token = simulation.token
     revoke_task(token)

@@ -35,12 +35,10 @@ def optimization_server_request(data: dict, opt_type: str):
 
         # If the response was successful, no Exception will be raised
         response.raise_for_status()
-    except httpx.HTTPError:
+    except httpx.HTTPError as e:
         logger.exception("HTTP error occurred")
-        return None
-    except Exception:
-        logger.exception("Other error occurred")
-        return None
+        msg = "An error occurred during the optimization request."
+        raise RuntimeError(msg) from e
     else:
         logger.info("The simulation was sent successfully to MVS API.")
         return json.loads(response.text)
