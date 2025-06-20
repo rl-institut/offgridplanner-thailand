@@ -4,8 +4,11 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
+import requests
 from django.shortcuts import get_object_or_404
+from jsonschema import validate
 
+from config.settings.base import SIM_API_HOST
 from offgridplanner.optimization.models import DemandCoverage
 from offgridplanner.optimization.models import DurationCurve
 from offgridplanner.optimization.models import Emissions
@@ -206,13 +209,16 @@ class PreProcessor(OptimizationDataHandler):
         # TODO fix date to actual start_date
         # self.start_datetime = pd.to_datetime(self.project_dict["start_date"]).to_pydatetime()
         # start_datetime hardcoded as only 2022 pv and demand data is available
-        start_datetime = pd.to_datetime("2022").to_pydatetime()
+
+        start_datetime = pd.to_datetime("2022")
         dt_index = pd.date_range(
             start_datetime,
             start_datetime + pd.to_timedelta(self.project.n_days, unit="D"),
             freq="h",
             inclusive="left",
         )
+
+        start_date_for_json = start_datetime.isoformat()
 
         solar_potential = get_dc_feed_in_sync_db_query(
             lat,
@@ -221,7 +227,11 @@ class PreProcessor(OptimizationDataHandler):
         )
 
         sequences = {
-            "index": self.demand.index.strftime("%Y-%m-%dT%H:%M:%S").tolist(),
+            "index": {
+                "start_date": start_date_for_json,
+                "n_days": self.project.n_days,
+                "freq": "h",
+            },
             "demand": self.demand.to_numpy().tolist(),
             "solar_potential": solar_potential.to_numpy().tolist(),
         }
@@ -234,21 +244,57 @@ class PreProcessor(OptimizationDataHandler):
             "energy_system_design": energy_system_design,
         }
 
+        response = requests.get(f"{SIM_API_HOST}/schema/supply/input", timeout=10)
+        supply_schema = response.json()
+
+        validate(instance=supply_opt_json, schema=supply_schema)
         return supply_opt_json
 
     def collect_grid_opt_json_data(self):
-        # calculate periodical costs of components out of input capex, opex and lifetime
+        nodes_df = self.project.nodes.df.copy()
+        nodes_df = nodes_df.reset_index(drop=False)
+        nodes_df = nodes_df.rename(columns={"index": "id"})
+        nodes_records = nodes_df.to_dict(orient="records")
+
+        node_fields = [
+            "id",
+            "how_added",
+            "node_type",
+            "consumer_type",
+            "custom_specification",
+            "shs_options",
+            "consumer_detail",
+            "is_connected",
+            "coordinates",
+        ]
+
+        for node in nodes_records:
+            if "latitude" in node and "longitude" in node:
+                node["coordinates"] = [node.pop("latitude"), node.pop("longitude")]
+            else:
+                node["coordinates"] = None
+
+        nodes_values = [
+            [node.get(field, None) for field in node_fields] for node in nodes_records
+        ]
 
         grid_opt_json = {
-            "nodes": self.project.nodes.df.to_json(),
+            "nodes": self.project.nodes.df.to_dict(orient="list"),
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }
+
+        # validate the JSON with the schema from the simulation server
+        response = requests.get(f"{SIM_API_HOST}/schema/grid", timeout=10)
+        grid_schema = response.json()
+
+        validate(instance=grid_opt_json, schema=grid_schema)
         return grid_opt_json
 
 
 class GridProcessor(OptimizationDataHandler):
     def __init__(self, results_json, proj_id):
+        self.validate_results_json(results_json)
         super().__init__(proj_id)
         self.results_obj, _ = Results.objects.get_or_create(
             simulation=self.project.simulation
@@ -256,8 +302,14 @@ class GridProcessor(OptimizationDataHandler):
         self.nodes_obj, _ = Nodes.objects.get_or_create(project=self.project)
         self.links_obj, _ = Links.objects.get_or_create(project=self.project)
         self.grid_results = results_json
-        self.nodes_df = pd.read_json(self.grid_results["nodes"])
-        self.links_df = pd.read_json(self.grid_results["links"])
+        self.nodes_df = pd.DataFrame(self.grid_results["nodes"])
+        self.links_df = pd.DataFrame(self.grid_results["links"])
+
+    @staticmethod
+    def validate_results_json(results_json):
+        response = requests.get(f"{SIM_API_HOST}/schema/grid", timeout=10)
+        grid_schema = response.json()
+        validate(instance=results_json, schema=grid_schema)
 
     def grid_results_to_db(self):
         # read the nodes and links data and save to the database
@@ -378,6 +430,7 @@ class GridProcessor(OptimizationDataHandler):
 
 class SupplyProcessor(OptimizationDataHandler):
     def __init__(self, results_json, proj_id):
+        self.validate_results_json(results_json)
         super().__init__(proj_id)
         self.results_obj, _ = Results.objects.get_or_create(
             simulation=self.project.simulation
@@ -390,6 +443,11 @@ class SupplyProcessor(OptimizationDataHandler):
                 & (nodes_df["is_connected"] == True)  # noqa:E712
             ]
         )
+
+    def validate_results_json(self, results_json):
+        response = requests.get(f"{SIM_API_HOST}/supply_schema/output", timeout=10)
+        supply_schema_output = response.json()
+        validate(instance=results_json, schema=supply_schema_output)
 
     def _process_supply_optimization_results(self):
         # nodes = [
