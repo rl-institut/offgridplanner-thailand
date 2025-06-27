@@ -256,34 +256,10 @@ class PreProcessor(OptimizationDataHandler):
 
     def collect_grid_opt_json_data(self):
         nodes_df = self.project.nodes.df.copy()
-        nodes_df = nodes_df.reset_index(drop=False)
-        nodes_df = nodes_df.rename(columns={"index": "id"})
-        nodes_records = nodes_df.to_dict(orient="records")
-
-        node_fields = [
-            "id",
-            "how_added",
-            "node_type",
-            "consumer_type",
-            "custom_specification",
-            "shs_options",
-            "consumer_detail",
-            "is_connected",
-            "coordinates",
-        ]
-
-        for node in nodes_records:
-            if "latitude" in node and "longitude" in node:
-                node["coordinates"] = [node.pop("latitude"), node.pop("longitude")]
-            else:
-                node["coordinates"] = None
-
-        nodes_values = [
-            [node.get(field, None) for field in node_fields] for node in nodes_records
-        ]
-
+        # Replace NaNs with JSON-compliant None / null
+        nodes_df = nodes_df.replace({np.nan: None})
         grid_opt_json = {
-            "nodes": self.project.nodes.df.to_dict(orient="list"),
+            "nodes": nodes_df.to_dict(orient="list"),
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }
