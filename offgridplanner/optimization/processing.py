@@ -372,6 +372,11 @@ class SupplyProcessor(OptimizationDataHandler):
             ]
         )
 
+    @staticmethod
+    def to_kwh(value):
+        """Adapt the order of magnitude (normally from W or Wh oemof results to kWh)"""
+        return value / 1000 if value is not None else 0
+
     def process_supply_optimization_results(self):
         """Extract and compute everything needed from the supply optimization result."""
         self._extract_sequences()
@@ -398,6 +403,11 @@ class SupplyProcessor(OptimizationDataHandler):
                 results["electricity_ac__electricity_demand"]["sequences"]
             ),
             "fuel_consumption_kwh": np.array(results["fuel_source__fuel"]["sequences"]),
+        }
+
+        # Convert all sequence flows from W to kW
+        self.sequences = {
+            seq: self.to_kwh(vals) for seq, vals in self.sequences.items()
         }
 
         diesel = self.energy_system_dict["diesel_genset"]["parameters"]
@@ -467,11 +477,14 @@ class SupplyProcessor(OptimizationDataHandler):
 
     def _calculate_capacities(self):
         def get_capacity(comp_name, result_key):
+            # Return the capacity of the given component in kW/kWp/kWh
             comp = self.energy_system_dict[comp_name]
             if not comp["settings"]["is_selected"]:
                 return 0
             return (
-                json.loads(self.supply_results[result_key]["scalars"])["invest"]
+                self.to_kwh(
+                    json.loads(self.supply_results[result_key]["scalars"])["invest"]
+                )
                 if comp["settings"].get("design", False)
                 else comp["parameters"]["nominal_capacity"]
             )
@@ -622,7 +635,7 @@ class SupplyProcessor(OptimizationDataHandler):
         results.res = self.res
         results.shortage_total = self.shortage
         results.surplus_rate = self.surplus_rate
-        results.peak_demand = self.demand.max()
+        results.peak_demand = self.sequences["demand"].max()
         results.surplus = self.sequences["surplus"].max()
 
         # --- Component capacities ---
@@ -655,10 +668,10 @@ class SupplyProcessor(OptimizationDataHandler):
 
         # --- Demand and shortage statistics ---
         results.total_annual_consumption = (
-            self.demand_full_year.sum() * (100 - self.shortage) / 100
+            self.sequences["demand"].sum() * (100 - self.shortage) / 100
         )
         results.average_annual_demand_per_consumer = (
-            self.demand_full_year.mean()
+            self.sequences["demand"].mean()
             * (100 - self.shortage)
             / 100
             / self.num_households
