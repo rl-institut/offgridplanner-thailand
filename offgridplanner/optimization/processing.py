@@ -111,13 +111,13 @@ class OptimizationDataHandler:
         return nested_dict
 
     def epc(self, capex, opex, lifetime):
-        epc = self.annualize(
+        epc = (
             self.crf
             * self.capex_multi_investment(
                 capex_0=capex,
                 component_lifetime=lifetime,
             )
-            + opex,
+            + opex
         )
 
         return epc
@@ -500,19 +500,17 @@ class SupplyProcessor(OptimizationDataHandler):
         }
 
     def _calculate_costs(self):
-        def epc_cost(comp):
+        def total_epc_cost(comp):
             return (
                 self.energy_system_dict[comp]["parameters"]["epc"]
                 * self.capacities[comp]
             )
 
-        self.total_renewable = self.annualize(
-            sum(epc_cost(comp) for comp in ["pv", "inverter", "battery"])
+        self.total_renewable = sum(
+            total_epc_cost(comp) for comp in ["pv", "inverter", "battery"]
         )
         self.total_non_renewable = (
-            self.annualize(
-                sum(epc_cost(comp) for comp in ["diesel_genset", "rectifier"])
-            )
+            sum(total_epc_cost(comp) for comp in ["diesel_genset", "rectifier"])
             + self.energy_system_dict["diesel_genset"]["parameters"]["variable_cost"]
             * self.sequences["genset"].sum()
         )
@@ -523,7 +521,7 @@ class SupplyProcessor(OptimizationDataHandler):
             * self.sequences["fuel_consumption_l"].sum()
         )
         self.total_revenue = self.total_component + self.total_fuel
-        self.total_demand = self.sequences["demand"].sum()
+        self.total_demand = self.annualize(self.sequences["demand"].sum())
 
     def _calculate_kpis(self):
         self.lcoe = 100 * self.total_revenue / self.total_demand
@@ -667,8 +665,8 @@ class SupplyProcessor(OptimizationDataHandler):
         results.inverter_to_demand = self.sequences["inverter"].sum()
 
         # --- Demand and shortage statistics ---
-        results.total_annual_consumption = (
-            self.sequences["demand"].sum() * (100 - self.shortage) / 100
+        results.total_annual_consumption = self.annualize(
+            self.demand.sum() * (100 - self.shortage) / 100
         )
         results.average_annual_demand_per_consumer = (
             self.sequences["demand"].mean()
