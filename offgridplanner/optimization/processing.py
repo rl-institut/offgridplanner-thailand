@@ -290,19 +290,18 @@ class GridProcessor(OptimizationDataHandler):
         self.links_obj.save()
         # compute the other results and save to the results object
         results = self.results_obj
-        n_consumers = len(self.nodes_df[self.nodes_df["node_type"] == "consumer"])
-        n_shs_consumers = len(self.nodes_df[self.nodes_df["is_connected"] == False])  # noqa:E712
-        n_poles = len(
+        results.n_poles = len(
             self.nodes_df[
                 (self.nodes_df["node_type"] == "pole")
                 | (self.nodes_df["node_type"] == "power-house")
             ]
         )
-        n_mg_consumers = n_consumers - n_shs_consumers
-        results.n_poles = n_poles
-        results.n_consumers = n_consumers
-        results.n_shs_consumers = n_shs_consumers
-
+        results.n_consumers = len(
+            self.nodes_df[self.nodes_df["node_type"] == "consumer"]
+        )
+        results.n_shs_consumers = len(
+            self.nodes_df[self.nodes_df["is_connected"] == False]  # noqa:E712
+        )
         results.length_distribution_cable = int(
             self.links_df[self.links_df.link_type == "distribution"]["length"].sum(),
         )
@@ -310,95 +309,51 @@ class GridProcessor(OptimizationDataHandler):
         results.length_connection_cable = int(
             self.links_df[self.links_df.link_type == "connection"]["length"].sum(),
         )
+        n_mg_consumers = results.n_consumers - results.n_shs_consumers
         results.cost_grid = (
-            int(self.grid_cost(n_poles, n_mg_consumers, len(self.links_df)))
+            (
+                results.n_poles * self.grid_design_dict["pole"]["epc"]
+                + n_mg_consumers * self.grid_design_dict["mg"]["epc"]
+                + results.length_connection_cable
+                * self.grid_design_dict["connection_cable"]["epc"]
+                + results.length_distribution_cable
+                * self.grid_design_dict["distribution_cable"]["epc"]
+            )
             if len(self.links_df) > 0
             else 0
         )
+
         results.cost_shs = 0
         # TODO this is not really necessary with the simulation server
         results.time_grid_design = 0
-        results.n_distribution_links = int(
-            self.links_df[self.links_df["link_type"] == "distribution"].shape[0],
+        results.n_distribution_links = len(
+            self.links_df[self.links_df["link_type"] == "distribution"]
         )
-        results.n_connection_links = int(
-            self.links_df[self.links_df["link_type"] == "connection"].shape[0],
+        results.n_connection_links = len(
+            self.links_df[self.links_df["link_type"] == "connection"]
         )
-        length_dist_cable = self.links_df[self.links_df["link_type"] == "distribution"][
-            "length"
-        ].sum()
-        length_conn_cable = self.links_df[self.links_df["link_type"] == "connection"][
-            "length"
-        ].sum()
+        results.length_distribution_cable = self.links_df[
+            self.links_df["link_type"] == "distribution"
+        ]["length"].sum()
+        results.length_connection_cable = self.links_df[
+            self.links_df["link_type"] == "connection"
+        ]["length"].sum()
         num_households = len(
             self.nodes_df[
                 (self.nodes_df["consumer_type"] == "household")
                 & (self.nodes_df["is_connected"] == True)  # noqa:E712
-            ].index,
+            ],
         )
         results.upfront_invest_grid = (
             results.n_poles * self.grid_design_dict["pole"]["capex"]
-            + length_dist_cable * self.grid_design_dict["distribution_cable"]["capex"]
-            + length_conn_cable * self.grid_design_dict["connection_cable"]["capex"]
+            + results.length_distribution_cable
+            * self.grid_design_dict["distribution_cable"]["capex"]
+            + results.length_connection_cable
+            * self.grid_design_dict["connection_cable"]["capex"]
             + num_households * self.grid_design_dict["mg"]["connection_cost"]
         )
 
         results.save()
-
-    def total_length_distribution_cable(self):
-        """
-        Calculates the total length of all cables connecting only poles in the grid.
-
-        Returns
-        ------
-        type: float
-            the total length of the distribution cable in the grid
-        """
-        return self.links_df.length[self.links_df.link_type == "distribution"].sum()
-
-    def total_length_connection_cable(self):
-        """
-        Calculates the total length of all cables between each pole and
-        consumers.
-
-        Returns
-        ------
-        type: float
-            total length of the connection cable in the grid.
-        """
-        return self.links_df.length[self.links_df.link_type == "connection"].sum()
-
-    def grid_cost(self, n_poles, n_mg_consumers, n_links):
-        """
-        Computes the cost of the grid taking into account the number
-        of nodes, their types (consumer or poles) and the length of
-        different types of cables between nodes.
-
-        Return
-        ------
-        cost of the grid
-        """
-
-        # if there is no poles in the grid, or there is no link,
-        # the function returns an infinite value
-        if (n_poles == 0) or (n_links == 0):
-            return np.inf
-
-        # calculate the total length of the cable used between poles [m]
-        total_length_distribution_cable = self.total_length_distribution_cable()
-
-        # calculate the total length of the `connection` cable between poles and consumers
-        total_length_connection_cable = self.total_length_connection_cable()
-        grid_cost = (
-            n_poles * self.grid_design_dict["pole"]["epc"]
-            + n_mg_consumers * self.grid_design_dict["mg"]["epc"]
-            + total_length_connection_cable
-            * self.grid_design_dict["connection_cable"]["epc"]
-            + total_length_distribution_cable
-            * self.grid_design_dict["distribution_cable"]["epc"]
-        )
-
-        return np.around(grid_cost, decimals=2)
 
 
 class SupplyProcessor(OptimizationDataHandler):
@@ -708,7 +663,7 @@ class SupplyProcessor(OptimizationDataHandler):
             / 100
             / self.num_households
         )
-        results.base_load = self.demand_full_year.quantile(0.1)
+        results.base_load = np.quantile(self.sequences["demand"], 0.1)
         results.max_shortage = (self.sequences["shortage"] / self.demand).max() * 100
 
         # --- Upfront investment ---
