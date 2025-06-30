@@ -130,7 +130,7 @@ class Results(models.Model):
     average_annual_demand_per_consumer = models.FloatField(null=True, blank=True)
     total_annual_consumption = models.FloatField(null=True, blank=True)
     upfront_invest_grid = models.FloatField(null=True, blank=True)
-    upfront_invest_diesel_gen = models.FloatField(null=True, blank=True)
+    upfront_invest_diesel_genset = models.FloatField(null=True, blank=True)
     upfront_invest_inverter = models.FloatField(null=True, blank=True)
     upfront_invest_rectifier = models.FloatField(null=True, blank=True)
     upfront_invest_battery = models.FloatField(null=True, blank=True)

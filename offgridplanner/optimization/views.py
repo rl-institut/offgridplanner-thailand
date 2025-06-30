@@ -681,7 +681,7 @@ def load_results(request, proj_id):
         "total_annual_consumption": "kWh/a",
         "average_annual_demand_per_consumer": "W",
         "upfront_invest_grid": "USD",
-        "upfront_invest_diesel_gen": "USD",
+        "upfront_invest_diesel_genset": "USD",
         "upfront_invest_inverter": "USD",
         "upfront_invest_rectifier": "USD",
         "upfront_invest_battery": "USD",

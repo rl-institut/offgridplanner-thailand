@@ -388,7 +388,7 @@ async function load_results(project_id) {
             document.getElementById("surplus").innerText = results['surplus_rate'];
             document.getElementById("max_shortage").innerText = results['max_shortage'];
             document.getElementById('GridUpfrontInvestmentCost').innerText = results['upfront_invest_grid'];
-            document.getElementById('DieselUpfrontInvestmentCost').innerText = results['upfront_invest_diesel_gen'];
+            document.getElementById('DieselUpfrontInvestmentCost').innerText = results['upfront_invest_diesel_genset'];
             document.getElementById('PVUpfrontInvestmentCost').innerText = results['upfront_invest_pv'];
             document.getElementById('InverterUpfrontInvestmentCost').innerText = results['upfront_invest_inverter'];
             document.getElementById('RectifierUpfrontInvestmentCost').innerText = results['upfront_invest_rectifier'];
