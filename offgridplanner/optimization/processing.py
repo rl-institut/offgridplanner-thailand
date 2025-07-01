@@ -669,10 +669,7 @@ class SupplyProcessor(OptimizationDataHandler):
             self.demand.sum() * (100 - self.shortage) / 100
         )
         results.average_annual_demand_per_consumer = (
-            self.sequences["demand"].mean()
-            * (100 - self.shortage)
-            / 100
-            / self.num_households
+            self.total_annual_consumption / self.num_households
         )
         results.base_load = np.quantile(self.sequences["demand"], 0.1)
         results.max_shortage = (self.sequences["shortage"] / self.demand).max() * 100
