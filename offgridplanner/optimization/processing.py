@@ -305,9 +305,27 @@ class GridProcessor(OptimizationDataHandler):
         results.length_distribution_cable = int(
             self.links_df[self.links_df.link_type == "distribution"]["length"].sum(),
         )
-
         results.length_connection_cable = int(
             self.links_df[self.links_df.link_type == "connection"]["length"].sum(),
+        )
+        results.n_distribution_links = len(
+            self.links_df[self.links_df["link_type"] == "distribution"]
+        )
+        results.n_connection_links = len(
+            self.links_df[self.links_df["link_type"] == "connection"]
+        )
+        results.average_length_distribution_cable = (
+            results.length_distribution_cable / results.n_distribution_links
+        )
+        results.average_length_connection_cable = (
+            results.length_connection_cable / results.n_connection_links
+        )
+
+        n_households = len(
+            self.nodes_df[
+                (self.nodes_df["consumer_type"] == "household")
+                & (self.nodes_df["is_connected"] == True)  # noqa:E712
+            ],
         )
         n_mg_consumers = results.n_consumers - results.n_shs_consumers
         results.cost_grid = (
@@ -322,37 +340,18 @@ class GridProcessor(OptimizationDataHandler):
             if len(self.links_df) > 0
             else 0
         )
-
-        results.cost_shs = 0
-        # TODO this is not really necessary with the simulation server
-        results.time_grid_design = 0
-        results.n_distribution_links = len(
-            self.links_df[self.links_df["link_type"] == "distribution"]
-        )
-        results.n_connection_links = len(
-            self.links_df[self.links_df["link_type"] == "connection"]
-        )
-        results.length_distribution_cable = self.links_df[
-            self.links_df["link_type"] == "distribution"
-        ]["length"].sum()
-        results.length_connection_cable = self.links_df[
-            self.links_df["link_type"] == "connection"
-        ]["length"].sum()
-        num_households = len(
-            self.nodes_df[
-                (self.nodes_df["consumer_type"] == "household")
-                & (self.nodes_df["is_connected"] == True)  # noqa:E712
-            ],
-        )
         results.upfront_invest_grid = (
             results.n_poles * self.grid_design_dict["pole"]["capex"]
             + results.length_distribution_cable
             * self.grid_design_dict["distribution_cable"]["capex"]
             + results.length_connection_cable
             * self.grid_design_dict["connection_cable"]["capex"]
-            + num_households * self.grid_design_dict["mg"]["connection_cost"]
+            + n_households * self.grid_design_dict["mg"]["connection_cost"]
         )
 
+        results.cost_shs = 0
+        # TODO this is not really necessary with the simulation server
+        results.time_grid_design = 0
         results.save()
 
 
@@ -365,7 +364,7 @@ class SupplyProcessor(OptimizationDataHandler):
         )
         self.supply_results = results_json
         nodes_df = self.project.nodes.df
-        self.num_households = len(
+        self.n_households = len(
             nodes_df[
                 (nodes_df["consumer_type"] == "household")
                 & (nodes_df["is_connected"] == True)  # noqa:E712
@@ -669,7 +668,7 @@ class SupplyProcessor(OptimizationDataHandler):
             self.demand.sum() * (100 - self.shortage) / 100
         )
         results.average_annual_demand_per_consumer = (
-            self.total_annual_consumption / self.num_households
+            results.total_annual_consumption / self.n_households
         )
         results.base_load = np.quantile(self.sequences["demand"], 0.1)
         results.max_shortage = (self.sequences["shortage"] / self.demand).max() * 100

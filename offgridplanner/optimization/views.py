@@ -27,6 +27,7 @@ from offgridplanner.optimization.helpers import convert_file_to_df
 from offgridplanner.optimization.helpers import validate_file_extension
 from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.models import Nodes
+from offgridplanner.optimization.models import Results
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.processing import GridProcessor
 from offgridplanner.optimization.processing import PreProcessor
@@ -608,15 +609,25 @@ def waiting_for_results(request, proj_id):
 def process_optimization_results(request, proj_id):
     # Processes the results (contains both optimization result objects)
     data = json.loads(request.body)
-    results = data.get("results", {})
-    grid_processor = GridProcessor(proj_id=proj_id, results_json=results.get("grid"))
+    sim_res = data.get("results", {})
+    grid_processor = GridProcessor(proj_id=proj_id, results_json=sim_res.get("grid"))
     grid_processor.grid_results_to_db()
     supply_processor = SupplyProcessor(
-        proj_id=proj_id, results_json=results.get("supply")
+        proj_id=proj_id, results_json=sim_res.get("supply")
     )
     supply_processor.process_supply_optimization_results()
     supply_processor.supply_results_to_db()
-
+    # Process shared results (after both grid and supply have been processed)
+    results = Results.objects.get(simulation__project__id=proj_id)
+    results.lcoe_share_supply = (
+        (results.epc_total - results.cost_grid) / results.epc_total * 100
+    )
+    results.lcoe_share_grid = 100 - results.lcoe_share_supply
+    assets = ["grid", "diesel_genset", "inverter", "rectifier", "battery", "pv"]
+    results.upfront_invest_total = sum(
+        [getattr(results, f"upfront_invest_{key}") for key in assets]
+    )
+    results.save()
     return JsonResponse({"msg": "Optimization results saved to database"})
 
 

@@ -361,8 +361,8 @@ async function load_results(project_id) {
             document.getElementById("surplusRate").innerText = results['surplus_rate'];
             document.getElementById("shortageTotal").innerText = results['shortage_total'];
             document.getElementById("lcoe").innerHTML = results['lcoe'].toString() + " ¢<sub class='sub'>USD</sub>/kWh";
-            document.getElementById("gridLcoe").innerText = results['gridLcoe'];
-            document.getElementById("esLcoe").innerText = results['esLcoe'];
+            document.getElementById("gridLcoe").innerText = results['lcoe_share_grid'];
+            document.getElementById("esLcoe").innerText = results['lcoe_share_supply'];
             document.getElementById("totalConsumption").innerText = results['total_annual_consumption'];
             document.getElementById("totalUpfrontInvestmentCost").innerText = results['upfront_invest_total'];
             document.getElementById("totalUpfrontInvestmentCost2").innerText = results['upfront_invest_total'];
