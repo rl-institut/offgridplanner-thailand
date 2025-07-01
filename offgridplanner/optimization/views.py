@@ -37,6 +37,7 @@ from offgridplanner.optimization.requests import optimization_server_request
 from offgridplanner.optimization.supply.demand_estimation import LOAD_PROFILES
 from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
 from offgridplanner.optimization.tasks import revoke_task
+from offgridplanner.projects.helpers import OUTPUT_KPIS
 from offgridplanner.projects.helpers import df_to_file
 from offgridplanner.projects.models import Project
 from offgridplanner.steps.models import CustomDemand
@@ -647,122 +648,14 @@ def load_results(request, proj_id):
     opts = project.options
     res = project.simulation.results
     df = pd.Series(model_to_dict(res))
-    infeasible = bool(df["infeasible"]) if "infeasible" in df else False
     if df.empty:
         return JsonResponse({})
-    # TODO figure out this logic - I changed it so it would run through but it doesnt make so much sense to me
-    # if df['lcoe'] is None and opts.do_es_design_optimization is True:
-    #     return JsonResponse({})
-    # elif df['n_poles']is None and opts.do_grid_optimization is True:
-    #     return JsonResponse({})
-    if opts.do_grid_optimization is True:
-        df["average_length_distribution_cable"] = (
-            df["length_distribution_cable"] / df["n_distribution_links"]
-        )
-        df["average_length_connection_cable"] = (
-            df["length_connection_cable"] / df["n_connection_links"]
-        )
-        df["gridLcoe"] = float(df["cost_grid"]) / float(df["epc_total"]) * 100
-    else:
-        df["average_length_distribution_cable"] = None
-        df["average_length_connection_cable"] = None
-        df["gridLcoe"] = 0
-    df[["time_grid_design", "time_energy_system_design"]] = df[
-        ["time_grid_design", "time_energy_system_design"]
-    ].fillna(0)
-    df["time"] = df["time_grid_design"] + df["time_energy_system_design"]
-    unit_dict = {
-        "n_poles": "",
-        "n_consumers": "",
-        "n_shs_consumers": "",
-        "length_distribution_cable": "m",
-        "average_length_distribution_cable": "m",
-        "length_connection_cable": "m",
-        "average_length_connection_cable": "m",
-        "cost_grid": "USD/a",
-        "lcoe": "",
-        "gridLcoe": "%",
-        "esLcoe": "%",
-        "res": "%",
-        "max_voltage_drop": "%",
-        "shortage_total": "%",
-        "surplus_rate": "%",
-        "time": "s",
-        "co2_savings": "t/a",
-        "total_annual_consumption": "kWh/a",
-        "average_annual_demand_per_consumer": "W",
-        "upfront_invest_grid": "USD",
-        "upfront_invest_diesel_genset": "USD",
-        "upfront_invest_inverter": "USD",
-        "upfront_invest_rectifier": "USD",
-        "upfront_invest_battery": "USD",
-        "upfront_invest_pv": "USD",
-        "upfront_invest_converters": "USD",
-        "upfront_invest_total": "USD",
-        "battery_capacity": "kWh",
-        "pv_capacity": "kW",
-        "diesel_genset_capacity": "kW",
-        "inverter_capacity": "kW",
-        "rectifier_capacity": "kW",
-        "co2_emissions": "t/a",
-        "fuel_consumption": "liter/a",
-        "peak_demand": "kW",
-        "base_load": "kW",
-        "max_shortage": "%",
-        "cost_fuel": "USD/a",
-        "epc_pv": "USD/a",
-        "epc_diesel_genset": "USD/a",
-        "epc_inverter": "USD/a",
-        "epc_rectifier": "USD/a",
-        "epc_battery": "USD/a",
-        "epc_total": "USD/a",
-    }
-    if opts.do_es_design_optimization is True:
-        df["esLcoe"] = (
-            (float(df["epc_total"]) - float(df["cost_grid"]))
-            / float(df["epc_total"])
-            * 100
-        )
-        if int(df["n_consumers"]) != int(df["n_shs_consumers"]) and not infeasible:
-            df["upfront_invest_converters"] = sum(
-                df[ix] for ix in df.index if "upfront" in ix and "grid" not in ix
-            )
-            df["upfront_invest_total"] = (
-                df["upfront_invest_converters"] + df["upfront_invest_grid"]
-            )
-        else:
-            df["upfront_invest_converters"] = None
-            df["upfront_invest_total"] = None
-    else:
-        df["upfront_invest_converters"] = None
-        df["upfront_invest_total"] = None
-        df["esLcoe"] = 0
-    # TODO formatting, figure out later
-    # for col in df.keys():
-    #     if unit_dict[col] in ['%', 's', 'kW', 'kWh']:
-    #         df[col] = df[col].where(df[col] != 'None', 0)
-    #         if df[col].isna().sum() == 0:
-    #             df[col] = df[col].astype(float).round(1).astype(str)
-    #     elif unit_dict[col] in ['USD', 'kWh/a', 'USD/a']:
-    #         if df[col].isna().sum() == 0 and df.loc[0, col] != 'None':
-    #             df[col] = "{:,}".format(df[col].astype(float).astype(int).iat[0])
-    #     df[col] = df[col] + ' ' + unit_dict[col]
+
+    unit_dict = {kpi: OUTPUT_KPIS[kpi]["unit"] for kpi in OUTPUT_KPIS}
     df = df[list(unit_dict.keys())].astype(float).round(1)
     df["do_grid_optimization"] = opts.do_grid_optimization
     df["do_es_design_optimization"] = opts.do_es_design_optimization
-    if infeasible is True:
-        df["responseMsg"] = (
-            "There are no results of the energy system optimization. There were no feasible "
-            "solution."
-        )
-    elif int(df["n_consumers"]) == int(df["n_shs_consumers"]):
-        df["responseMsg"] = (
-            "Due to high grid costs, all consumers have been equipped with solar home "
-            "systems. A grid was not built, therefore no optimization of the energy system was "
-            "carried out."
-        )
-    else:
-        df["responseMsg"] = ""
+
     return JsonResponse(df.astype(str).to_dict(), status=200)
 
 
