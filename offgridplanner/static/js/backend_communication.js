@@ -336,79 +336,8 @@ async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
 let hasRetried = false;
 
 async function load_results(project_id) {
-    try {
-        const url = loadResultsUrl;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            console.error("Network response was not ok");
-            return;
-        }
-
-        const results = await response.json();
-//        TODO these results should be loaded in the view
-        if (results['n_consumers'] > 0 || results['lcoe'] > 0) {
-            await db_nodes_to_js(markers_only=false);
-            if (results['do_grid_optimization'] === false) {
-                await hide_grid_results();
-            }
-//            TODO this logic should be at the very beginning instead of loading all results and then replacing them
-            if (results['lcoe'] === null || results['lcoe'] === undefined || results['lcoe'].includes('None')) {
-                if (results['responseMsg'].length === 0 && results['do_es_design_optimization'] === true) {
-                    document.getElementById('responseMsg').innerHTML = 'Something went wrong. There are no results of the energy system optimization.';
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                } else {
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                    document.getElementById('responseMsg').innerHTML = results['responseMsg'];
-                    const response6 = await fetch('load-demand-plot-data/' + proj_id);
-                    const data6 = await response6.json();
-                    plot_demand_24h(data6);
-                }
-            } else {
-                if (results['do_es_design_optimization'] === "True") {
-                    await plot_results();
-                } else {
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                }
-            }
-
-        } else {
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('map').style.display = 'none';
-            document.getElementById('noResults').style.display = 'block';
-
-            const res = await fetch("has_pending_task/" + proj_id, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-            const data = await res.json();
-
-            if (data.has_pending_task === true) {
-                document.getElementById("pendingTaskMSG").innerText = 'Calculation is still running.';
-            } else {
-                document.getElementById("pendingTaskMSG").innerText = 'There is no ongoing calculation.\n' +
-                    'Do you want to start a new calculation?';
-            }
-        }
-
-    } catch (error) {
-        console.error("An error occurred:", error);
-
-        if (!hasRetried) {
-            hasRetried = true;
-            console.log("Retrying function load_results");
-            await load_results(project_id);
-        } else {
-            console.log("Already retried once. Not retrying again.");
-        }
-    }
+    await db_nodes_to_js(markers_only=false);
+    await plot_results();
 }
 
 

@@ -37,7 +37,6 @@ from offgridplanner.optimization.requests import optimization_server_request
 from offgridplanner.optimization.supply.demand_estimation import LOAD_PROFILES
 from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
 from offgridplanner.optimization.tasks import revoke_task
-from offgridplanner.projects.helpers import OUTPUT_KPIS
 from offgridplanner.projects.helpers import df_to_file
 from offgridplanner.projects.models import Project
 from offgridplanner.steps.models import CustomDemand
@@ -641,30 +640,3 @@ def abort_calculation(request, proj_id):
     simulation.save()
     response = {"msg": "Calculation aborted"}
     return JsonResponse(response)
-
-
-def load_results(request, proj_id):
-    project = get_object_or_404(Project, id=proj_id)
-    opts = project.options
-    res = project.simulation.results
-    df = pd.Series(model_to_dict(res))
-    if df.empty:
-        return JsonResponse({})
-
-    unit_dict = {kpi: OUTPUT_KPIS[kpi]["unit"] for kpi in OUTPUT_KPIS}
-    df = df[list(unit_dict.keys())].astype(float).round(1)
-    df["do_grid_optimization"] = opts.do_grid_optimization
-    df["do_es_design_optimization"] = opts.do_es_design_optimization
-
-    return JsonResponse(df.astype(str).to_dict(), status=200)
-
-
-# TODO define later based on results models - could also be a method in the results model
-def remove_results(user_id, project_id):
-    # await remove(sa_tables.Results, user_id, project_id)
-    # await remove(sa_tables.DemandCoverage, user_id, project_id)
-    # await remove(sa_tables.EnergyFlow, user_id, project_id)
-    # await remove(sa_tables.Emissions, user_id, project_id)
-    # await remove(sa_tables.DurationCurve, user_id, project_id)
-    # await remove(sa_tables.Links, user_id, project_id)
-    pass
