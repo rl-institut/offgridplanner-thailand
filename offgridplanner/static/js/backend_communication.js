@@ -336,133 +336,8 @@ async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
 let hasRetried = false;
 
 async function load_results(project_id) {
-    try {
-        const url = loadResultsUrl;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            console.error("Network response was not ok");
-            return;
-        }
-
-        const results = await response.json();
-//        TODO these results should be loaded in the view
-        if (results['n_consumers'] > 0 || results['lcoe'] > 0) {
-            document.getElementById('noResults').style.display = 'none';
-            document.getElementById("nConsumers").innerText = Number(results['n_consumers']) - Number(results['n_shs_consumers']);
-            document.getElementById("nGridConsumers").innerText = Number(results['n_consumers']) - Number(results['n_shs_consumers']);
-            document.getElementById("nShsConsumers").innerText = results['n_shs_consumers'];
-            document.getElementById("nPoles").innerText = results['n_poles'];
-            document.getElementById("lengthDistributionCable").innerText = results['length_distribution_cable'];
-            document.getElementById("averageLengthDistributionCable").innerText = results['average_length_distribution_cable'];
-            document.getElementById("lengthConnectionCable").innerText = results['length_connection_cable'];
-            document.getElementById("averageLengthConnectionCable").innerText = results['average_length_connection_cable'];
-            document.getElementById("res").innerText = results['res'];
-            document.getElementById("surplusRate").innerText = results['surplus_rate'];
-            document.getElementById("shortageTotal").innerText = results['shortage_total'];
-            document.getElementById("lcoe").innerHTML = results['lcoe'].toString() + " ¢<sub class='sub'>USD</sub>/kWh";
-            document.getElementById("gridLcoe").innerText = results['gridLcoe'];
-            document.getElementById("esLcoe").innerText = results['esLcoe'];
-            document.getElementById("totalConsumption").innerText = results['total_annual_consumption'];
-            document.getElementById("totalUpfrontInvestmentCost").innerText = results['upfront_invest_total'];
-            document.getElementById("totalUpfrontInvestmentCost2").innerText = results['upfront_invest_total'];
-            document.getElementById("consumptionPerConsumer").innerText = results['average_annual_demand_per_consumer'];
-            document.getElementById("time").innerText = results['time'];
-            document.getElementById("capPV").innerText = results['pv_capacity'];
-            document.getElementById("capBattery").innerText = results['battery_capacity'];
-            document.getElementById("capDiesel").innerText = results['diesel_genset_capacity'];
-            document.getElementById("capPV2").innerText = results['pv_capacity'];
-            document.getElementById("capBattery2").innerText = results['battery_capacity'];
-            document.getElementById("capDiesel2").innerText = results['diesel_genset_capacity'];
-            document.getElementById("capInverter").innerText = results['inverter_capacity'];
-            document.getElementById("capRect").innerText = results['rectifier_capacity'];
-            document.getElementById("res2").innerText = results['res'];
-            document.getElementById("fuelConsumption").innerText = results['fuel_consumption'];
-            document.getElementById("coTwoEmissions").innerText = results['co2_emissions'];
-            document.getElementById("coTwoSavings").innerText = results['co2_savings'];
-            document.getElementById("totalConsumption2").innerText = results['total_annual_consumption'];
-            document.getElementById("peakDemand").innerText = results['peak_demand'];
-            document.getElementById("baseLoad").innerText = results['base_load'];
-            document.getElementById("consumptionPerConsumer2").innerText = results['average_annual_demand_per_consumer'];
-            document.getElementById("shortage").innerText = results['shortage_total'];
-            document.getElementById("surplus").innerText = results['surplus_rate'];
-            document.getElementById("max_shortage").innerText = results['max_shortage'];
-            document.getElementById('GridUpfrontInvestmentCost').innerText = results['upfront_invest_grid'];
-            document.getElementById('DieselUpfrontInvestmentCost').innerText = results['upfront_invest_diesel_gen'];
-            document.getElementById('PVUpfrontInvestmentCost').innerText = results['upfront_invest_pv'];
-            document.getElementById('InverterUpfrontInvestmentCost').innerText = results['upfront_invest_inverter'];
-            document.getElementById('RectifierUpfrontInvestmentCost').innerText = results['upfront_invest_rectifier'];
-            document.getElementById('BatteryUpfrontInvestmentCost').innerText = results['upfront_invest_battery'];
-            document.getElementById('fuelCost').innerText = results['cost_fuel'];
-            document.getElementById('cost_grid').innerText = results['cost_grid'];
-            document.getElementById('epc_pv').innerText = results['epc_pv'];
-            document.getElementById('epc_inverter').innerText = results['epc_inverter'];
-            document.getElementById('epc_rectifier').innerText = results['epc_rectifier'];
-            document.getElementById('epc_diesel_genset').innerText = results['epc_diesel_genset'];
-            document.getElementById('epc_battery').innerText = results['epc_battery'];
-            document.getElementById('epc_total').innerText = results['epc_total'];
-            document.getElementById('LCOE2').innerHTML = results['lcoe'].toString() + " Cent<sub class='sub'>USD</sub>/kWh";
-            await db_nodes_to_js(markers_only=false);
-            if (results['do_grid_optimization'] === false) {
-                await hide_grid_results();
-            }
-//            TODO this logic should be at the very beginning instead of loading all results and then replacing them
-            if (results['lcoe'] === null || results['lcoe'] === undefined || results['lcoe'].includes('None')) {
-                if (results['responseMsg'].length === 0 && results['do_es_design_optimization'] === true) {
-                    document.getElementById('responseMsg').innerHTML = 'Something went wrong. There are no results of the energy system optimization.';
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                } else {
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                    document.getElementById('responseMsg').innerHTML = results['responseMsg'];
-                    const response6 = await fetch('load-demand-plot-data/' + proj_id);
-                    const data6 = await response6.json();
-                    plot_demand_24h(data6);
-                }
-            } else {
-                if (results['do_es_design_optimization'] === "True") {
-                    await plot_results();
-                } else {
-                    await replaceSummaryChart()
-                    await hide_es_results()
-                }
-            }
-
-        } else {
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('map').style.display = 'none';
-            document.getElementById('noResults').style.display = 'block';
-
-            const res = await fetch("has_pending_task/" + proj_id, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-            const data = await res.json();
-
-            if (data.has_pending_task === true) {
-                document.getElementById("pendingTaskMSG").innerText = 'Calculation is still running.';
-            } else {
-                document.getElementById("pendingTaskMSG").innerText = 'There is no ongoing calculation.\n' +
-                    'Do you want to start a new calculation?';
-            }
-        }
-
-    } catch (error) {
-        console.error("An error occurred:", error);
-
-        if (!hasRetried) {
-            hasRetried = true;
-            console.log("Retrying function load_results");
-            await load_results(project_id);
-        } else {
-            console.log("Already retried once. Not retrying again.");
-        }
-    }
+    await db_nodes_to_js(markers_only=false);
+    await plot_results();
 }
 
 
@@ -907,11 +782,19 @@ async function check_optimization(project_id, token, time, model) {
 
         if (response.ok) {
             const res = await response.json();
-            if (res.finished === true) {
-                return { results: res.results }; // Return the result for batch processing
+            if (res.status != "ERROR") {
+                if (res.finished === true) {
+                    return { results: res.results }; // Return the result for batch processing
+                } else {
+                    document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
+                    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+                    return await check_optimization(project_id, res.token, res.time, res.model);
+                }
             } else {
-                document.getElementById("statusMsg").innerHTML = `Waiting for ${model} optimization...`;
-                return await check_optimization(project_id, res.token, res.time, res.model);
+                shouldStop = true;
+                document.getElementById("loader").classList.remove("loader");
+                document.getElementById("loader").classList.add("error-cross");
+                document.getElementById("statusMsg").classList.add("There was an error fetching the optimization");
             }
         } else {
             if (response.status === 303 || response.status === 422) {
@@ -923,6 +806,7 @@ async function check_optimization(project_id, token, time, model) {
         console.error("Fetch error:", error.message);
     }
 }
+
 async function forward_if_no_task_is_pending(project_id) {
     try {
         const response = await fetch("forward_if_no_task_is_pending/", {
@@ -982,15 +866,11 @@ function start_calculation(project_id) {
     })
     .then(response => response.json())
     .then(res => {
-        if (res.redirect && res.redirect.length > 0) {
-            const msg = 'Input data is missing for the opt_models. It appears that you have not gone' +
-                    ' through all the pages to enter the input data. You will be redirected to the ' +
-                    ' corresponding page.';
-                console.log(msg);
-            document.getElementById('responseMsg').innerHTML = msg;
-            const redirectLink = window.location.origin + res.redirect;
-            document.getElementById('redirectLink').href = redirectLink;
-            document.getElementById('msgBox').style.display = 'block';
+        if (res.error && res.error.length > 0) {
+            shouldStop = true;
+            document.getElementById("loader").classList.remove("loader");
+            document.getElementById("loader").classList.add("error-cross");
+            document.getElementById("statusMsg").innerHTML = res.error;
         } else {
             wait_for_both_results(project_id, res.token_supply, res.token_grid);
         }
