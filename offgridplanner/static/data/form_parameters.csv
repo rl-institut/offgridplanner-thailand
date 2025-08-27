@@ -11,10 +11,10 @@ high,,float,0.031,%,CustomDemand,Percentage of households with high demand (2.9k
 very_high,,float,0.015,%,CustomDemand,Percentage of households with very high demand  (3.4kWh/hh/day)
 annual_total_consumption,Set Total Annual Consumption,float,,kWh,CustomDemand,The demand curve will be scaled to meet the given total demand
 annual_peak_consumption,Set Peak Demand,float,,kW,CustomDemand,The demand curve will be scaled to meet the given peak demand
-distribution_cable_lifetime,Lifetime,int,25,Years,GridDesign,Lifespan of the component, after expiration a replacement investment must be made
+distribution_cable_lifetime,Lifetime,int,25,Years,GridDesign,"Lifespan of the component, after expiration a replacement investment must be made"
 distribution_cable_capex,CapEx,float,10,currency/m,GridDesign,Capital Expenditure (CapEx) is the money that has to be spent to purchase the component
 distribution_cable_max_length,Max. Length,float,50,m,GridDesign,Maximum allowed length of the distribution cable
-connection_cable_lifetime,Lifetime,int,25,Years,GridDesign,Lifespan of the component, after expiration a replacement investment must be made
+connection_cable_lifetime,Lifetime,int,25,Years,GridDesign,"Lifespan of the component, after expiration a replacement investment must be made"
 connection_cable_capex,CapEx,float,4,currency/m,GridDesign,Capital Expenditure (CapEx) is the money that has to be spent to purchase the component
 connection_cable_max_length,Max. Length,float,20,m,GridDesign,Maximum allowed length of the connection cable
 pole_lifetime,Lifetime,int,25,Years,GridDesign,"Lifespan of the component, after expiration a replacement investment must be made"
