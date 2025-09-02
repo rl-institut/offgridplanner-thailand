@@ -18,6 +18,8 @@
             <form method="post" class="signup-frame__form">
                 {% csrf_token %}
                 {{ form|crispy }}
+                <button class="btn btn--large" type="submit"
+                    id="loginbutton">{% translate "Login" %}</button>
             </form>
             <!--div style="text-align: left;">
                 <input type="checkbox" class="form-check-input" id="isEnabled"/>
@@ -27,9 +29,6 @@
                 {% translate "Do you not have an account yet?" %} <a
                 href="{% url 'account_signup' %}">{% translate "Sign up" %}</a>
             </div>
-
-            <button class="btn btn--large" type="submit"
-                    id="loginbutton">{% translate "Login" %}</button>
             <!--button onclick="document.getElementById('login').style.display='none'" type="button" class="cancelbtn">
                 Close
             </button>
