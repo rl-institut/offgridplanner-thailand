@@ -2905,10 +2905,10 @@ hr {
 
 /* The Modal Close Button (x) */
 .close {
-    position: absolute;
-    right: 35px;
-    top: 15px;
-    font-size: 40px;
+    position: relative;
+    bottom: 0.25rem;
+    right: 0.5rem;
+    font-size: 2rem;
     font-weight: bold;
     color: #f1f1f1;
 }
@@ -3027,22 +3027,6 @@ button:hover {
 /* Style the horizontal ruler */
 hr {
     margin-bottom: 25px;
-}
-
-/* The Modal Close Button (x) */
-.close {
-    position: absolute;
-    right: 35px;
-    top: 15px;
-    font-size: 40px;
-    font-weight: bold;
-    color: #f1f1f1;
-}
-
-.close:hover,
-.close:focus {
-    color: #1F567D;
-    cursor: pointer;
 }
 
 /* Clear floats */
