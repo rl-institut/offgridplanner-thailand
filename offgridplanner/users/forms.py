@@ -52,7 +52,7 @@ class UserSignupForm(SignupForm):
         super().__init__(*args, **kwargs)
         self.fields["accept_privacy"].label = mark_safe(  # noqa: S308
             _(
-                "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from PeopleSun",
+                "I have read and accept the <a target='_blank' href='%(privacy_url)s'>privacy statement</a> from OffgridPlanner",
             )
             % {"privacy_url": privacy_url}
         )
