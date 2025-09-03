@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
                 table = model._meta.db_table  # noqa: SLF001
                 query = (
-                    f"SELECT setval(pg_get_serial_sequence('\"{table}\"', 'id'), "
+                    f"SELECT setval(pg_get_serial_sequence('\"{table}\"', 'id'), "  # noqa: S608
                     f'coalesce(max("id"), 1), max("id") IS NOT null) FROM "{table}";'
                 )
                 cursor.execute(query)
