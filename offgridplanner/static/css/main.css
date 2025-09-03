@@ -1752,12 +1752,13 @@ nav.navbar .dropdown-menu li {
     }
 }
 
-.wizard {
-    //visibility: hidden; /* Keeps the space in the layout */
-    //opacity: 0;         /* Makes it invisible */
-    //transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
-    /* This transition ensures visibility changes after opacity, avoiding flickering */
+/* .wizard {
+    visibility: hidden;  /* Keeps the space in the layout
+    opacity: 0;         /* Makes it invisible
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    /* This transition ensures visibility changes after opacity, avoiding flickering
 }
+*/
 
 .wizard.show {
     visibility: visible; /* Makes it visible */
@@ -2522,6 +2523,43 @@ content: "7"; }
     background-color: #E3EAEE;
 }
 
+.signup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #F4F7F9; }
+    .signup .signup-frame {
+      width: 100%;
+      max-width: 36rem;
+      padding: 2rem;
+      margin-top: 6rem;
+      background-color: #fff;
+      box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08); }
+      .signup .signup-frame__img {
+        text-align: center; }
+        .signup .signup-frame__img img {
+          height: 6.125rem; }
+      .signup .signup-frame__heading {
+        font-size: 1.953rem;
+        text-align: center;
+        padding-top: 1rem; }
+      .signup .signup-frame__subheading {
+        font-size: 0.875rem;
+        color: #6E6E6E;
+        font-weight: 300;
+        text-align: center;
+        padding-top: 1rem; }
+      .signup .signup-frame__form {
+        padding-top: 2rem; }
+      .signup .signup-frame .form-check {
+        font-size: 0.875rem;
+        color: #6E6E6E;
+        font-weight: 300;
+        padding-top: 1rem; }
+      .signup .signup-frame button {
+        margin-top: 1.5rem; }
+
 
 #leafletMap {
     height: 100%;
@@ -2868,10 +2906,10 @@ hr {
 
 /* The Modal Close Button (x) */
 .close {
-    position: absolute;
-    right: 35px;
-    top: 15px;
-    font-size: 40px;
+    position: relative;
+    bottom: 0.25rem;
+    right: 0.5rem;
+    font-size: 2rem;
     font-weight: bold;
     color: #f1f1f1;
 }
@@ -2990,22 +3028,6 @@ button:hover {
 /* Style the horizontal ruler */
 hr {
     margin-bottom: 25px;
-}
-
-/* The Modal Close Button (x) */
-.close {
-    position: absolute;
-    right: 35px;
-    top: 15px;
-    font-size: 40px;
-    font-weight: bold;
-    color: #f1f1f1;
-}
-
-.close:hover,
-.close:focus {
-    color: #1F567D;
-    cursor: pointer;
 }
 
 /* Clear floats */
