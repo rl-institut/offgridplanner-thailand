@@ -1,6 +1,8 @@
 # Offgridplanner-Django
 
-This tool is the Django-based implementation of the already existing [Offgridplanner tool](https://github.com/rl-institut/tier_spatial_planning/), which originated from the [PeopleSun](https://reiner-lemoine-institut.de/projekt/peoplesun-optimierung-von-off-grid-energieversorgungssystemen-in-nigeria/) project and was originally written using FastAPI.
+This tool is the Django-based implementation of the already existing [Offgridplanner tool](https://github.com/rl-institut/tier_spatial_planning/), which originated from the [PeopleSun](https://reiner-lemoine-institut.de/projekt/peoplesun-optimierung-von-off-grid-energieversorgungssystemen-in-nigeria/)
+project and was originally written using FastAPI. The optimizer code is hosted separately in the [optimizer-offgridplanner](https://github.com/rl-institut/optimizer-offgridplanner)
+repository.
 
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -18,6 +20,12 @@ The features of the tool are listed below:
 - **Design Optimization of Generation Systems:** Optimizes the design of PV systems, battery systems, inverters, and diesel-engines.
 - **Automatic Identification for Individual Solar Home Systems:** Identifies buildings that are more suitably served by individual solar home systems.
 
+The energy system and grid optimizations are performed on a dedicated server, where the Offgridplanner app will send the
+requests to and fetch the results from. More information and deployment instructions for the simulation server can be found
+in the [optimizer-offgridplanner](https://github.com/rl-institut/optimizer-offgridplanner) repository.
+
+To perform the simulation, weather data is currently fetched through the [renewables.ninja](https://www.renewables.ninja/) API.
+Therefore, you will need a user account and corresponding API token, which gets stored within an environment variable.
 
 ## Basic Structure
 The application is composed of the following services:
@@ -59,12 +67,13 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 USE_DOCKER=(yes|no)
 DJANGO_DEBUG=(True|False)
+SIM_API_HOST=<simulation server address>
+RN_API_HOST=https://www.renewables.ninja/api/
+RN_API_TOKEN=<renewables.ninja API token>
 ```
 5. Execute the local_setup.sh file (`sh local_setup.sh` / `. local_setup.sh`)
-6. Start the redis service with `redis-server` (you will need to use a WSL terminal if developing on Windows)
-7. Start the celery worker in a separate terminal with `celery -A config.celery_app worker -l info` (you may have to specify `--pool=solo` if developing on Windows)
-8. Start your local mail server in a new terminal with `mailpit`. To view the UI, access http://127.0.0.1:8025/
-9. Start the local development server in a new terminal with `python manage.py runserver` :)
+6. Start your local mail server in a new terminal with `mailpit`. To view the UI, access http://127.0.0.1:8025/
+7. Start the local development server in a new terminal with `python manage.py runserver` :)
 
 For more information on developing locally, refer to the [cookiecutter-django documentation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally.html).
 
