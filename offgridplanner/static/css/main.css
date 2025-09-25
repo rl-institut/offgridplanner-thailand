@@ -1705,11 +1705,21 @@ nav.navbar .dropdown-menu li {
         padding-left: 1.5rem;
     }
 
+    .navbar .nav-item.locale select {
+      width: auto;
+      border: 1px solid #1F567D;
+      margin: 0.6rem 0.8rem 0 1.25rem;
+      padding-right: 0.25rem;
+      color: #1F567D;
+      position: relative;
+      background-color: #fff; }
+
     .navbar .nav-item.locale::before {
         content: '|';
         position: absolute;
         top: 0.5rem;
         left: 1.1rem;
+        color: #1F567D;
     }
 
     .navbar .nav-item .btn {
@@ -1718,6 +1728,15 @@ nav.navbar .dropdown-menu li {
 
     .navbar .nav-item a.nav-link {
         padding-left: 1.5rem;
+    }
+
+    .navbar .nav-item.proj-info {
+      display: inline-block;
+      font-size: 0.75em;
+      padding: 0.5em 0 0 0.5em;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #1F567D;
     }
 
     .navbar .nav-item.dropdown.profile a {

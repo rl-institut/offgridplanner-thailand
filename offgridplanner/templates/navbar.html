@@ -55,6 +55,12 @@
           </form>
         </li>
         {% if user.is_authenticated %}
+          {% if project %}
+          <li class="nav-item proj-info">
+              {{ user.email }}<br>
+              {{ project.name }}
+          </li>
+          {% endif %}
           <li class="nav-item dropdown profile">
             <a class="nav-link dropdown-toggle"
                href="#"
