@@ -21,7 +21,6 @@
                 <span class="title"></span>
                 <table id="projectTable">
                   <tr style="border-bottom:1px solid black">
-                    <th>ID</th>
                     <th>Project Name</th>
                     <th>Creation Date</th>
                     <th>Last Update</th>
@@ -35,7 +34,6 @@
                   {% if projects|length > 0 %}
                     {% for project in projects %}
                       <tr>
-                        <td>{{ project.id }}</td>
                         <td>{{ project.name }}</td>
                         <td>{{ project.date_created }}</td>
                         <td>{{ project.date_updated }}</td>
