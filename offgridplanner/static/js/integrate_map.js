@@ -213,53 +213,42 @@ async function put_markers_on_map(array, markers_only) {
 
     initializeMap(null, null, bounds);
 
-    for (counter = 0; counter < n; counter++) {
-        if (array[counter]["node_type"] === "consumer") {
-            num_consumers++;  // Increase the consumer counter
+    for (let counter = 0; counter < n; counter++) {
+      const node = array[counter];
+      let selectedIcon = null;
 
-            // Count the specific types of consumers
-            if (array[counter]["consumer_type"] === "household") {
-                num_households++;
-            } else if (array[counter]["consumer_type"] === "enterprise") {
-                num_enterprises++;
-            } else if (array[counter]["consumer_type"] === "public_service") {
-                num_public_services++;
-            }
+      if (node.node_type === "consumer") {
+        num_consumers++;
 
-            // Determine the icon to use
-            if (markers_only) {
-                if (array[counter]["shs_options"] == 2) {
-                    selected_icon = markerShs;
-                } else if (array[counter]["consumer_type"] === "household") {
-                    selected_icon = markerConsumer;
-                } else if (array[counter]["consumer_type"] === "enterprise") {
-                    selected_icon = markerEnterprise;
-                } else if (array[counter]["consumer_type"] === "public_service") {
-                    selected_icon = markerPublicservice;
-                }
-            } else {
-                if (array[counter]["is_connected"] === false) {
-                    selected_icon = markerShs;
-                } else if (array[counter]["consumer_type"] === "household") {
-                    selected_icon = markerConsumer;
-                } else if (array[counter]["consumer_type"] === "enterprise") {
-                    selected_icon = markerEnterprise;
-                } else if (array[counter]["consumer_type"] === "public_service") {
-                    selected_icon = markerPublicservice;
-                }
-            }
-        } else if (markers_only) {
-//          TODO it seems that when markers_only is true, all consumers show up as powerhouses. Not sure what this option is needed for in the first place, check and maybe delete
-            selected_icon = markerPowerHouse;
+        if (node.consumer_type === "household") num_households++;
+        else if (node.consumer_type === "enterprise") num_enterprises++;
+        else if (node.consumer_type === "public_service") num_public_services++;
+
+        if (markers_only) {
+          if (node.shs_options === 2) selectedIcon = markerShs;
+          else if (node.consumer_type === "household") selectedIcon = markerConsumer;
+          else if (node.consumer_type === "enterprise") selectedIcon = markerEnterprise;
+          else if (node.consumer_type === "public_service") selectedIcon = markerPublicservice;
         } else {
-            selected_icon = icons[array[counter]["node_type"]];
+          const isConnected = (node.is_connected === true || node.is_connected === "true");
+          if (!isConnected) selectedIcon = markerShs;
+          else if (node.consumer_type === "household") selectedIcon = markerConsumer;
+          else if (node.consumer_type === "enterprise") selectedIcon = markerEnterprise;
+          else if (node.consumer_type === "public_service") selectedIcon = markerPublicservice;
         }
+      } else {
+        if (!markers_only) {
+          selectedIcon = icons[node.node_type] || null;
+        }
+      }
 
-        // Add the marker to the map
-        L.marker([array[counter]["latitude"], array[counter]["longitude"]], {icon: selected_icon})
-            .on('click', markerOnClick)
-            .addTo(map);
+  // Only add if we actually chose an icon for this node
+  if (selectedIcon) {
+  L.marker([node.latitude, node.longitude], { icon: selectedIcon })
+    .on("click", markerOnClick)
+    .addTo(map);
     }
+}
 
     // Update the elements with the counts
     if (document.getElementById("n_consumers")) {
@@ -276,8 +265,10 @@ async function put_markers_on_map(array, markers_only) {
     }
 
     zoomAll(map);
-    if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
-         db_links_to_js();
+    if (!markers_only) {
+        if (typeof loadDrawingToolsJS === 'undefined' || loadDrawingToolsJS === null) {
+             db_links_to_js();
+        }
     }
 }
 

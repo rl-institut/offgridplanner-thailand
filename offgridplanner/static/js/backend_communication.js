@@ -151,7 +151,7 @@ function db_links_to_js() {
 }
 
 // customer_selection
-async function db_nodes_to_js(proj_id, markers_only=false) {
+async function db_nodes_to_js(proj_id, markers_only) {
     fetch(dbNodesToJsUrl + '/' + markers_only)
         .then(response => response.json())
         .then(data => {
@@ -188,7 +188,7 @@ async function file_nodes_to_js(formData) {
                 is_load_center = result.is_load_center;
                 load_legend();
                 if (map_elements !== null) {
-                    put_markers_on_map(map_elements, true);
+                    put_markers_on_map(map_elements, markers_only=true);
                 }
             } else if (result !== null && 'responseMsg' in result) {
                 document.getElementById('responseMsg').innerHTML = result.responseMsg;
