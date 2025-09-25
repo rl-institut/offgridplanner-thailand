@@ -55,6 +55,12 @@
           </form>
         </li>
         {% if user.is_authenticated %}
+          {% if project %}
+          <li class="nav-item proj-info">
+              {{ user.email }}<br>
+              {{ project.name }}
+          </li>
+          {% endif %}
           <li class="nav-item dropdown profile">
             <a class="nav-link dropdown-toggle"
                href="#"
@@ -65,6 +71,9 @@
               <img src="{% static 'assets/icons/i_profile.svg' %}" alt="Profile icon" />
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li>
+                <a class="dropdown-item" href="{% url 'projects:home' %}">{% translate "My Projects" %}</a>
+              </li>
               <li>
                 <a class="dropdown-item" href="{% url 'users:detail' user.id %}">{% translate "Account" %}</a>
               </li>

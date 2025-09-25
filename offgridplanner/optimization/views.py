@@ -340,7 +340,10 @@ def load_demand_plot_data(request, proj_id=None):
     time_range = range(24)
     nodes = Nodes.objects.get(project__id=proj_id)
     custom_demand = CustomDemand.objects.get(project__id=proj_id)
-    demand_df = get_demand_timeseries(nodes, custom_demand, time_range=time_range)
+    # get demand and convert to kWh
+    demand_df = (
+        get_demand_timeseries(nodes, custom_demand, time_range=time_range) / 1000
+    )
     load_profiles = LOAD_PROFILES.iloc[time_range].copy()
 
     timeseries = {

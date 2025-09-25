@@ -207,6 +207,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "offgridplanner.users.context_processors.allauth_settings",
+                "offgridplanner.steps.context_processors.current_project",
             ],
         },
     },
