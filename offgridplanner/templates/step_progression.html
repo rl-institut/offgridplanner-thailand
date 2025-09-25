@@ -16,15 +16,6 @@
         <span class="project">{{ proj_name }}</span>
         <!--span class="scenario">{% translate "Scenario" %} {{ scenario.name }}</span -->
       </h1>
-      <div class="wizard__back">
-        <div>
-          {% if proj_id %}
-            <a href="{% url 'projects:projects_list' proj_id %}">{% translate "My projects" %}</a>
-          {% else %}
-            <a href="{% url 'projects:projects_list' %}">{% translate "My projects" %}</a>
-          {% endif %}
-        </div>
-      </div>
       <div class="wizard__steps">
         <ul>
           {% for step in step_list %}

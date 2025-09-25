@@ -66,6 +66,9 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
               <li>
+                <a class="dropdown-item" href="{% url 'projects:home' %}">{% translate "My Projects" %}</a>
+              </li>
+              <li>
                 <a class="dropdown-item" href="{% url 'users:detail' user.id %}">{% translate "Account" %}</a>
               </li>
               <!-- account.html -->
