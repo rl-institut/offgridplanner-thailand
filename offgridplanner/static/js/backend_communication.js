@@ -876,6 +876,10 @@ function start_calculation(project_id) {
         }
     })
     .catch(error => {
+        shouldStop = true;
+        document.getElementById("loader").classList.remove("loader");
+        document.getElementById("loader").classList.add("error-cross");
+        document.getElementById("statusMsg").innerHTML = "An error occurred";
         console.error('There was an error!', error);
     });
 }
