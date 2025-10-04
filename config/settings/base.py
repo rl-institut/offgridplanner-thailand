@@ -397,7 +397,9 @@ SIMULATION_STATUS = (
     (MODIFIED, MODIFIED),
 )
 
-# Renewables.ninja data
+# Weather data
+WEATHER_DATA_API_HOST = os.getenv("WEATHER_DATA_API_HOST", "")
+
 RN_API_HOST = os.getenv("RN_API_HOST", "")
 RN_API_TOKEN = os.getenv("RN_API_TOKEN", "")
 
