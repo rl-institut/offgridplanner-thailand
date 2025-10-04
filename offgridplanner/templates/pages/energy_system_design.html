@@ -318,6 +318,87 @@
           </div>
         </div>
       </div>
+        <div class="row">
+        <div class="col-md-4">
+          <div class="box" id="selectH2StorageBox">
+            {% for field_name, field in grouped_fields|getkey:"H2 Storage" %}
+            {% if field_name == "h2_storage_settings_is_selected" %}
+            <div class="box__header">
+              {{ field|add_class:"form-check-input" }}
+              <div class="form-check">
+                <span class="grid-title" id="selectH2Storage">{{ field.label }}</span>
+              </div>
+            </div>
+            {% elif field_name == "h2_storage_settings_design" %}
+            <div class="row">
+              {{ field }}
+            </div>
+            {% else %}
+            <div class="row">
+              <div class="input-group">
+                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                {{ field|add_class:"form-control" }}
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box box--medium" id="selectElectrolyzerBox">
+            {% for field_name, field in grouped_fields|getkey:"Electrolyzer" %}
+            {% if field_name == "electrolyzer_settings_is_selected" %}
+            <div class="box__header">
+              {{ field|add_class:"form-check-input" }}
+                <div class="form-check">
+                  <span class="grid-title" id="selectElectrolyzer">{{ field.label }}</span>
+                </div>
+            </div>
+            {% elif field_name == "electrolyzer_settings_design" %}
+            <div class="row">
+            {{ field }}
+            </div>
+            {% else %}
+            <div class="row">
+              <div class="input-group">
+                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                {{ field|add_class:"form-control" }}
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box box--medium" id="selectFuelCellBox">
+            {% for field_name, field in grouped_fields|getkey:"Fuel Cell" %}
+            {% if field_name == "fuel_cell_settings_is_selected" %}
+            <div class="box__header">
+              {{ field|add_class:"form-check-input" }}
+                <div class="form-check">
+                  <span class="grid-title" id="selectFuelCell">{{ field.label }}</span>
+                </div>
+            </div>
+            {% elif field_name == "fuel_cell_settings_design" %}
+            <div class="row">
+            {{ field }}
+            </div>
+            {% else %}
+            <div class="row">
+              <div class="input-group">
+                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                {{ field|add_class:"form-control" }}
+                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
       <div class="row">
         <p style="font-size: 12px;">
           Sources:
