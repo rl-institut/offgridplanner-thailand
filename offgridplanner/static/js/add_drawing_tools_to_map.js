@@ -141,7 +141,6 @@ let drawControl = new L.Control.Draw({
     }
 });
 
-map.addControl(drawControl);
 
 const CustomMarkerControl = L.Control.extend({
     options: {
@@ -182,7 +181,6 @@ const CustomMarkerControl = L.Control.extend({
     }
 });
 
-map.addControl(new CustomMarkerControl());
 
 
 function add_single_consumer_to_array(latitude, longitude, how_added, node_type) {
@@ -263,7 +261,6 @@ function customTrashBinAction() {
 }
 
 const trashbinControl = new L.Control.Trashbin();
-map.addControl(trashbinControl);
 
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
@@ -274,7 +271,6 @@ const searchControl = new GeoSearch.GeoSearchControl({
     showMarker: false,
 });
 
-map.addControl(searchControl);
 
 const searchInput = document.getElementById('search-input');
 
@@ -345,8 +341,6 @@ var customControl = L.Control.extend({
     }
 });
 
-// Add the control to the map
-map.addControl(new customControl());
 
 
 function unique_map_elements() {
@@ -405,3 +399,12 @@ function count_consumers(first_update = true) {
         document.getElementById("n_public_services").innerText = num_public_services;
     }
 }
+
+function addDrawingToolsToMap() {
+    map.addControl(new CustomMarkerControl());
+    map.addControl(trashbinControl);
+    map.addControl(searchControl);
+    map.addControl(new customControl());
+    map.addControl(drawControl);
+}
+addDrawingToolsToMap();
