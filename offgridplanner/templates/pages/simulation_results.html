@@ -560,6 +560,7 @@
 {% block end_body_scripts %}
     <script>
       const proj_id = '{{ proj_id }}';
+      const boundsDict = {{ bounds_dict | safe }};
       const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
       const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
       const loadPlotDataUrl = `{% url 'optimization:load_plot_data' proj_id %}`;

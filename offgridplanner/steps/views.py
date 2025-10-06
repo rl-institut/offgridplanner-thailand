@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from config.settings.base import PENDING
+from offgridplanner.optimization.helpers import get_country_bounds
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
@@ -121,10 +122,13 @@ def consumer_selection(request, proj_id=None):
         for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
     }
 
+    country_bounds = get_country_bounds(proj_id)
+
     context = {
         "public_service_list": public_service_list,
         "enterprise_list": enterprise_list,
         "large_load_list": large_load_list,
+        "bounds_dict": country_bounds,
         "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
         "step_list": STEP_LIST_RIBBON,
     }
@@ -322,6 +326,8 @@ def simulation_results(request, proj_id=None):
     for kpi in output_kpis:
         output_kpis[kpi]["value"] = df[kpi].round(1)
 
+    country_bounds = get_country_bounds(proj_id)
+
     return render(
         request,
         "pages/simulation_results.html",
@@ -331,6 +337,7 @@ def simulation_results(request, proj_id=None):
             "results": output_kpis,
             "do_grid_optimization": opts.do_grid_optimization,
             "do_supply_optimization": opts.do_es_design_optimization,
+            "bounds_dict": country_bounds,
             "step_list": STEP_LIST_RIBBON,
         },
     )

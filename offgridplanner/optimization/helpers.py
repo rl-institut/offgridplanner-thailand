@@ -1,16 +1,22 @@
 import io
+import logging
 import os
 
 import numpy as np
 import pandas as pd
+from country_bounding_boxes import country_subunits_by_iso_code
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
+from rest_framework.generics import get_object_or_404
 
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
 from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_LIST
 from offgridplanner.projects.helpers import df_to_file
+from offgridplanner.projects.models import Project
+
+logger = logging.getLogger(__name__)
 
 
 def validate_file_extension(filename):
@@ -95,7 +101,38 @@ def convert_column_types(df, column_types):
     return df
 
 
-def check_geographic_bounds(df):
+def get_country_bounds(proj_id):
+    project = get_object_or_404(Project, id=proj_id)
+
+    country = project.country
+    country_info = country_subunits_by_iso_code(country)
+
+    bboxes = [c.bbox for c in country_info]
+    # TODO figure out how to handle the case when there are multiple subunits for the country code
+    if len(bboxes) == 0:
+        logger.warning(
+            "Country code returned no bounding box data. Defaulting to Nigeria bounds"
+        )
+        country_info = country_subunits_by_iso_code("NG")
+        bboxes = [c.bbox for c in country_info]
+    if len(bboxes) > 1:
+        logger.warning(
+            "Country code returned more than one country. Bounding box may represent incorrect subunit."
+        )
+
+    bbox = bboxes[0]
+
+    bounds_data = {
+        "longitude_min": bbox[0],
+        "latitude_min": bbox[1],
+        "longitude_max": bbox[2],
+        "latitude_max": bbox[3],
+    }
+
+    return bounds_data
+
+
+def check_geographic_bounds(df, proj_id):
     max_distance = float(os.environ.get("MAX_LAT_LON_DIST", 0.15))
     if (
         df["latitude"].max() - df["latitude"].min() > max_distance
@@ -104,24 +141,21 @@ def check_geographic_bounds(df):
         error_msg = "Distance between consumers exceeds maximum allowed distance."
         raise ValidationError(error_msg)
 
-    nigeria_bounds = {
-        "latitude_min": 4.2,
-        "latitude_max": 13.9,
-        "longitude_min": 2.7,
-        "longitude_max": 14.7,
-    }
+    country_bounds = get_country_bounds(proj_id)
     out_of_bounds = df[
-        (df["latitude"] < nigeria_bounds["latitude_min"])
-        | (df["latitude"] > nigeria_bounds["latitude_max"])
-        | (df["longitude"] < nigeria_bounds["longitude_min"])
-        | (df["longitude"] > nigeria_bounds["longitude_max"])
+        (df["latitude"] < country_bounds["latitude_min"])
+        | (df["latitude"] > country_bounds["latitude_max"])
+        | (df["longitude"] < country_bounds["longitude_min"])
+        | (df["longitude"] > country_bounds["longitude_max"])
     ]
     if not out_of_bounds.empty:
-        error_msg = "Some latitude/longitude values are outside the bounds of Nigeria."
+        error_msg = (
+            "Some latitude/longitude values are outside the selected country bounds."
+        )
         raise ValidationError(error_msg)
 
 
-def check_imported_consumer_data(df):
+def check_imported_consumer_data(df, proj_id):
     """Validate imported consumer data."""
     if df.empty:
         error = "No data could be read."
@@ -176,7 +210,7 @@ def check_imported_consumer_data(df):
     }
     convert_column_types(df, column_types)
     # Check geographic bounds
-    check_geographic_bounds(df)
+    check_geographic_bounds(df, proj_id)
     df = df[
         [
             "latitude",

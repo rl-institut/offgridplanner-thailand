@@ -25,10 +25,6 @@
 
 var is_load_center = true;
 
-const nigeriaBounds = [
-    [4.2, 2.7], // Southwest corner
-    [13.9, 14.7] // Northeast corner
-];
 let map;
 
 var legend = L.control({position: "bottomright"});
@@ -93,13 +89,21 @@ var image = [
 const drawnItems = new L.FeatureGroup();
 
 let is_active = false;
+let countryBounds = [
+    [boundsDict.latitude_min, boundsDict.longitude_min],
+    [boundsDict.latitude_max, boundsDict.longitude_max]
+  ];
+let countryCentroid = [
+    (boundsDict.longitude_min + boundsDict.longitude_max) / 2,
+    (boundsDict.latitude_min + boundsDict.latitude_max) / 2,
+  ]
 
 function initializeMap(center = null, zoom = null, bounds = null) {
     if (!map) {
         // Only initialize the map if it hasn't been initialized yet
         map = L.map('map', {
             preferCanvas: true, // This ensures Leaflet renders vectors and geometries on a Canvas.
-            maxBounds: nigeriaBounds,
+            maxBounds: countryBounds,
             maxBoundsViscosity: 1.0,
         });
 
@@ -112,7 +116,7 @@ function initializeMap(center = null, zoom = null, bounds = null) {
             map.fitBounds(bounds);
         } else {
             // Fallback to a default view if no specific bounds or center/zoom are provided
-            map.setView([9.8838, 5.9231], 6); // Default center and zoom
+            map.setView(countryCentroid, 6); // Default center and zoom
         }
 
 
