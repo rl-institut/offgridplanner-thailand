@@ -74,7 +74,7 @@ def request_renewables_ninja_pv_output(lat, lon):
         "capacity": 1.0,
         "system_loss": 0.1,
         "tracking": 0,
-        "tilt": lat,
+        "tilt": 30,
         "azim": 180,
         "format": "json",
     }
