@@ -185,12 +185,15 @@ def db_links_to_js(request, proj_id):
 # @json_view
 @require_http_methods(["GET"])
 def db_nodes_to_js(request, proj_id=None, *, markers_only=False):
+    if isinstance(markers_only, str):
+        markers_only = True if markers_only == "true" else False  # noqa:SIM210
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
         if project.user != request.user:
             raise PermissionDenied
-        nodes = get_object_or_404(Nodes, project=project)
-        df = nodes.df if nodes is not None else pd.DataFrame()
+        nodes_qs = Nodes.objects.filter(project=project)
+        df = nodes_qs.get().df if nodes_qs.exists() else pd.DataFrame()
+        is_load_center = True
         if not df.empty:
             df = df[
                 [
@@ -215,17 +218,18 @@ def db_nodes_to_js(request, proj_id=None, *, markers_only=False):
                 else:
                     df = df[df["node_type"] == "consumer"]
             df = df.fillna("null")
-            nodes_list = df.to_dict("records")
-            is_load_center = True
             if (
                 len(power_house.index) > 0
                 and power_house["how_added"].iloc[0] == "manual"
             ):
                 is_load_center = False
-            return JsonResponse(
-                {"is_load_center": is_load_center, "map_elements": nodes_list},
-                status=200,
-            )
+
+        nodes_list = df.to_dict("records")
+        return JsonResponse(
+            {"is_load_center": is_load_center, "map_elements": nodes_list},
+            status=200,
+        )
+    return JsonResponse({"msg": "Missing project ID"}, status=400)
 
 
 @require_http_methods(["POST"])
@@ -307,7 +311,7 @@ def consumer_to_db(request, proj_id=None):
 
 
 @require_http_methods(["POST"])
-def file_nodes_to_js(request):
+def file_nodes_to_js(request, proj_id):
     if "file" not in request.FILES:
         return JsonResponse({"responseMsg": "No file uploaded."}, status=400)
 
@@ -321,7 +325,7 @@ def file_nodes_to_js(request):
     df = convert_file_to_df(file, file_extension)
 
     try:
-        df, msg = check_imported_consumer_data(df)
+        df, msg = check_imported_consumer_data(df, proj_id)
         if df is None and msg:
             return JsonResponse({"responseMsg": msg}, status=400)
     except ValueError as e:
