@@ -3,12 +3,14 @@ import logging
 
 import httpx
 import pandas as pd
+import requests
 
 from config.settings.base import RN_API_HOST
 from config.settings.base import RN_API_TOKEN
 from config.settings.base import SIM_GET_URL
 from config.settings.base import SIM_GRID_POST_URL
 from config.settings.base import SIM_SUPPLY_POST_URL
+from config.settings.base import WEATHER_DATA_API_HOST
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +74,7 @@ def request_renewables_ninja_pv_output(lat, lon):
         "capacity": 1.0,
         "system_loss": 0.1,
         "tracking": 0,
-        "tilt": lat,
+        "tilt": 30,
         "azim": 180,
         "format": "json",
     }
@@ -84,3 +86,39 @@ def request_renewables_ninja_pv_output(lat, lon):
     pv_data = pd.read_json(json.dumps(parsed_response["data"]), orient="index")
 
     return pv_data
+
+
+def request_weather_data(latitude, longitude, *, timeinfo=False):
+    session = requests.Session()
+
+    # TODO one shouldn't need a csrftoken for server to server
+    # fetch CSRF token
+    csrf_response = session.get(WEATHER_DATA_API_HOST + "get_csrf_token/")
+    csrftoken = csrf_response.json()["csrfToken"]
+
+    payload = {"latitude": latitude, "longitude": longitude}
+
+    # headers = {"content-type": "application/json"}
+    headers = {
+        "X-CSRFToken": csrftoken,
+        "Referer": WEATHER_DATA_API_HOST,
+    }
+
+    post_response = session.post(WEATHER_DATA_API_HOST, data=payload, headers=headers)
+    # TODO here would be best to return a token but this requires celery on the weather_data API side
+    # If we get a high request amount we might need to do so anyway
+    if post_response.ok:
+        response_data = post_response.json()
+        df = pd.DataFrame(response_data["variables"])
+        logger.info("The weather data API fetch worked successfully")
+
+        if timeinfo is True:
+            timeindex = response_data["time"]
+    else:
+        df = pd.DataFrame()
+        logger.error("The weather data API fetch did not work")
+
+    if timeinfo is False:
+        return df
+    else:
+        return df, timeindex

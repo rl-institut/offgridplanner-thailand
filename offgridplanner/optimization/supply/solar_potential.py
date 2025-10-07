@@ -8,6 +8,7 @@ of a photovoltaic (PV) system based on the weather data. The module's integratio
 combined with detailed solar panel and inverter specifications, enables it to calculate solar potential time series
 """
 
+import logging
 import warnings
 from pathlib import Path
 
@@ -15,7 +16,6 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pvlib
-import pytz
 from feedinlib import era5
 from pvlib.location import Location
 from pvlib.modelchain import ModelChain
@@ -23,8 +23,10 @@ from pvlib.pvsystem import PVSystem
 from pvlib.temperature import TEMPERATURE_MODEL_PARAMETERS
 
 from config.settings.base import CDS_API_KEY
-from offgridplanner.optimization.models import WeatherData
 from offgridplanner.optimization.requests import request_renewables_ninja_pv_output
+from offgridplanner.optimization.requests import request_weather_data
+
+logger = logging.getLogger(__name__)
 
 # TODO this will no longer be needed, for local try to mode from oginal ogp mySQL
 # originally in sync_queries.py
@@ -66,149 +68,6 @@ from offgridplanner.optimization.requests import request_renewables_ninja_pv_out
 #         _insert_df(model_class.__name__.lower(), df, if_exists='update')
 
 
-# originally in sync_queries.py
-def get_weather_data(lat, lon, start, end):
-    index = pd.date_range(start, end, freq="h")
-
-    ts_changed = False
-
-    # if end > make_aware(pd.to_datetime("2023-03-01")):
-    #     end = (pd.to_datetime(f"2022-{start.month}-{start.day}")) + (end - start)
-    #     start = (pd.to_datetime(f"2022-{start.month}-{start.day}"))
-    #     ts_changed = True
-
-    closest_lat, closest_lon = get_closest_grid_point(lat, lon)
-
-    # TODO the data in the DB is ty aware but set to UTC, we need to make the
-    #  DB data not tz aware, in the meantime this fixes it
-    qs = WeatherData.objects.filter(
-        lat=closest_lat,
-        lon=closest_lon,
-        dt__range=(
-            start.replace(tzinfo=pytz.timezone("UTC")),
-            end.replace(tzinfo=pytz.timezone("UTC")),
-        ),
-    )
-    # Convert QuerySet to DataFrame
-    df = pd.DataFrame.from_records(qs.values()).set_index("dt").astype(float)
-
-    # TODO the data is saved in DB as time-aware, right now we don't need this
-    # TODO when n_days < 360, there is a length mismatch between the index and the db data, this is a quick fix but we should look at it properly later
-    try:
-        df.index = index
-    except ValueError:
-        df = df[:-1]
-        df.index = index
-    # if ts_changed:
-    #     df.index = index
-
-    return df
-
-
-# originally in sync_queries.py
-def get_closest_grid_point(lat, lon):
-    # TODO handle this in a different way than with these hard-coded coords -
-    #  prone to error and clunky to implement once we expand to other countries
-    lats = pd.Series(
-        [
-            14.442,
-            14.192,
-            13.942,
-            13.692,
-            13.442,
-            13.192,
-            12.942,
-            12.692,
-            12.442,
-            12.192,
-            11.942,
-            11.692,
-            11.442,
-            11.192,
-            10.942,
-            10.692,
-            10.442,
-            10.192,
-            9.942,
-            9.692,
-            9.442,
-            9.192,
-            8.942,
-            8.692,
-            8.442,
-            8.192,
-            7.942,
-            7.692,
-            7.442,
-            7.192,
-            6.942,
-            6.692,
-            6.442,
-            6.192,
-            5.942,
-            5.692,
-            5.442,
-            5.192,
-            4.942,
-            4.692,
-            4.442,
-            4.192,
-            3.942,
-            3.692,
-            3.442,
-            3.192,
-            2.942,
-            2.691,
-        ],
-    )
-    lons = pd.Series(
-        [
-            4.24,
-            4.490026,
-            4.740053,
-            4.990079,
-            5.240105,
-            5.490131,
-            5.740158,
-            5.990184,
-            6.240211,
-            6.490237,
-            6.740263,
-            6.99029,
-            7.240316,
-            7.490342,
-            7.740368,
-            7.990395,
-            8.240421,
-            8.490447,
-            8.740474,
-            8.9905,
-            9.240526,
-            9.490553,
-            9.740579,
-            9.990605,
-            10.240631,
-            10.490658,
-            10.740685,
-            10.99071,
-            11.240737,
-            11.490763,
-            11.740789,
-            11.990816,
-            12.240842,
-            12.490869,
-            12.740894,
-            12.990921,
-            13.240948,
-            13.490973,
-            13.741,
-        ],
-    )
-    closest_lat = round(lats.loc[(lats - lat).abs().idxmin()], 3)
-    closest_lon = round(lons.loc[(lons - lon).abs().idxmin()], 3)
-    return closest_lat, closest_lon
-
-
 def create_cdsapirc_file():
     home_dir = Path("~").expanduser()
     file_path = Path(home_dir) / ".cdsapirc"
@@ -245,49 +104,77 @@ def download_weather_data(start_date, end_date, country="Nigeria", target_file="
 def prepare_weather_data(data_xr):
     df = era5.format_pvlib(data_xr)
     df = df.reset_index()
-    df = df.rename(columns={"valid_time": "dt", "latitude": "lat", "longitude": "lon"})
+    df = df.rename(columns={"time": "dt", "latitude": "lat", "longitude": "lon"})
     df = df.set_index(["dt"])
     df["dni"] = np.nan
-    grid_points = retrieve_grid_points(data_xr)
-    for lon, lat in grid_points:
-        mask = (df["lat"] == lat) & (df["lon"] == lon)
-        tmp_df = df.loc[mask]
-        solar_position = pvlib.solarposition.get_solarposition(
-            time=tmp_df.index,
-            latitude=lat,
-            longitude=lon,
-        )
-        df.loc[mask, "dni"] = pvlib.irradiance.dni(
-            ghi=tmp_df["ghi"],
-            dhi=tmp_df["dhi"],
-            zenith=solar_position["apparent_zenith"],
-        ).fillna(0)
+    lat = float(data_xr.latitude)
+    lon = float(data_xr.longitude)
+    solar_position = pvlib.solarposition.get_solarposition(
+        time=df.index,
+        latitude=lat,
+        longitude=lon,
+    )
+    df["dni"] = pvlib.irradiance.dni(
+        ghi=df["ghi"],
+        dhi=df["dhi"],
+        zenith=solar_position["apparent_zenith"],
+    ).fillna(0)
     df = df.reset_index()
     df["dt"] = df["dt"] - pd.Timedelta("30min")
     df["dt"] = df["dt"].dt.tz_convert("UTC").dt.tz_localize(None)
     df.iloc[:, 3:] = (df.iloc[:, 3:] + 0.0000001).round(1)
     df.loc[:, "lon"] = df.loc[:, "lon"].round(3)
     df.loc[:, "lat"] = df.loc[:, "lat"].round(7)
-    df.iloc[:, 1:] = df.iloc[:, 1:].astype(str)
+    df = df.set_index("dt")
     return df
 
 
-def retrieve_grid_points(ds):
-    lat = ds.variables["latitude"][:]
-    lon = ds.variables["longitude"][:]
-    lon_grid, lat_grid = np.meshgrid(lat, lon)
-    grid_points = np.stack((lat_grid, lon_grid), axis=-1)
-    grid_points = grid_points.reshape(-1, 2)
-    return grid_points
+def build_xarray_for_pvlib(lat, lon, dt_index):
+    era5_units = {
+        "d2m": {"units": "K", "long_name": "2 metre dewpoint temperature"},
+        "e": {"units": "m", "long_name": "Evaporation (water equivalent)"},
+        "fdir": {
+            "units": "J/m²",
+            "long_name": "Total sky direct solar radiation at surface",
+        },
+        "fsr": {"units": "1", "long_name": "Fraction of solar radiation"},
+        "sp": {"units": "Pa", "long_name": "Surface pressure"},
+        "ssrd": {"units": "J/m²", "long_name": "Surface solar radiation downwards"},
+        "t2m": {"units": "K", "long_name": "2 metre temperature"},
+        "tp": {"units": "m", "long_name": "Total precipitation"},
+        "u10": {"units": "m/s", "long_name": "10 metre U wind component"},
+        "u100": {"units": "m/s", "long_name": "100 metre U wind component"},
+        "v10": {"units": "m/s", "long_name": "10 metre V wind component"},
+        "v100": {"units": "m/s", "long_name": "100 metre V wind component"},
+    }
+
+    df = request_weather_data(lat, lon)
+    df.index = dt_index
+    df.index.name = "time"
+    ds = df.to_xarray()
+
+    # Attach scalar coords for the site
+    ds = ds.assign_coords(latitude=float(lat), longitude=float(lon))
+
+    # Add ERA5-style attributes expected by pvlib
+    for var, attrs in era5_units.items():
+        if var in ds:
+            ds[var] = ds[var].assign_attrs(attrs)
+
+    return ds
 
 
 def get_dc_feed_in_sync_db_query(lat, lon, dt_index):
     try:
-        weather_df = get_weather_data(lat, lon, dt_index[0], dt_index[-1])
+        cds_data = build_xarray_for_pvlib(lat, lon, dt_index)
+        weather_df = prepare_weather_data(cds_data)
         solar_potential = _get_dc_feed_in(lat, lon, weather_df)
-    # If the weather data db is not set up, send API call to renewables.ninja instead
-    except KeyError:
-        # TODO the results between the pvlib modeling and the RN potential output vary greatly, double check
+    # If something goes wrong using the internal weather data API, request data from renewables.ninja instead (warning: results can vary)
+    except Exception as e:  # noqa:BLE001
+        logger.warning(
+            "Could not fetch weather data from API, defaulted to renewables.ninja instead.",
+            exc_info=True,
+        )
         solar_potential = request_renewables_ninja_pv_output(lat, lon)["electricity"]
         solar_potential.index = dt_index
     return solar_potential
