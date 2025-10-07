@@ -280,13 +280,6 @@ searchInput.addEventListener('keypress', async (event) => {
         if (!query) return;
 
         let results = await searchProvider.search({query});
-
-        // Retry if no results found or if the result is outside Nigeria without having 'Nigeria' in the query
-        if ((!results || results.length === 0 || !isLatLngInMapBounds(results[0].y, results[0].x)) && !query.toLowerCase().includes("nigeria")) {
-            query += ", Nigeria";
-            results = await searchProvider.search({query});
-        }
-
         if (results && results.length > 0) {
             const {x: lng, y: lat} = results[0];
 
@@ -294,7 +287,7 @@ searchInput.addEventListener('keypress', async (event) => {
                 map.setView([lat, lng], 13);
             } else {
                 const responseMsg = document.getElementById("responseMsg");
-                responseMsg.innerHTML = 'Location is outside of Nigeria';
+                responseMsg.innerHTML = 'Location not inside country bounds';
             }
         } else {
             alert('No results found');
