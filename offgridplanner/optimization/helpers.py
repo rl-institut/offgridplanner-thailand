@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from rest_framework.generics import get_object_or_404
 
+from config.settings.base import DEFAULT_COUNTRY
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
@@ -111,9 +112,10 @@ def get_country_bounds(proj_id):
     # TODO figure out how to handle the case when there are multiple subunits for the country code
     if len(bboxes) == 0:
         logger.warning(
-            "Country code returned no bounding box data. Defaulting to Nigeria bounds"
+            "Country code returned no bounding box data. Defaulting to %s bounds",
+            DEFAULT_COUNTRY[1],
         )
-        country_info = country_subunits_by_iso_code("NG")
+        country_info = country_subunits_by_iso_code(DEFAULT_COUNTRY[0])
         bboxes = [c.bbox for c in country_info]
     if len(bboxes) > 1:
         logger.warning(

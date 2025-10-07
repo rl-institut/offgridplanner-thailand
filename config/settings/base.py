@@ -377,6 +377,11 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
     "SCHEMA_PATH_PREFIX": "/api/",
 }
+
+# OFFGRIDPLANNER SETTINGS
+# Assumed country based on timeseries data (used for map settings and user warning if a different country is selected)
+DEFAULT_COUNTRY = ("NG", "Nigeria")
+
 # SIMULATION
 # ------------------------------------------------------------------------------
 SIM_API_HOST = os.getenv("SIM_API_HOST")
