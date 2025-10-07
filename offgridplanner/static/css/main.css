@@ -1588,9 +1588,6 @@ div.disabled {
     padding: 1rem 3rem 1rem;
 }
 
-.modal .modal-body {
-    padding: 3rem;
-}
 
 table.table {
     -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
@@ -2896,7 +2893,6 @@ button:hover {
     text-align: center;
 }
 
-/* The Modal (background) */
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -2907,11 +2903,10 @@ button:hover {
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
     background-color: rgba(0, 0, 0, 0.5);
-    padding-top: 50px;
 }
 
-/* Modal Content/Box */
 .modal-content {
+    position: relative;
     background-color: var(--bct);
     margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
     border: 0px solid #fff;
@@ -2923,19 +2918,26 @@ hr {
     margin-bottom: 25px;
 }
 
-/* The Modal Close Button (x) */
 .close {
-    position: relative;
-    bottom: 0.25rem;
-    right: 0.5rem;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
     font-size: 2rem;
     font-weight: bold;
-    color: #f1f1f1;
+    color: #1F567D;
+    border: 2px solid #1F567D;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;              /* centers the X */
+    align-items: center;        /* vertical centering */
+    justify-content: center;    /* horizontal centering */
 }
-
 .close:hover,
 .close:focus {
-    color: #1F567D;
+    color: #163c56;
     cursor: pointer;
 }
 

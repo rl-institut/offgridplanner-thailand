@@ -269,7 +269,7 @@
                       <div id="search-container">
                         <input class="input-group-text"
                                id="search-input"
-                               placeholder="Search location within Nigeria"
+                               placeholder="Search location"
                                style="text-align: left"
                                type="text" />
                       </div>
@@ -344,9 +344,10 @@
       const public_service_list = {{ public_service_list | safe }};
       const enterprise_list = {{ enterprise_list | safe }};
       const large_load_list = {{ large_load_list | safe }};
+      const boundsDict = {{ bounds_dict | safe }};
       const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
       const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
-      const fileNodesToJsUrl = `{% url 'optimization:file_nodes_to_js' %}`;
+      const fileNodesToJsUrl = `{% url 'optimization:file_nodes_to_js' proj_id %}`;
       const consumerToDBUrl = `{% url 'optimization:consumer_to_db' proj_id %}`;
       const addBuildingsUrl = `{% url 'optimization:add_buildings_inside_boundary' proj_id  %}`;
       const removeBuildingsUrl = `{% url 'optimization:remove_buildings_inside_boundary' proj_id  %}`;

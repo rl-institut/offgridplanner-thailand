@@ -131,6 +131,8 @@ def convert_value(value, dtype):
         return int(value)
     elif dtype == "bool":
         return bool(value)
+    elif dtype == "str":
+        return str(value)
     else:
         msg = f"Type {dtype} not supported"
         raise ValueError(msg)

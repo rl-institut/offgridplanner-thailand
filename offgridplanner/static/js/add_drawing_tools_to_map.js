@@ -141,7 +141,6 @@ let drawControl = new L.Control.Draw({
     }
 });
 
-map.addControl(drawControl);
 
 const CustomMarkerControl = L.Control.extend({
     options: {
@@ -182,7 +181,6 @@ const CustomMarkerControl = L.Control.extend({
     }
 });
 
-map.addControl(new CustomMarkerControl());
 
 
 function add_single_consumer_to_array(latitude, longitude, how_added, node_type) {
@@ -263,7 +261,6 @@ function customTrashBinAction() {
 }
 
 const trashbinControl = new L.Control.Trashbin();
-map.addControl(trashbinControl);
 
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
@@ -274,7 +271,6 @@ const searchControl = new GeoSearch.GeoSearchControl({
     showMarker: false,
 });
 
-map.addControl(searchControl);
 
 const searchInput = document.getElementById('search-input');
 
@@ -284,13 +280,6 @@ searchInput.addEventListener('keypress', async (event) => {
         if (!query) return;
 
         let results = await searchProvider.search({query});
-
-        // Retry if no results found or if the result is outside Nigeria without having 'Nigeria' in the query
-        if ((!results || results.length === 0 || !isLatLngInMapBounds(results[0].y, results[0].x)) && !query.toLowerCase().includes("nigeria")) {
-            query += ", Nigeria";
-            results = await searchProvider.search({query});
-        }
-
         if (results && results.length > 0) {
             const {x: lng, y: lat} = results[0];
 
@@ -298,7 +287,7 @@ searchInput.addEventListener('keypress', async (event) => {
                 map.setView([lat, lng], 13);
             } else {
                 const responseMsg = document.getElementById("responseMsg");
-                responseMsg.innerHTML = 'Location is outside of Nigeria';
+                responseMsg.innerHTML = 'Location not inside country bounds';
             }
         } else {
             alert('No results found');
@@ -345,8 +334,6 @@ var customControl = L.Control.extend({
     }
 });
 
-// Add the control to the map
-map.addControl(new customControl());
 
 
 function unique_map_elements() {
@@ -405,3 +392,12 @@ function count_consumers(first_update = true) {
         document.getElementById("n_public_services").innerText = num_public_services;
     }
 }
+
+function addDrawingToolsToMap() {
+    map.addControl(new CustomMarkerControl());
+    map.addControl(trashbinControl);
+    map.addControl(searchControl);
+    map.addControl(new customControl());
+    map.addControl(drawControl);
+}
+addDrawingToolsToMap();

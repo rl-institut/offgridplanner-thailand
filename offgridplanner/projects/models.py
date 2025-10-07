@@ -1,10 +1,14 @@
 import datetime
 
+import pycountry
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.forms.models import model_to_dict
+
+# Create a list containing (two-letter-code, country-name) tuples from the pycountry data
+COUNTRIES = [(country.alpha_2, country.name) for country in pycountry.countries]
 
 
 def default_start_date():
@@ -35,6 +39,7 @@ class Project(models.Model):
     start_date = models.DateTimeField(default=default_start_date)
     temporal_resolution = models.PositiveSmallIntegerField(default=1)
     n_days = models.PositiveSmallIntegerField(default=365)
+    country = models.CharField(max_length=51, choices=COUNTRIES)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
