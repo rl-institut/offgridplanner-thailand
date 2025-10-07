@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pycountry
 from country_bounding_boxes import country_subunits_by_iso_code
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
@@ -106,23 +107,22 @@ def get_country_bounds(proj_id):
     project = get_object_or_404(Project, id=proj_id)
 
     country = project.country
+    country_verbose = pycountry.countries.get(alpha_2=country).name
     country_info = country_subunits_by_iso_code(country)
+    bboxes = {c.subunit: c.bbox for c in country_info}
 
-    bboxes = [c.bbox for c in country_info]
-    # TODO figure out how to handle the case when there are multiple subunits for the country code
-    if len(bboxes) == 0:
+    # Pick the bounding box that encompasses the country and not one of its subunits
+    try:
+        bbox = bboxes[country_verbose]
+    except KeyError:
         logger.warning(
-            "Country code returned no bounding box data. Defaulting to %s bounds",
+            "An error occurred fetching bounding box data. Either no data was returned, or an error occurred "
+            "fetching entire country bounds instead of sub-units. Defaulting to %s bounds",
             DEFAULT_COUNTRY[1],
         )
         country_info = country_subunits_by_iso_code(DEFAULT_COUNTRY[0])
-        bboxes = [c.bbox for c in country_info]
-    if len(bboxes) > 1:
-        logger.warning(
-            "Country code returned more than one country. Bounding box may represent incorrect subunit."
-        )
-
-    bbox = bboxes[0]
+        bboxes = {c.subunit: c.bbox for c in country_info}
+        bbox = bboxes[DEFAULT_COUNTRY[1]]
 
     bounds_data = {
         "longitude_min": bbox[0],
