@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.forms import model_to_dict
 from django.http import HttpResponseRedirect
@@ -11,6 +12,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
+from config.settings.base import DEFAULT_COUNTRY
 from config.settings.base import PENDING
 from offgridplanner.optimization.helpers import get_country_bounds
 from offgridplanner.optimization.models import Simulation
@@ -109,38 +111,51 @@ def project_setup(request, proj_id=None):
 # @login_required()
 @require_http_methods(["GET"])
 def consumer_selection(request, proj_id=None):
-    public_service_list = {
-        f"group{ix}": service
-        for ix, service in enumerate(sorted(PUBLIC_SERVICE_LIST), 1)
-    }
-    enterprise_list = {
-        f"group{ix}": enterprise
-        for ix, enterprise in enumerate(sorted(ENTERPRISE_LIST), 1)
-    }
-    large_load_list = {
-        f"group{ix}": f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
-        for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
-    }
-
-    country_bounds = get_country_bounds(proj_id)
-
-    context = {
-        "public_service_list": public_service_list,
-        "enterprise_list": enterprise_list,
-        "large_load_list": large_load_list,
-        "bounds_dict": country_bounds,
-        "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
-        "step_list": STEP_LIST_RIBBON,
-    }
-    if proj_id is not None:
+    if proj_id is None:
+        err = "Project ID missing"
+        raise ValueError(err)
+    else:
         project = get_object_or_404(Project, id=proj_id)
         if project.user.email != request.user.email:
             raise PermissionDenied
-        context["proj_id"] = project.id
 
-    # _wizard.js contains info for the POST function set when clicking on next or on another step
+        public_service_list = {
+            f"group{ix}": service
+            for ix, service in enumerate(sorted(PUBLIC_SERVICE_LIST), 1)
+        }
+        enterprise_list = {
+            f"group{ix}": enterprise
+            for ix, enterprise in enumerate(sorted(ENTERPRISE_LIST), 1)
+        }
+        large_load_list = {
+            f"group{ix}": f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
+            for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
+        }
 
-    return render(request, "pages/consumer_selection.html", context)
+        country_bounds = get_country_bounds(proj_id)
+
+        country = project.country
+        if country != DEFAULT_COUNTRY[0]:
+            timeseries_warning = (
+                f"You have not selected {DEFAULT_COUNTRY[1]} as a location. You may continue the "
+                f"process, but please consider that the demand assigned to the consumers is based on data specific "
+                f"to {DEFAULT_COUNTRY[1]}, and may not accurately reflect electricity demand for other locations."
+            )
+            messages.add_message(request, messages.WARNING, timeseries_warning)
+
+        context = {
+            "public_service_list": public_service_list,
+            "enterprise_list": enterprise_list,
+            "large_load_list": large_load_list,
+            "bounds_dict": country_bounds,
+            "step_id": list(STEPS.keys()).index("consumer_selection") + 1,
+            "step_list": STEP_LIST_RIBBON,
+            "proj_id": proj_id,
+        }
+
+        # _wizard.js contains info for the POST function set when clicking on next or on another step
+
+        return render(request, "pages/consumer_selection.html", context)
 
 
 # @login_required()
