@@ -439,13 +439,13 @@ function plot_bar_chart(data) {
 
     let optimalSizes = document.getElementById('optimalSizes');
     let xValue = [
-        'PV',
-        'Inverter',
-        'Rectifier',
-        'Diesel Genset',
-        'Peak Demand',
-        'Max. Surplus',
-        'Battery'
+      gettext('PV'),
+      gettext('Inverter'),
+      gettext('Rectifier'),
+      gettext('Diesel Genset'),
+      gettext('Peak Demand'),
+      gettext('Max. Surplus'),
+      gettext('Battery'),
     ];
 
     // Reverse the arrays
@@ -500,7 +500,7 @@ function plot_bar_chart(data) {
             automargin: true, // Enable automatic margin adjustment
         },
         xaxis: {
-            title: 'Capacity in kW',
+            title: gettext('Capacity in kW'),
             titlefont: {
                 color: 'rgb(8,48,107)',
                 size: 16,
@@ -553,7 +553,7 @@ function plot_lcoe_pie(lcoe_breakdown) {
         type: 'pie',
         hole: .6,
         values: [cost_renewable_assets, cost_non_renewable_assets, cost_grid, cost_fuel],
-        labels: ['Renewable Assets', 'Non-Renewable Assets', 'Grid', 'Fuel'],
+        labels: [gettext('Renewable Assets'), gettext('Non-Renewable Assets'), gettext('Grid'), gettext('Fuel')],
         marker: {
             colors: ['rgb(9, 188, 138)', 'rgb(73, 89, 101)', 'rgb(236, 154, 41)', 'rgb(154, 3, 30)'],
             line: {
@@ -609,15 +609,15 @@ function plot_sankey(data) {
                 color: 'black',
                 width: 0.5
             },
-            label: ['Fuel',
-                'Diesel Genset',
-                'Rectifier',
-                'PV',
-                'DC Bus',
-                'Battery',
-                'Inverter',
-                'Demand',
-                'Surplus'],
+            label: [gettext('Fuel'),
+                gettext('Diesel Genset'),
+                gettext('Rectifier'),
+                gettext('PV'),
+                gettext('DC Bus'),
+                gettext('Battery'),
+                gettext('Inverter'),
+                gettext('Demand'),
+                gettext('Surplus')],
             color: 'rgb(23, 64, 92)',
         },
 
@@ -634,16 +634,16 @@ function plot_sankey(data) {
                 dc_bus_to_inverter,
                 pv_to_surplus,
                 inverter_to_demand],
-            label: ['Fuel supplied to the diesel genset',
-                'Diesel genset output sent to the rectifier',
-                'AC demand covered by the diesel genset',
-                'Diesel genset electricity converted to DC',
-                'PV electricity generation',
-                'Battery discharge',
-                'Battery charge',
-                'DC electricity sent to the inverter',
-                'Surplus PV electricity',
-                'AC demand covered by the PV system'],
+            label: [gettext('Fuel supplied to the diesel genset'),
+                gettext('Diesel genset output sent to the rectifier'),
+                gettext('AC demand covered by the diesel genset'),
+                gettext('Diesel genset electricity converted to DC'),
+                gettext('PV electricity generation'),
+                gettext('Battery discharge'),
+                gettext('Battery charge'),
+                gettext('DC electricity sent to the inverter'),
+                gettext('Surplus PV electricity'),
+                gettext('AC demand covered by the PV system')],
             color: 'rgb(168, 181, 192)',
         }
     }]
@@ -671,7 +671,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: diesel_genset_production,
         mode: 'lines',
-        name: 'Diesel Genset',
+        name: gettext('Diesel Genset'),
         line: {shape: 'hv'},
         type: 'scatter',
     };
@@ -679,7 +679,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: pv_production,
         mode: 'lines',
-        name: 'PV',
+        name: gettext('PV'),
         line: {shape: 'hv'},
         type: 'scatter',
     };
@@ -687,7 +687,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: battery,
         mode: 'lines',
-        name: 'Battery In-/Output',
+        name: gettext('Battery In-/Output'),
         line: {shape: 'hv'},
         type: 'scatter',
     };
@@ -695,7 +695,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: battery_content,
         mode: 'lines',
-        name: 'Battery Content',
+        name: gettext('Battery Content'),
         yaxis: 'y2',  //this makes sure that the trace uses the second y-axis.
         line: {shape: 'hv'},
         type: 'scatter',
@@ -706,7 +706,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: demand,
         mode: 'lines',
-        name: 'Demand',
+        name: gettext('Demand'),
         line: {shape: 'hv'},
         type: 'scatter',
     };
@@ -714,7 +714,7 @@ function plot_energy_flows(energy_flows) {
         x: time,
         y: surplus,
         mode: 'lines',
-        name: 'Surplus',
+        name: gettext('Surplus'),
         line: {shape: 'hv'},
         type: 'scatter',
     };
@@ -734,7 +734,7 @@ function plot_energy_flows(energy_flows) {
             },
         },
         yaxis: {
-            title: 'Energy Flow in kW',
+            title: gettext('Energy Flow in kW'),
             titlefont: {
                 size: 16,
             },
@@ -743,7 +743,7 @@ function plot_energy_flows(energy_flows) {
             }
         },
         yaxis2: {   // second y-axis
-            title: 'Battery Content in kWh',
+            title: gettext('Battery Content in kWh'),
             overlaying: 'y',
             side: 'right',
             showgrid: false,
@@ -779,7 +779,7 @@ function plot_demand_coverage(demand_coverage) {
         // mode: 'none',
         // fill: 'tozeroy',
         stackgroup: 'one',
-        name: 'Non-Renewable',
+        name: gettext('Non-Renewable'),
     };
     const trace2 = {
         x: time,
@@ -787,14 +787,14 @@ function plot_demand_coverage(demand_coverage) {
         // mode: 'none',
         // fill: 'tonexty',
         stackgroup: 'one',
-        name: 'Renewable'
+        name: gettext('Renewable')
 
     };
     const trace3 = {
         x: time,
         y: demand,
         mode: 'line',
-        name: 'Demand',
+        name: gettext('Demand'),
         line: {
             color: 'black',
             width: 2.5
@@ -806,14 +806,14 @@ function plot_demand_coverage(demand_coverage) {
         // mode: 'none',
         // fill: 'tonexty',
         stackgroup: 'one',
-        name: 'surplus',
+        name: gettext('Surplus'),
     };
 
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
-            title: 'Time in hours',
+            title: gettext('Time in hours'),
             titlefont: {
                 size: 16,
             },
@@ -822,7 +822,7 @@ function plot_demand_coverage(demand_coverage) {
             },
         },
         yaxis: {
-            title: 'Demand in kW',
+            title: gettext('Demand in kW'),
             titlefont: {
                 size: 16,
             },
@@ -860,42 +860,42 @@ function plot_duration_curves(duration_curves) {
         x: pv_percentage,
         y: diesel_genset_duration,
         mode: 'lines',
-        name: 'Diesel Genset'
+        name: gettext('Diesel Genset')
 
     };
     const trace2 = {
         x: pv_percentage,
         y: pv_duration,
         mode: 'lines',
-        name: 'PV'
+        name: gettext('PV')
 
     };
     const trace3 = {
         x: pv_percentage,
         y: rectifier_duration,
         mode: 'lines',
-        name: 'Rectifier'
+        name: gettext('Rectifier')
 
     };
     const trace4 = {
         x: pv_percentage,
         y: inverter_duration,
         mode: 'lines',
-        name: 'Inverter'
+        name: gettext('Inverter')
 
     };
     const trace5 = {
         x: pv_percentage,
         y: battery_charge_duration,
         mode: 'lines',
-        name: 'Battery - Charging'
+        name: gettext('Battery - Charging')
 
     };
     const trace6 = {
         x: pv_percentage,
         y: battery_discharge_duration,
         mode: 'lines',
-        name: 'Battery - Discharging'
+        name: gettext('Battery - Discharging')
 
     };
 
@@ -905,7 +905,7 @@ function plot_duration_curves(duration_curves) {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
-            title: 'Percentage of Operation in %',
+            title: gettext('Percentage of Operation in %'),
             titlefont: {
                 size: 16,
             },
@@ -914,7 +914,7 @@ function plot_duration_curves(duration_curves) {
             },
         },
         yaxis: {
-            title: 'Load in %',
+            title: gettext('Load in %'),
             titlefont: {
                 size: 16,
             },
@@ -942,20 +942,20 @@ function plot_co2_emissions(co2_emissions) {
         x: time,
         y: non_renewable,
         mode: 'lines',
-        name: 'Non-Renewable'
+        name: gettext('Non-Renewable')
     };
     const trace2 = {
         x: time,
         y: hybrid,
         mode: 'none',
         fill: 'tonexty',
-        name: 'Savings'
+        name: gettext('Savings')
     };
     const trace3 = {
         x: time,
         y: hybrid,
         mode: 'lines',
-        name: 'Hybrid'
+        name: gettext('Hybrid')
     };
     var data = [trace1, trace2, trace3];
     const layout = {
@@ -971,7 +971,7 @@ function plot_co2_emissions(co2_emissions) {
             },
         },
         yaxis: {
-            title: 'CO<sub>2</sub> Emissions [tons]',
+            title: gettext('CO<sub>2</sub> Emissions [tons]'),
             titlefont: {
                 size: 16,
             },
@@ -1036,13 +1036,13 @@ function plot_demand_24h(data) {
         font: { size: 14 },
         autosize: true,
         xaxis: {
-            title: 'Hour of the day',
+            title: gettext('Hour of the day'),
             hoverformat: '.1f',
             titlefont: { size: 16 },
             tickfont: { size: 14 },
         },
         yaxis: {
-            title: 'Demand (kW)',
+            title: gettext('Demand (kW)'),
             hoverformat: '.1f',
             titlefont: { size: 16 },
             tickfont: { size: 14 },
@@ -1073,7 +1073,7 @@ function plot_demand_24h(data) {
         y: households,
         type: 'scatter',
         mode: 'lines',
-        name: 'Demand of Households',
+        name: gettext('Demand of Households'),
         line: { shape: 'spline', width: 2, color: 'rgba(31, 119, 180, 1)' },
         fill: 'tonexty',
         fillcolor: 'rgba(31, 119, 180, 0.5)',
@@ -1085,7 +1085,7 @@ function plot_demand_24h(data) {
         y: enterprises,
         type: 'scatter',
         mode: 'lines',
-        name: 'Demand of Enterprises',
+        name: gettext('Demand of Enterprises'),
         line: { shape: 'spline', width: 2, color: 'rgba(255, 127, 14, 1)' },
         fill: 'tonexty',
         fillcolor: 'rgba(255, 127, 14, 0.5)',
@@ -1097,7 +1097,7 @@ function plot_demand_24h(data) {
         y: public_services,
         type: 'scatter',
         mode: 'lines',
-        name: 'Demand of Public Services',
+        name: gettext('Demand of Public Services'),
         line: { shape: 'spline', width: 2, color: 'rgba(44, 160, 44, 1)' },
         fill: 'tonexty',
         fillcolor: 'rgba(44, 160, 44, 0.5)',

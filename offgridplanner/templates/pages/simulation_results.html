@@ -2,6 +2,7 @@
 
 {% load crispy_forms_tags %}
 {% load static %}
+{% load statici18n %}
 {% load i18n %}
 {% load humanize %}
 
@@ -568,7 +569,7 @@
   <script src="{% static 'js/integrate_map.js' %}"></script>
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <script src="{% static 'js/third_party/plotly.js' %}"></script>
-  <script src="{% url 'javascript-catalog' %}"></script>
+  <script src="{% statici18n LANGUAGE_CODE %}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
   <script src="{% static 'js/pages/simulation_results.js' %}"></script>
   <script src="{% static 'js/backend_communication.js' %}"></script>
