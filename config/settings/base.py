@@ -94,6 +94,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "drf_spectacular",
     "widget_tweaks",
+    "statici18n",
 ]
 
 LOCAL_APPS = [
@@ -206,6 +207,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
                 "offgridplanner.users.context_processors.allauth_settings",
                 "offgridplanner.steps.context_processors.current_project",
             ],
