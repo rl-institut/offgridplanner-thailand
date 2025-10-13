@@ -759,7 +759,8 @@ async function wait_for_both_results(project_id, token_supply, token_grid) {
     });
 
     if (response.ok) {
-        window.location.href = window.location.origin + '/steps/simulation_results/' + project_id;
+        const lang_prefix = '/' + lang;
+        window.location.href = window.location.origin + lang_prefix +'/steps/simulation_results/' + project_id;
     } else {
         console.error("Failed to process final results");
         window.location.href = "/?internal_error";
