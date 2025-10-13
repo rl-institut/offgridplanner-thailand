@@ -6,6 +6,9 @@ set -o nounset
 
 echo COLLECTSTATIC
 python /app/manage.py collectstatic --noinput
+
+echo MANAGETRANSLATIONS
+python manage.py compilemessages --locale=th
 python manage.py compilejsi18n -d django
 
 compress_enabled() {
