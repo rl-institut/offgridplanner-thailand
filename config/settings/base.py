@@ -381,7 +381,7 @@ SPECTACULAR_SETTINGS = {
 
 # OFFGRIDPLANNER SETTINGS
 # Assumed country based on timeseries data (used for map settings and user warning if a different country is selected)
-DEFAULT_COUNTRY = ("NG", "Nigeria")
+DEFAULT_COUNTRY = ("TH", "Thailand")
 
 # SIMULATION
 # ------------------------------------------------------------------------------
