@@ -175,11 +175,13 @@ def demand_estimation(request, proj_id=None):
             form = CustomDemandForm(instance=custom_demand)
             calibration_initial = custom_demand.calibration_option
             calibration_active = custom_demand.calibration_option is not None
+            household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
             context = {
                 "calibration": {
                     "active": calibration_active,
                     "initial": calibration_initial,
                 },
+                "household_initial_shares": household_initial_shares,
                 "form": form,
                 "proj_id": proj_id,
                 "step_id": step_id,
