@@ -18,30 +18,21 @@ PUBLIC_SERVICE_LIST = [
 ENTERPRISE_LIST = [
     profile.split("_", maxsplit=1)[1]
     for profile in LOAD_PROFILES.columns
-    if (
-        profile.split("_", maxsplit=1)[0] == "Enterprise"
-        and not profile.split("_", maxsplit=1)[1].startswith("Large Load")
-    )
+    if profile.split("_", maxsplit=1)[0] == "Enterprise"
 ]
 LARGE_LOAD_LIST = [
-    profile.split("_")[2]
+    profile.split("_", maxsplit=1)[1]
     for profile in LOAD_PROFILES.columns
-    if (
-        profile.split("_", maxsplit=1)[0] == "Enterprise"
-        and profile.split("_", maxsplit=1)[1].startswith("Large Load")
-    )
+    if profile.split("_", maxsplit=1)[0] == "Appliances"
 ]
+
+# TODO replace with actual power info
 LARGE_LOAD_KW_MAPPING = {
-    "Milling Machine": 7.5,
-    "Crop Dryer": 8,
-    "Thresher": 8,
-    "Grinder": 5.2,
-    "Sawmill": 2.25,
-    "Circular Wood Saw": 1.5,
-    "Jigsaw": 0.4,
-    "Drill": 0.4,
-    "Welder": 5.25,
-    "Angle Grinder": 2,
+    "Water pump": 0,
+    "AC ": 0,
+    "Computer/laptop": 0,
+    "Fridge": 0,
+    "Washing Machine": 0,
 }
 
 
@@ -180,8 +171,10 @@ def compute_household_demand(consumer_type_counts, custom_demand_params, load_pr
     total_households = consumer_type_counts.get("default", 0)
 
     for demand_param, value in custom_demand_params.items():
-        if demand_param in ["very_low", "low", "middle", "high", "very_high"]:
-            profile_col = f"Household_Distribution_Based_{demand_param.title().replace('_', ' ')} Consumption"
+        if demand_param in ["low", "middle", "high"]:
+            profile_col = (
+                f"Household_{demand_param.title().replace('_', ' ')} Consumption"
+            )
             total_demand += load_profiles[profile_col] * value
 
     return total_demand * total_households
@@ -199,7 +192,7 @@ def compute_standard_demand(consumer_type, consumer_type_counts, load_profiles):
         total_demand (pd.Series): Total demand
     """
     if consumer_type == "machinery":
-        ts_string_prefix = "Enterprise_Large Load"
+        ts_string_prefix = "Appliances_"
     else:
         ts_string_prefix = f"{consumer_type.title().replace('_', ' ')}"
     ts_cols = [f"{ts_string_prefix}_{ts}" for ts in consumer_type_counts.index]
