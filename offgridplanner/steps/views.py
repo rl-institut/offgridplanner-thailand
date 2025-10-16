@@ -169,6 +169,7 @@ def demand_estimation(request, proj_id=None):
         )
         calibration_initial = custom_demand.calibration_option
         calibration_active = calibration_initial is not None
+        household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
 
         if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
@@ -187,6 +188,7 @@ def demand_estimation(request, proj_id=None):
                 "active": calibration_active,
                 "initial": calibration_initial,
             },
+            "household_initial_shares": household_initial_shares,
             "form": form,
             "proj_id": proj_id,
             "step_id": step_id,

@@ -66,6 +66,14 @@ class CustomDemand(models.Model):
         )
         return calibration_option
 
+    def get_shares_dict(self, *, as_percentage=False):
+        multiplier = 100 if as_percentage else 1
+        shares_fields = ["very_low", "low", "middle", "high", "very_high"]
+        shares_dict = {
+            field: getattr(self, field) * multiplier for field in shares_fields
+        }
+        return shares_dict
+
 
 class GridDesign(NestedModel):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
