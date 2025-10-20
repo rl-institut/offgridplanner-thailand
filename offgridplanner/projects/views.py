@@ -9,7 +9,6 @@ from http.client import HTTPException
 import pandas as pd
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import HttpResponse
@@ -34,6 +33,7 @@ from offgridplanner.projects.helpers import collect_project_dataframes
 from offgridplanner.projects.helpers import load_project_from_dict
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
+from offgridplanner.steps.decorators import user_owns_project
 from offgridplanner.steps.models import CustomDemand
 from offgridplanner.steps.models import EnergySystemDesign
 from offgridplanner.steps.models import GridDesign
@@ -78,12 +78,12 @@ def projects_list(request, proj_id=None):
     return render(request, "pages/user_projects.html", {"projects": projects})
 
 
+@login_required
+@user_owns_project
 @require_http_methods(["GET", "POST"])
 def project_duplicate(request, proj_id):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
-        if project.user != request.user:
-            raise PermissionDenied
         # TODO check user rights to the project
         dm = project.export()
         user = User.objects.get(email=request.user.email)
@@ -93,12 +93,11 @@ def project_duplicate(request, proj_id):
     return HttpResponseRedirect(reverse("projects:projects_list"))
 
 
+@login_required
+@user_owns_project
 @require_http_methods(["POST"])
 def project_delete(request, proj_id):
     project = get_object_or_404(Project, id=proj_id)
-
-    if project.user != request.user:
-        raise PermissionDenied
 
     if request.method == "POST":
         project.delete()
@@ -108,6 +107,8 @@ def project_delete(request, proj_id):
     return HttpResponseRedirect(reverse("projects:projects_list"))
 
 
+@login_required
+@user_owns_project
 @require_http_methods(["GET"])
 def export_project_results(request, proj_id):
     # TODO fix formatting and add units
@@ -195,6 +196,8 @@ def get_project_data(project):
 
 
 # TODO refactor function to pass ruff
+@login_required
+@user_owns_project
 @require_http_methods(["POST"])
 def download_pdf_report(request, proj_id):  # noqa:PLR0915
     dataframes = collect_project_dataframes(proj_id)
@@ -273,6 +276,8 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
     return response
 
 
+@login_required
+@user_owns_project
 @require_http_methods(["GET"])
 def download_excel_results(request, proj_id):
     dataframes = collect_project_dataframes(proj_id)
