@@ -55,6 +55,7 @@ def prepare_data_for_export(  # noqa:PLR0913,PLR0915
     """
 
     # Merge input data and rename columns
+    input_df["start_date"] = input_df["start_date"].dt.strftime("%m/%d/%Y, %H:%M:%S")
     input_df = pd.concat([input_df.T, energy_system_design.T])
     input_df.columns = ["User specified input parameters"]
     input_df.index.name = ""
@@ -249,32 +250,28 @@ def load_reportlab_styles():
 
 
 # TODO refactor export functions
-def create_pdf_report(  # noqa:PLR0913,PLR0915,PLR0912,C901
-    img_dict,
-    input_df,
-    energy_system_design,
-    energy_flow_df,
-    results_df,
-    nodes_df,
-    links_df,
-    custom_demand_df,
+def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
+    img_dict, dataframes
 ):
     """
     Generates a PDF report based on the provided data and images.
 
     Parameters:
         img_dict (dict): Dictionary containing image objects.
-        input_df (DataFrame): DataFrame containing input data.
-        energy_system_design (Any): Data related to energy system design.
-        energy_flow_df (DataFrame): DataFrame containing energy flow data.
-        results_df (DataFrame): DataFrame containing results data.
-        nodes_df (DataFrame): DataFrame containing nodes data.
-        links_df (DataFrame): DataFrame containing links data.
-        custom_demand_df (DataFrame): DataFrame containing custom demand data.
+        dataframes (dict): Dict of dataframes containing project data.
 
     Returns:
         tuple: A tuple containing the PDF document object and a BytesIO buffer.
     """
+
+    energy_flow_df = dataframes["energy_flow_df"]
+    input_df = dataframes["input_parameters_df"]
+    results_df = dataframes["results_df"]
+    energy_system_design = dataframes["energy_system_design_df"]
+    nodes_df = dataframes["nodes_df"]
+    links_df = dataframes["links_df"]
+    custom_demand_df = dataframes["custom_demand_df"]
+
     # Prepare data (assuming this function is defined elsewhere)
     demand_ts = energy_flow_df["demand"].copy()
     input_df, energy_flow_df, results_df, nodes_df, links_df = prepare_data_for_export(

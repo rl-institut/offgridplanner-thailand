@@ -3,11 +3,53 @@ import io
 from collections import defaultdict
 from pathlib import Path
 
+import pandas as pd
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.forms import model_to_dict
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
+
+
+def collect_project_dataframes(proj_id):
+    """
+    Collects the following dataframes to use in excel and PDF export:
+        input_df (DataFrame): DataFrame containing input data.
+        energy_system_design (Any): Data related to energy system design.
+        energy_flow_df (DataFrame): DataFrame containing energy flow data.
+        results_df (DataFrame): DataFrame containing results data.
+        nodes_df (DataFrame): DataFrame containing nodes data.
+        links_df (DataFrame): DataFrame containing links data.
+        custom_demand_df (DataFrame): DataFrame containing custom demand data.
+    """
+    project = get_object_or_404(Project, id=proj_id)
+    project_df = pd.DataFrame(model_to_dict(project), index=[0])
+    options_df = pd.DataFrame(model_to_dict(project.options), index=[0])
+    grid_design_df = pd.DataFrame(model_to_dict(project.griddesign), index=[0])
+    input_parameters_df = pd.concat([project_df, grid_design_df, options_df], axis=1)
+    results_df = pd.DataFrame(model_to_dict(project.simulation.results), index=[0])
+    energy_flow_df = project.energyflow.df
+    nodes_df = project.nodes.df
+    links_df = project.links.df
+    energy_system_design_df = pd.DataFrame(
+        model_to_dict(project.energysystemdesign), index=[0]
+    )
+    custom_demand_df = pd.DataFrame(model_to_dict(project.customdemand), index=[0])
+    dataframes = {
+        "project_df": project_df,
+        "options_df": options_df,
+        "grid_design_df": grid_design_df,
+        "input_parameters_df": input_parameters_df,
+        "results_df": results_df,
+        "energy_flow_df": energy_flow_df,
+        "nodes_df": nodes_df,
+        "links_df": links_df,
+        "energy_system_design_df": energy_system_design_df,
+        "custom_demand_df": custom_demand_df,
+    }
+    return dataframes
 
 
 def load_project_from_dict(model_data, user=None):
