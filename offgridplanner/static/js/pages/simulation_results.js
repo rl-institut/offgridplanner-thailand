@@ -31,7 +31,7 @@ document.getElementById('downloadCSV').addEventListener('click', function (event
         (async () => {
             try {
                 // Fetch the CSV file
-                const response = await fetch(downloadResultsUrl);
+                const response = await fetch(downloadExcelResultsUrl);
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }

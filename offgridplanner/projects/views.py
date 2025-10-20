@@ -29,6 +29,8 @@ from offgridplanner.optimization.models import Nodes
 from offgridplanner.optimization.processing import PreProcessor
 from offgridplanner.projects.exports import create_pdf_report
 from offgridplanner.projects.exports import prepare_data_for_export
+from offgridplanner.projects.exports import project_data_df_to_xlsx
+from offgridplanner.projects.helpers import collect_project_dataframes
 from offgridplanner.projects.helpers import load_project_from_dict
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
@@ -195,21 +197,11 @@ def get_project_data(project):
 # TODO refactor function to pass ruff
 @require_http_methods(["POST"])
 def download_pdf_report(request, proj_id):  # noqa:PLR0915
-    project = get_object_or_404(Project, id=proj_id)
+    dataframes = collect_project_dataframes(proj_id)
     data = json.loads(request.body)
     images = data.get("images", [])  # TODO check format and set default
-    project_df = pd.DataFrame(model_to_dict(project), index=[0])
-    options_df = pd.DataFrame(model_to_dict(project.options), index=[0])
-    grid_design_df = pd.DataFrame(model_to_dict(project.griddesign), index=[0])
-    input_parameters_df = pd.concat([project_df, grid_design_df, options_df], axis=1)
-    results_df = pd.DataFrame(model_to_dict(project.simulation.results), index=[0])
-    energy_flow_df = project.energyflow.df
-    nodes_df = project.nodes.df
-    links_df = project.links.df
-    energy_system_design_df = pd.DataFrame(
-        model_to_dict(project.energysystemdesign), index=[0]
-    )
-    custom_demand_df = pd.DataFrame(model_to_dict(project.customdemand), index=[0])
+    input_parameters_df = dataframes["input_parameters_df"]
+    energy_flow_df = dataframes["energy_flow_df"]
     if not images or not isinstance(images, list):
         raise HTTPException(status_code=400, detail="No images data provided")
     image_dict = {}
@@ -271,16 +263,7 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
             image_dict[plot_id] = img
     if "demand" not in energy_flow_df.columns:
         energy_flow_df["demand"] = PreProcessor(proj_id).demand
-    doc, buffer = create_pdf_report(
-        image_dict,
-        input_parameters_df,
-        energy_system_design_df,
-        energy_flow_df,
-        results_df,
-        nodes_df,
-        links_df,
-        custom_demand_df,
-    )
+    doc, buffer = create_pdf_report(image_dict, dataframes)
 
     buffer.seek(0)  # ensure we're at the start
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
@@ -288,3 +271,30 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
         'attachment; filename="offgridplanner_results.pdf"'
     )
     return response
+
+
+@require_http_methods(["GET"])
+def download_excel_results(request, proj_id):
+    dataframes = collect_project_dataframes(proj_id)
+    input_parameters_df = dataframes["input_parameters_df"]
+    energy_flow_df = dataframes["energy_flow_df"]
+    energy_system_design = dataframes["energy_system_design_df"]
+    results_df = dataframes["results_df"]
+    nodes_df = dataframes["nodes_df"]
+    links_df = dataframes["links_df"]
+
+    excel_file = project_data_df_to_xlsx(
+        input_parameters_df,
+        energy_system_design,
+        energy_flow_df,
+        results_df,
+        nodes_df,
+        links_df,
+    )
+    return HttpResponse(
+        excel_file,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": 'attachment; filename="offgridplanner_results.xlsx"'
+        },
+    )
