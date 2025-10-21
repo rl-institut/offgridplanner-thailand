@@ -17,7 +17,12 @@ urlpatterns = [
     ),
     path(
         "export_report/<int:proj_id>",
-        export_project_report,
-        name="export_project_report",
+        download_pdf_report,
+        name="download_pdf_report",
+    ),
+    path(
+        "download_excel_results/<int:proj_id>",
+        download_excel_results,
+        name="download_excel_results",
     ),
 ]

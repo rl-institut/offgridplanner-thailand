@@ -19,13 +19,14 @@ k-means-constrained
 pyproj
 oemof.network==0.5.0a1
 oemof.solph==0.5
-# TODO these packages should not be necessary once we set up the CDS weather data API
 geopandas
 pvlib
 feedinlib==0.1.0rc4
 pyarrow
 country-bounding-boxes
 pycountry
+reportlab
+svglib
 # Django
 # ------------------------------------------------------------------------------
 django==5.1.8  # pyup: < 5.1  # https://www.djangoproject.com/

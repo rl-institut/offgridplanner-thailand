@@ -48,7 +48,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const response6 = await fetch('load-demand-plot-data/' + proj_id);
+            const response6 = await fetch(loadDemandPlotUrl);
             const data6 = await response6.json();
             plot_demand_24h(data6);
         } else {
@@ -122,7 +122,7 @@ async function plot_results(sequential = false) {
         // Check if 'steps' exists and if steps[0] is true
         if (typeof steps !== 'undefined' && steps[0]) {
             // Proceed with fetching and plotting 'demand_24h' data
-            const fetchAndPlot6 = fetch('load-demand-plot-data/' + proj_id)
+            const fetchAndPlot6 = fetch(loadDemandPlotUrl)
                 .then(response => response.json())
                 .then(data => plot_demand_24h(data));
             fetchAndPlotPromises.push(fetchAndPlot6);

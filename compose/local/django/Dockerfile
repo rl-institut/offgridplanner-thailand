@@ -11,13 +11,17 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg dependencies
-  libpq-dev
+  libpq-dev \
+  # pycairo dependencies
+  libcairo2-dev \
+  pkgconf \
+  python3-dev
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
-RUN pip wheel --wheel-dir /usr/src/app/wheels  \
+RUN pip wheel --wheel-dir /usr/src/app/wheels \
   -r ${BUILD_ENVIRONMENT}.txt
 
 
@@ -48,7 +52,7 @@ RUN groupadd --gid 1000 dev-user \
 # Install required system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg dependencies
-  libpq-dev  \
+  libpq-dev \
   wait-for-it \
   # Translations dependencies
   gettext \

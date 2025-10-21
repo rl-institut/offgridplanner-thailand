@@ -5,10 +5,51 @@ from pathlib import Path
 
 import pandas as pd
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.forms import model_to_dict
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
 from offgridplanner.projects.models import Options
 from offgridplanner.projects.models import Project
+
+
+def collect_project_dataframes(proj_id):
+    """
+    Collects the following dataframes to use in excel and PDF export:
+        input_df (DataFrame): DataFrame containing input data.
+        energy_system_design (Any): Data related to energy system design.
+        energy_flow_df (DataFrame): DataFrame containing energy flow data.
+        results_df (DataFrame): DataFrame containing results data.
+        nodes_df (DataFrame): DataFrame containing nodes data.
+        links_df (DataFrame): DataFrame containing links data.
+        custom_demand_df (DataFrame): DataFrame containing custom demand data.
+    """
+    project = get_object_or_404(Project, id=proj_id)
+    project_df = pd.DataFrame(model_to_dict(project), index=[0])
+    options_df = pd.DataFrame(model_to_dict(project.options), index=[0])
+    grid_design_df = pd.DataFrame(model_to_dict(project.griddesign), index=[0])
+    input_parameters_df = pd.concat([project_df, grid_design_df, options_df], axis=1)
+    results_df = pd.DataFrame(model_to_dict(project.simulation.results), index=[0])
+    energy_flow_df = project.energyflow.df
+    nodes_df = project.nodes.df
+    links_df = project.links.df
+    energy_system_design_df = pd.DataFrame(
+        model_to_dict(project.energysystemdesign), index=[0]
+    )
+    custom_demand_df = pd.DataFrame(model_to_dict(project.customdemand), index=[0])
+    dataframes = {
+        "project_df": project_df,
+        "options_df": options_df,
+        "grid_design_df": grid_design_df,
+        "input_parameters_df": input_parameters_df,
+        "results_df": results_df,
+        "energy_flow_df": energy_flow_df,
+        "nodes_df": nodes_df,
+        "links_df": links_df,
+        "energy_system_design_df": energy_system_design_df,
+        "custom_demand_df": custom_demand_df,
+    }
+    return dataframes
 
 
 def load_project_from_dict(model_data, user=None):
@@ -55,47 +96,6 @@ def format_column_names(df):
     # TODO check and fix later
     df.columns = [str(col).replace("_", " ").capitalize() for col in df.columns]
     return df
-
-
-def prepare_data_for_export(dataframes):
-    # TODO check and fix later
-    """
-    Prepares dataframes for export by formatting columns, adding units, and renaming fields.
-    """
-    input_df = dataframes["user specified input parameters"]
-    energy_system_design = dataframes["energy system design"]
-    nodes_df = dataframes["nodes"]
-    links_df = dataframes["links"]
-    energy_flow_df = dataframes["energy flow"]
-    results_df = dataframes["results"]
-
-    # Merge input data and rename columns
-    input_df = pd.concat([input_df.T, energy_system_design.T])
-    input_df.columns = ["User specified input parameters"]
-    input_df.index.name = ""
-    input_df = input_df.rename(
-        index={"shs_max_grid_cost": "shs_max_specific_marginal_grid_cost"}
-    )
-    input_df = input_df.drop(["status", "temporal_resolution"], errors="ignore")
-
-    # Clean nodes and links data
-    nodes_df = nodes_df.drop(
-        columns=[
-            col for col in ["distribution_cost", "parent"] if col in nodes_df.columns
-        ]
-    )
-
-    if not links_df.empty:
-        links_df = links_df[
-            ["link_type", "length", "lat_from", "lon_from", "lat_to", "lon_to"]
-        ]
-
-    # TODO Format columns, add units
-    dfs = [input_df, energy_flow_df, results_df, nodes_df, links_df]
-    dfs = [format_column_names(df.reset_index()) for df in dfs]
-    input_df, energy_flow_df, results_df, nodes_df, links_df = dfs
-
-    return input_df, energy_flow_df, results_df, nodes_df, links_df
 
 
 def csv_to_dict(filepath, label_col="label"):

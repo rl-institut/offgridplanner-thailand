@@ -31,7 +31,7 @@ document.getElementById('downloadCSV').addEventListener('click', function (event
         (async () => {
             try {
                 // Fetch the CSV file
-                const response = await fetch(downloadResultsUrl);
+                const response = await fetch(downloadExcelResultsUrl);
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
@@ -108,10 +108,10 @@ document.getElementById('downloadPDF').addEventListener('click', function (event
         (async () => {
             try {
                 const plotIds = [];
-                if (steps[0]) plotIds.push('demandTs');
-                if (steps[1]) plotIds.push('map');
-                if (steps[2]) plotIds.push('sankeyDiagram', 'energyFlows', 'lcoeBreakdown', 'demandCoverage');
-
+                // TODO here check if steps are selected when implemented
+                plotIds.push('demandTs'); // if do_demand_estimation
+                plotIds.push('map'); // if do_grid_optimization
+                plotIds.push('sankeyDiagram', 'energyFlows', 'lcoeBreakdown', 'demandCoverage'); // if do_es_design_optimization
 
                 // Generate images (ensure this function is asynchronous)
                 const images = await generateImages(plotIds);
@@ -375,10 +375,11 @@ function sendImagesToBackend(images) {
     const data = {
         images: images  // Array of { id: plotId, data: imageData }
     };
-    fetch(`/download_pdf_report/` + project_id, {
+    fetch(downloadPDFReportUrl, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify(data)
     })
@@ -1061,11 +1062,17 @@ function plot_demand_24h(data) {
 
     // Extract data from the passed-in data object
     let {
-        x,
-        households,
-        enterprises,
-        public_services
-    } = data;
+        'x': x,
+        'Very High Consumption': Very_High,
+        'High Consumption': High,
+        'Middle Consumption': Middle,
+        'Low Consumption': Low,
+        'Very Low Consumption': Very_Low,
+        'Average': Average,
+        'households': households,
+        'enterprises': enterprises,
+        'public_services': public_services,
+    } = data.timeseries;
 
     // Define traces with 'stackgroup'
     var traceHouseholds = {
