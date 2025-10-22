@@ -1168,8 +1168,11 @@ a.dropdown-item:active {
 }
 
 .footer {
+    position: fixed;
+    bottom: 0;
     background-color: #F4F7F9;
     height: 4.5rem;
+    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -1978,6 +1981,7 @@ content: "7"; }
     background-color: var(--bcc);
     min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
     padding: 3rem 0 4rem;
+    margin-top: 5rem;
 }
 
 .dashboard > div {

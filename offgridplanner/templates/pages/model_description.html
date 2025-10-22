@@ -115,7 +115,7 @@
                 <hr>
             </div>
             <div class="row">
-                <div class="col-md-6" style="padding-left: 30px; padding-right: 30px">
+                <div class="col-md-6" style="padding-left: 30px; padding-right: 30px; margin-bottom: 4rem">
                     <h4 style="margin-bottom: 30px" id="es_tool">Description of the Energy System Optimization Tool</h4>
                     <p>This tool is a comprehensive solution for the design and optimization of off-grid energy systems. It integrates a variety of energy sources, including photovoltaic (PV) systems and diesel generators, and supports key components such as battery systems, inverters, and rectifiers. The tool's core functionality lies in its ability to design and optimize these systems to meet specific energy demands in the most cost-efficient way. It uses advanced data modeling techniques, including ERA5 satellite data and PVLIB, to accurately simulate solar potentials, ensuring that PV systems are optimized for the specific environmental conditions of the installation site.</p>
                     <p>A central aspect of the tool is its focus on minimizing the total annualized costs. Annualized costs account for both the capital expenditures (CapEx) associated with the installation of energy systems and the operational expenditures (OpEx) incurred throughout their lifetime. By optimizing the balance between these costs, the tool generates a configuration that not only meets consumer energy demands but does so in the most financially sustainable manner. This optimization is achieved through mixed-integer linear programming (MILP), a mathematical modeling approach that enables the tool to explore multiple possible configurations and select the one that offers the lowest total annualized cost.</p>
@@ -171,5 +171,6 @@
     </section>
 {% endblock content %}
 
-{% comment %} {% include '_scripts.html' %}
-<script src="{{ url_for('js', path='backend_communication.js') }}"></script> {% endcomment %}
+{% block end_body_scripts %}
+  <script src="{% static 'js/backend_communication.js' %}"></script>
+{% endblock end_body_scripts %}
