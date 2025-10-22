@@ -1168,11 +1168,8 @@ a.dropdown-item:active {
 }
 
 .footer {
-    position: fixed;
-    bottom: 0;
     background-color: #F4F7F9;
     height: 4.5rem;
-    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
