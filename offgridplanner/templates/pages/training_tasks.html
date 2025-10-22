@@ -22,9 +22,9 @@
             </div>
         </div>
     </section>
-    <section class="wizard" id="wizard">
+    <section class="training_wizard" id="training_wizard">
         <div>
-            <div class="wizard__steps">
+            <div class="training_wizard__steps">
                 <ul id="wiz">
                     <li id="wizElement1" data-step-number="1" class="active" onclick="showTask(1);">
                         <a href="javascript:void(0);">Task One</a>
@@ -408,4 +408,5 @@
 
 {% block end_body_scripts %}
   <script src="{% static 'js/backend_communication.js' %}"></script>
+  <script src="{% static 'js/pages/training_tasks.js' %}"></script>
 {% endblock end_body_scripts %}

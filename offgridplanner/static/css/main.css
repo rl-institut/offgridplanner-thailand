@@ -1771,6 +1771,37 @@ nav.navbar .dropdown-menu li {
     }
 }
 
+.training_wizard {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transition: none !important;
+}
+
+/* Use data-step-number to display numbering */
+.training_wizard__steps li::before {
+    content: attr(data-step-number) ".";
+    margin-right: 5px;
+    font-weight: bold;
+    color: WHITE;
+}
+
+/* Style for active step */
+.training_wizard__steps li.active::before {
+    color: WHITE;
+}
+
+/* Ensure steps are displayed correctly */
+.training_wizard__steps li {
+    display: inline-block !important;
+}
+
+/* Optional: Adjust step text color */
+.training_wizard__steps li a {
+    color: inherit !important;
+    text-decoration: none;
+}
+
+
 /* .wizard {
     visibility: hidden;  /* Keeps the space in the layout
     opacity: 0;         /* Makes it invisible
