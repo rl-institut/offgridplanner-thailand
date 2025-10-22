@@ -1771,6 +1771,18 @@ nav.navbar .dropdown-menu li {
     }
 }
 
+.task_dashboard {
+    display: none;
+    margin: 0 auto;
+    max-width: 1200px; /* Adjust as needed */
+    padding: 20px;
+    padding-bottom: calc(20px + 4.5rem);
+    background-color: var(--bcc);
+}
+.task_dashboard.active {
+    display: block;
+}
+
 .training_wizard {
     visibility: visible !important;
     opacity: 1 !important;
@@ -1782,12 +1794,12 @@ nav.navbar .dropdown-menu li {
     content: attr(data-step-number) ".";
     margin-right: 5px;
     font-weight: bold;
-    color: WHITE;
+    color: var(--bct);
 }
 
 /* Style for active step */
 .training_wizard__steps li.active::before {
-    color: WHITE;
+    color: var(--bct);
 }
 
 /* Ensure steps are displayed correctly */

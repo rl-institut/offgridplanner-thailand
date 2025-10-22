@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load i18n %}
 
 {% block content %}
-    <section id="section" class="dashboard">
+    <section id="section" class="dashboard" style="min-height: unset">
         <div class="container" style="text-align: justify">
             <div class="row">
                 <div class="col-12" style="padding-left: 6rem; padding-right: 6rem;">
@@ -22,9 +23,9 @@
             </div>
         </div>
     </section>
-    <section class="training_wizard" id="training_wizard">
+    <section class="training_wizard wizard" id="training_wizard">
         <div>
-            <div class="training_wizard__steps">
+            <div class="training_wizard__steps wizard__steps">
                 <ul id="wiz">
                     <li id="wizElement1" data-step-number="1" class="active" onclick="showTask(1);">
                         <a href="javascript:void(0);">Task One</a>
@@ -45,7 +46,7 @@
             </div>
         </div>
     </section>
-    <section id="task1" class="dashboard active">
+    <section id="task1" class="task_dashboard active">
         <!-- Accordion for Task One -->
         <div class="accordion" id="accordionTask1" style="margin-top: 12px">
             <!-- Accordion Item 1 -->
@@ -117,7 +118,7 @@
             </div>
         </div>
     </section>
-    <section id="task2" class="dashboard">
+    <section id="task2" class="task_dashboard">
         <!-- Accordion for Task Two -->
         <div class="accordion" id="accordionTask2" style="margin-top: 12px">
             <!-- Similar accordion items with IDs adjusted for task2 -->
@@ -193,7 +194,7 @@
             </div>
         </div>
     </section>
-    <section id="task3" class="dashboard">
+    <section id="task3" class="task_dashboard">
         <!-- Accordion for Task Three -->
         <div class="accordion" id="accordionTask3" style="margin-top: 12px">
             <!-- Accordion Item 1 -->
@@ -257,7 +258,7 @@
             </div>
         </div>
     </section>
-    <section id="task4" class="dashboard">
+    <section id="task4" class="task_dashboard">
         <!-- Accordion for Task Four -->
         <div class="accordion" id="accordionTask4" style="margin-top: 12px">
             <!-- Accordion Item 1 -->
@@ -320,7 +321,7 @@
             </div>
         </div>
     </section>
-    <section id="task5" class="dashboard">
+    <section id="task5" class="task_dashboard">
         <!-- Accordion for Task Four -->
         <div class="accordion" id="accordionTask5" style="margin-top: 12px">
             <!-- Accordion Item 1 -->
@@ -405,6 +406,34 @@
         </div>
     </section>
 {% endblock content %}
+
+{% block footer %}
+    <footer class="footer">
+    <div>
+        <div class="footer__logo">
+        <img src="{% static 'assets/logos/PeopleSunLogo.png' %}"
+                alt="PeopleSun logo" />
+        </div>
+        <div class="footer__buttons">
+            <button class="btn btn--medium btn--hollow btn--previous" id="prevButton" onclick="prevTask();">Previous</button>
+            <button class="btn btn--medium" style="color: #fff" id="nextButton" onclick="nextTask();">Next</button>
+        </div>
+        <div class="footer__links">
+        <ul>
+            <li>
+            <a href="{% url 'about' %}">{% translate "Contact" %}</a>
+            </li>
+            <li>
+            <a href="{% url 'imprint' %}">{% translate "Imprint" %}</a>
+            </li>
+            <li>
+            <a href="{% url 'privacy' %}">{% translate "Privacy" %}</a>
+            </li>
+        </ul>
+        </div>
+    </div>
+    </footer>
+{% endblock footer %}
 
 {% block end_body_scripts %}
   <script src="{% static 'js/backend_communication.js' %}"></script>
