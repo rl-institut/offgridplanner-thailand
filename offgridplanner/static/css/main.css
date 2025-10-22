@@ -1773,14 +1773,22 @@ nav.navbar .dropdown-menu li {
 
 .task_dashboard {
     display: none;
-    margin: 0 auto;
-    max-width: 1200px; /* Adjust as needed */
+    width: 100%; /* Adjust as needed */
     padding: 20px;
     padding-bottom: calc(20px + 4.5rem);
     background-color: var(--bcc);
 }
 .task_dashboard.active {
     display: block;
+}
+
+.accordion {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.accordion-item {
+    width: 100%;
 }
 
 .training_wizard {
