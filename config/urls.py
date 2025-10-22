@@ -21,9 +21,9 @@ urlpatterns = (
             name="about",
         ),
         path(
-            "license/",
-            TemplateView.as_view(template_name="pages/license.html"),
-            name="license",
+            "model_description/",
+            TemplateView.as_view(template_name="pages/model_description.html"),
+            name="model_description",
         ),
         path(
             "imprint/",
