@@ -12,43 +12,245 @@
 
 {% block progression_content %}
 <main>
-  <section class="dashboard">
+  <section class="esd">
     <div>
       <form method="post">
         {% csrf_token %}
       <div class="row">
         <div class="col-md-4">
-          <div class="box" id="selectDiesel_gensetBox">
-            {% for field_name, field in grouped_fields|getkey:"Diesel Genset" %}
-            {% if field_name == "diesel_genset_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectDiesel_genset">{{ field.label }}</span>
+          <section class="esd-sidebar">
+            <div class="esd-sidebar__header">
+              <h2>Components</h2>
+            </div>
+            <div class="esd-sidebar__content">
+              <!-- Diesel Component -->
+              <div class="box" id="selectDiesel_gensetBox">
+                {% for field_name, field in grouped_fields|getkey:"Diesel Genset" %}
+                {% if field_name == "diesel_genset_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectDiesel_genset">{{ field.label }}</span>
+                    </div>
                 </div>
-            </div>
-            {% elif field_name == "diesel_genset_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                {% elif field_name == "diesel_genset_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- PV Component -->
+              <div class="box box--small" id="selectPvBox">
+                {% for field_name, field in grouped_fields|getkey:"Pv" %}
+                {% if field_name == "pv_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectPv">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% elif field_name == "pv_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Battery Component -->
+              <div class="box" id="selectBatteryBox">
+                {% for field_name, field in grouped_fields|getkey:"Battery" %}
+                {% if field_name == "battery_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                  <div class="form-check">
+                    <span class="grid-title" id="selectBattery">{{ field.label }}</span>
+                  </div>
+                </div>
+                {% elif field_name == "battery_settings_design" %}
+                <div class="row">
+                  {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- H2 Storage Component -->
+              <div class="box" id="selectH2StorageBox">
+                {% for field_name, field in grouped_fields|getkey:"H2 Storage" %}
+                {% if field_name == "h2_storage_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                  <div class="form-check">
+                    <span class="grid-title" id="selectH2Storage">{{ field.label }}</span>
+                  </div>
+                </div>
+                {% elif field_name == "h2_storage_settings_design" %}
+                <div class="row">
+                  {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Electrolyzer Component -->
+              <div class="box box--medium" id="selectElectrolyzerBox">
+                {% for field_name, field in grouped_fields|getkey:"Electrolyzer" %}
+                {% if field_name == "electrolyzer_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectElectrolyzer">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% elif field_name == "electrolyzer_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Fuel Cell Component -->
+              <div class="box box--medium" id="selectFuelCellBox">
+                {% for field_name, field in grouped_fields|getkey:"Fuel Cell" %}
+                {% if field_name == "fuel_cell_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectFuelCell">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% elif field_name == "fuel_cell_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Inverter Component -->
+              <div class="box box--medium" id="selectInverterBox">
+                {% for field_name, field in grouped_fields|getkey:"Inverter" %}
+                {% if field_name == "inverter_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectInverter">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% elif field_name == "inverter_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Rectifier Component -->
+              <div class="box box--medium" id="selectRectifierBox">
+                {% for field_name, field in grouped_fields|getkey:"Rectifier" %}
+                {% if field_name == "rectifier_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectRectifier">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% elif field_name == "rectifier_settings_design" %}
+                <div class="row">
+                {{ field }}
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <!-- Shortage Component -->
+              <div class="box box--small" id="selectShortageBox">
+                {% for field_name, field in grouped_fields|getkey:"Shortage" %}
+                {% if field_name == "shortage_settings_is_selected" %}
+                <div class="box__header">
+                  {{ field|add_class:"form-check-input" }}
+                    <div class="form-check">
+                      <span class="grid-title" id="selectShortage">{{ field.label }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
+                    {{ field|add_class:"form-control" }}
+                    <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
               </div>
             </div>
-            {% endif %}
-            {% endfor %}
-            </div>
+          </section>
         </div>
         <div class="col-md-8">
-          <div class="chart">
-            <div class="chart__header">
-              <div>
-                <span class="title">Schematic of the Selected Off-Grid System</span>
-              </div>
+          <div class="esd-diagram">
+            <div class="esd-diagram__header">
+              <h2>Schematic of the Selected Off-Grid System</h2>
             </div>
             <svg id="blockDiagram" width="850" height="450">
               <!-- DEMAND -->
@@ -191,213 +393,6 @@
             </svg>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="box" id="selectBatteryBox">
-            {% for field_name, field in grouped_fields|getkey:"Battery" %}
-            {% if field_name == "battery_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-              <div class="form-check">
-                <span class="grid-title" id="selectBattery">{{ field.label }}</span>
-              </div>
-            </div>
-            {% elif field_name == "battery_settings_design" %}
-            <div class="row">
-              {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="box box--small" id="selectPvBox">
-            {% for field_name, field in grouped_fields|getkey:"Pv" %}
-            {% if field_name == "pv_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectPv">{{ field.label }}</span>
-                </div>
-            </div>
-            {% elif field_name == "pv_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-          <div class="box box--medium" id="selectInverterBox">
-            {% for field_name, field in grouped_fields|getkey:"Inverter" %}
-            {% if field_name == "inverter_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectInverter">{{ field.label }}</span>
-                </div>
-            </div>
-            {% elif field_name == "inverter_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="box box--small" id="selectShortageBox">
-            {% for field_name, field in grouped_fields|getkey:"Shortage" %}
-            {% if field_name == "shortage_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectShortage">{{ field.label }}</span>
-                </div>
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-          <div class="box box--medium" id="selectRectifierBox">
-            {% for field_name, field in grouped_fields|getkey:"Rectifier" %}
-            {% if field_name == "rectifier_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectRectifier">{{ field.label }}</span>
-                </div>
-            </div>
-            {% elif field_name == "rectifier_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-
-          </div>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col-md-4">
-          <div class="box" id="selectH2StorageBox">
-            {% for field_name, field in grouped_fields|getkey:"H2 Storage" %}
-            {% if field_name == "h2_storage_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-              <div class="form-check">
-                <span class="grid-title" id="selectH2Storage">{{ field.label }}</span>
-              </div>
-            </div>
-            {% elif field_name == "h2_storage_settings_design" %}
-            <div class="row">
-              {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="box box--medium" id="selectElectrolyzerBox">
-            {% for field_name, field in grouped_fields|getkey:"Electrolyzer" %}
-            {% if field_name == "electrolyzer_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectElectrolyzer">{{ field.label }}</span>
-                </div>
-            </div>
-            {% elif field_name == "electrolyzer_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="box box--medium" id="selectFuelCellBox">
-            {% for field_name, field in grouped_fields|getkey:"Fuel Cell" %}
-            {% if field_name == "fuel_cell_settings_is_selected" %}
-            <div class="box__header">
-              {{ field|add_class:"form-check-input" }}
-                <div class="form-check">
-                  <span class="grid-title" id="selectFuelCell">{{ field.label }}</span>
-                </div>
-            </div>
-            {% elif field_name == "fuel_cell_settings_design" %}
-            <div class="row">
-            {{ field }}
-            </div>
-            {% else %}
-            <div class="row">
-              <div class="input-group">
-                <span class="input-group-text" id="{{field.name}}_label">{{ field.label | safe }}</span>
-                {{ field|add_class:"form-control" }}
-                <span class="input-group-text" id="{{field.name}}_unit">{{ field.field.widget.attrs.unit }}</span>
-              </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-
       </div>
       <div class="row">
         <p style="font-size: 12px;">
