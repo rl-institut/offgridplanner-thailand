@@ -1,6 +1,53 @@
+@import "../variables.css";
+
 .readonly-disabled {
     background-color: #e9ecef; /* Matches Bootstrap disabled look */
     color: #6c757d;
     cursor: not-allowed;
     border: 1px solid #ced4da;
+}
+
+.esd {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    background-color: var(--background-color--secondary);
+    color: var(--font-color--main);
+    min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
+    padding: 3rem 0 4rem;
+}
+
+.esd > div {
+    width: 100%;
+    max-width: 82rem;
+    padding-left: var(--padding-normal);
+    padding-right: var(--padding-normal);
+}
+
+.esd-sidebar, 
+.esd-diagram {
+    background-color: var(--background-color--main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.esd-sidebar__header, .esd-diagram__header {
+    padding: var(--padding-normal);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.esd-sidebar__header h2, .esd-diagram__header h2 {
+    color: var(--font-color--secondary);
+    font-size: var(--font-size--md);
+    font-weight: var(--font-weight--bold);
+    margin-bottom: 0;
 }

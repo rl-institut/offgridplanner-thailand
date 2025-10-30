@@ -1,0 +1,23 @@
+:root {
+  /* Typography */
+  --font-color--main: #212529;
+  --font-color--secondary: #5E798D;
+  --font-weight--normal: 400;
+  --font-weight--bold: 700;
+  --font-size--lg: 1.25rem;
+  --font-size--md: 1rem;
+  --font-size--sm: 0.875rem;
+
+  /* Colors */
+  --background-color--main: #FFFFFF;
+  --background-color--secondary: #F4F7F9  ;
+  --button-background--primary: #1F567D;
+  --button-color--primary: #FFFFFF;
+
+  /* Borders */
+  --border-color: #CEDBE3;
+  --border-radius: 0.5rem;
+
+  /* Spacing */
+  --padding-normal: 1rem;
+}
