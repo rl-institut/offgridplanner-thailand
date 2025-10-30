@@ -66,11 +66,15 @@
     text-transform: uppercase;
 }
 
-.esd-component {
-    padding: var(--padding-normal);
-    margin-bottom: 0.5rem;
+.esd-sidebar__category .accordion {
     box-shadow: var(--box-shadow);
+    border: none;
     border-radius: var(--border-radius);
+}
+
+.esd-sidebar__category .accordion-button:not(.collapsed) {
+    background-color: #eff6ff;
+    color: var(--font-color--selected);
 }
 
 .esd-component:last-of-type {
