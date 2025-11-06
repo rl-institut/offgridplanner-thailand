@@ -121,3 +121,63 @@
 .esd-component__input-row:has(.readonly-disabled) {
     display: none;
 }
+
+/* Energy System Diagram */
+#diagram {
+    background: #fff;
+    padding: 32px;
+    border-radius: 8px;
+}
+.component-box {
+    fill: #F4F6F9;
+    stroke: #E1EBF1;
+    stroke-width: 1;
+    rx: 8;
+}
+.section-box {
+    fill: none;
+    stroke: #E1EBF1;
+    stroke-width: 1;
+    rx: 8;
+}
+.home-box {
+    fill: #e8f5f3;
+    stroke: #4db6ac;
+    stroke-width: 2;
+    rx: 8;
+}
+.component-title {
+    font-size: 14px;
+    font-weight: 600;
+    fill: #2c3e50;
+}
+.status-dot {
+    r: 4;
+}
+.status-optimized {
+    fill: #4caf50;
+}
+.status-fixed {
+    fill: #2196f3;
+}
+.status-text {
+    font-size: 13px;
+    fill: #5E798D;
+}
+.section-header {
+    font-size: 15px;
+    font-weight: 600;
+    fill: #212529;
+    letter-spacing: 1px;
+}
+.arrow {
+    fill: none;
+    stroke: #72879A;
+    stroke-width: 2;
+    marker-end: url(#arrowhead);
+}
+.home-title {
+    font-size: 14px;
+    font-weight: 600;
+    fill: #157754;
+}
