@@ -3,6 +3,7 @@
   --font-color--main: #212529;
   --font-color--secondary: #5E798D;
   --font-color--selected: #1775A7;
+  --font-color--link: #1F567D;
   --font-color--highlight: #1F567D;
   --font-color--success: #1F7D5C;
   --font-color--success-muted: #5F8B7C;
@@ -15,7 +16,7 @@
 
   /* Colors */
   --background-color--main: #FFFFFF;
-  --background-color--secondary: #F4F7F9  ;
+  --background-color--secondary: #F4F7F9;
   --button-background--primary: #1F567D;
   --button-color--primary: #FFFFFF;
 

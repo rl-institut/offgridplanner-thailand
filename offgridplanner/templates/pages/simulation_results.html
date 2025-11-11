@@ -15,11 +15,6 @@
     <link href="{% static 'css/pages/simulation_results.css' %}"
           rel="stylesheet" />
     <style>
-      .item__name {
-        height: 80px;
-        font-weight: bold;
-      }
-
       .chart {
         max-height: 9999px;
       }
@@ -198,217 +193,354 @@
                 </div>
               </div>
             </div>
-            <div class="row" id="resultsChart">
-              <div class="col" style="display: flex; justify-content: center;">
-                <div class="chart" style="height: auto;">
-                  <div class="chart__header">
-                    <h2 class="title">{% translate 'Results' %}</h2>
-                  </div>
-                  <div class="chart__content" style="height: auto;">
-                    {% if do_grid_optimization %}
-                    <span class="subtitle" id="gridTitle">{% translate 'GRID' %}</span>
-                    <div class="row" id="gridResultsRow">
+            <div class="results-section" id="resultsChart">
+              <ul class="nav nav-pills results-tabs" id="resultsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="technical-tabs" data-bs-toggle="tab" data-bs-target="#technical-tabs-pane" type="button" role="tab" aria-controls="technical-tabs-pane" aria-selected="true">Technical</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="economic-tabs" data-bs-toggle="tab" data-bs-target="#economic-tabs-pane" type="button" role="tab" aria-controls="economic-tabs-pane" aria-selected="false">Economic</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="demand-tabs" data-bs-toggle="tab" data-bs-target="#demand-tabs-pane" type="button" role="tab" aria-controls="demand-tabs-pane" aria-selected="false">Demand</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="environmental-tabs" data-bs-toggle="tab" data-bs-target="#environmental-tabs-pane" type="button" role="tab" aria-controls="environmental-tabs-pane" aria-selected="false">Environmental</button>
+                </li>
+              </ul>
+
+              <div class="tab-content" id="resultsTabsContent">
+                <!-- Technical -->
+                <div class="tab-pane fade show active" id="technical-tabs-pane" role="tabpanel" aria-labelledby="technical-tabs" tabindex="0">
+                  {% if do_grid_optimization %}
+                  <h2 class="subtitle" id="gridTitle">{% translate 'Grid' %}</h2>
+                  <div class="row" id="gridResultsRow">
+                    <div class="row__single">
                       <div class="item">
                         <div class="item__name">{{results.n_consumers.verbose}}</div>
-                        <div class="item__value">{{results.n_consumers.value|intcomma}} {{results.n_consumers.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.n_consumers.value|intcomma}}</div>
+                          <div class="item__unit">{{results.n_consumers.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.n_shs_consumers.verbose}}</div>
-                        <div class="item__value">{{results.n_shs_consumers.value|intcomma}} {{results.n_shs_consumers.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.n_shs_consumers.value|intcomma}}</div>
+                          <div class="item__unit">{{results.n_shs_consumers.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.n_poles.verbose}}</div>
-                        <div class="item__value">{{results.n_poles.value|intcomma}} {{results.n_poles.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.n_poles.value|intcomma}}</div>
+                          <div class="item__unit">{{results.n_poles.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.length_distribution_cable.verbose}}</div>
-                        <div class="item__value">{{results.length_distribution_cable.value|intcomma}} {{results.length_distribution_cable.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.length_distribution_cable.value|intcomma}}</div>
+                          <div class="item__unit">{{results.length_distribution_cable.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.average_length_distribution_cable.verbose}}</div>
-                        <div class="item__value">{{results.average_length_distribution_cable.value|intcomma}} {{results.average_length_distribution_cable.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.average_length_distribution_cable.value|intcomma}}</div>
+                          <div class="item__unit">{{results.average_length_distribution_cable.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.length_connection_cable.verbose}}</div>
-                        <div class="item__value">{{results.length_connection_cable.value|intcomma}} {{results.length_connection_cable.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.length_connection_cable.value|intcomma}}</div>
+                          <div class="item__unit">{{results.length_connection_cable.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.average_length_connection_cable.verbose}}</div>
-                        <div class="item__value">{{results.average_length_connection_cable.value|intcomma}} {{results.average_length_connection_cable.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.average_length_connection_cable.value|intcomma}}</div>
+                          <div class="item__unit">{{results.average_length_connection_cable.unit}}</div>
+                        </div>
                       </div>
                     </div>
-                    {% endif %}
-                    {% if do_supply_optimization %}
-                    <span class="subtitle">{% translate 'ENERGY CONVERTERS' %}</span>
-                    <div class="row">
+                  </div>
+                  {% endif %}
+                  {% if do_supply_optimization %}
+                  <h2 class="subtitle">{% translate 'Energy Converters' %}</h2>
+                  <div class="row">
+                    <div class="row__single">
                       <div class="item">
                         <div class="item__name">{{results.res.verbose}}</div>
-                        <div class="item__value">{{results.res.value}} {{results.res.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.res.value}}</div>
+                          <div class="item__unit">{{results.res.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.surplus_rate.verbose}}</div>
-                        <div class="item__value">{{results.surplus_rate.value}} {{results.surplus_rate.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.surplus_rate.value}}</div>
+                          <div class="item__unit">{{results.surplus_rate.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.shortage_total.verbose}}</div>
-                        <div class="item__value">{{results.shortage_total.value}} {{results.shortage_total.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.shortage_total.value}}</div>
+                          <div class="item__unit">{{results.shortage_total.unit}}</div>
+                        </div>
                       </div>
-                      <div class="item">
-                        <div class="item__name">{{results.pv_capacity.verbose}}</div>
-                        <div class="item__value">{{results.pv_capacity.value|intcomma}} {{results.pv_capacity.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.battery_capacity.verbose}}</div>
-                        <div class="item__value">{{results.battery_capacity.value|intcomma}} {{results.battery_capacity.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.inverter_capacity.verbose}}</div>
-                        <div class="item__value">{{results.inverter_capacity.value|intcomma}} {{results.inverter_capacity.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.diesel_genset_capacity.verbose}}</div>
-                        <div class="item__value">{{results.diesel_genset_capacity.value|intcomma}} {{results.diesel_genset_capacity.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.rectifier_capacity.verbose}}</div>
-                        <div class="item__value">{{results.rectifier_capacity.value|intcomma}} {{results.rectifier_capacity.unit}}</div>
-                      </div>
-                    </div>
-                    <div class="row">
                       <div class="item">
                         <div class="item__name">{{results.fuel_consumption.verbose}}</div>
-                        <div class="item__value">{{results.fuel_consumption.value|intcomma}} {{results.fuel_consumption.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.fuel_consumption.value|intcomma}}</div>
+                          <div class="item__unit">{{results.fuel_consumption.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.co2_emissions.verbose}}</div>
-                        <div class="item__value">{{results.co2_emissions.value|intcomma}} {{results.co2_emissions.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.co2_emissions.value|intcomma}}</div>
+                          <div class="item__unit">{{results.co2_emissions.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.co2_savings.verbose}}</div>
-                        <div class="item__value">{{results.co2_savings.value|intcomma}} {{results.co2_savings.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.co2_savings.value|intcomma}}</div>
+                          <div class="item__unit">{{results.co2_savings.unit}}</div>
+                        </div>
                       </div>
                     </div>
-                    {% endif %}
-                    <span class="subtitle">{% translate 'DEMAND' %}</span>
-                    <div class="row">
+                  </div>
+                  <h2 class="subtitle">{% translate 'Capacity' %}</h2>
+                  <div class="row">
+                    <div class="row__single">
                       <div class="item">
-                        <div class="item__name">{{results.total_annual_consumption.verbose}}</div>
-                        <div class="item__value">{{results.total_annual_consumption.value|intcomma}} {{results.total_annual_consumption.unit}}</div>
+                        <div class="item__name">{{results.pv_capacity.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.pv_capacity.value|intcomma}}</div>
+                          <div class="item__unit">{{results.pv_capacity.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
-                        <div class="item__name">{{results.peak_demand.verbose}}</div>
-                        <div class="item__value">{{results.peak_demand.value|intcomma}} {{results.peak_demand.unit}}</div>
+                        <div class="item__name">{{results.battery_capacity.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.battery_capacity.value|intcomma}}</div>
+                          <div class="item__unit">{{results.battery_capacity.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
-                        <div class="item__name">{{results.base_load.verbose}}</div>
-                        <div class="item__value">{{results.base_load.value|intcomma}} {{results.base_load.unit}}</div>
+                        <div class="item__name">{{results.inverter_capacity.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.inverter_capacity.value|intcomma}}</div>
+                          <div class="item__unit">{{results.inverter_capacity.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
-                        <div class="item__name">{{results.average_annual_demand_per_consumer.verbose}}</div>
-                        <div class="item__value">{{results.average_annual_demand_per_consumer.value|intcomma}} {{results.average_annual_demand_per_consumer.unit}}</div>
+                        <div class="item__name">{{results.diesel_genset_capacity.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.diesel_genset_capacity.value|intcomma}}</div>
+                          <div class="item__unit">{{results.diesel_genset_capacity.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
-                        <div class="item__name">{{results.shortage_total.verbose}}</div>
-                        <div class="item__value">{{results.shortage_total.value}} {{results.shortage_total.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.max_shortage.verbose}}</div>
-                        <div class="item__value">{{results.max_shortage.value}} {{results.max_shortage.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name">{{results.total_surplus.verbose}}</div>
-                        <div class="item__value">{{results.total_surplus.value}} {{results.total_surplus.unit}}</div>
-                      </div>
-                      <div class="item">
-                        <div class="item__name"></div>
+                        <div class="item__name">{{results.rectifier_capacity.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.rectifier_capacity.value|intcomma}}</div>
+                          <div class="item__unit">{{results.rectifier_capacity.unit}}</div>
+                        </div>
                       </div>
                     </div>
-                    <span class="subtitle">{% translate 'ECONOMIC DATA' %}</span>
-                    <div class="row">
+                  </div>
+                  {% endif %}
+                </div>
+                <!-- Economic -->
+                <div class="tab-pane fade" id="economic-tabs-pane" role="tabpanel" aria-labelledby="economic-tabs" tabindex="0">
+                  <h2 class="subtitle">{% translate 'Economic Data' %}</h2>
+                  <div class="row">
+                    <div class="row__single">
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_total.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_total.value|intcomma}} {{results.upfront_invest_total.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_total.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_total.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_grid.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_grid.value|intcomma}} {{results.upfront_invest_grid.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_grid.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_grid.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_pv.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_pv.value|intcomma}} {{results.upfront_invest_pv.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_pv.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_pv.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_battery.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_battery.value|intcomma}} {{results.upfront_invest_battery.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_battery.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_battery.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_inverter.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_inverter.value|intcomma}} {{results.upfront_invest_inverter.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_inverter.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_inverter.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_diesel_genset.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_diesel_genset.value|intcomma}} {{results.upfront_invest_diesel_genset.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_diesel_genset.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_diesel_genset.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.upfront_invest_rectifier.verbose}}</div>
-                        <div class="item__value">{{results.upfront_invest_rectifier.value|intcomma}} {{results.upfront_invest_rectifier.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.upfront_invest_rectifier.value|intcomma}}</div>
+                          <div class="item__unit">{{results.upfront_invest_rectifier.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.cost_fuel.verbose}}</div>
-                        <div class="item__value">{{results.cost_fuel.value|intcomma}} {{results.cost_fuel.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.cost_fuel.value|intcomma}}</div>
+                          <div class="item__unit">{{results.cost_fuel.unit}}</div>
+                        </div>
                       </div>
                     </div>
-                    <div class="row">
+                  </div>
+                  <div class="row">
+                    <div class="row__single">
                       <div class="item">
                         <div class="item__name">{{results.epc_total.verbose}}</div>
-                        <div class="item__value">{{results.epc_total.value|intcomma}} {{results.epc_total.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_total.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_total.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.cost_grid.verbose}}</div>
-                        <div class="item__value">{{results.cost_grid.value|intcomma}} {{results.cost_grid.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.cost_grid.value|intcomma}}</div>
+                          <div class="item__unit">{{results.cost_grid.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.epc_pv.verbose}}</div>
-                        <div class="item__value">{{results.epc_pv.value|intcomma}} {{results.epc_pv.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_pv.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_pv.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.epc_battery.verbose}}</div>
-                        <div class="item__value">{{results.epc_battery.value|intcomma}} {{results.epc_battery.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_battery.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_battery.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.epc_inverter.verbose}}</div>
-                        <div class="item__value">{{results.epc_inverter.value|intcomma}} {{results.epc_inverter.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_inverter.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_inverter.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.epc_diesel_genset.verbose}}</div>
-                        <div class="item__value">{{results.epc_diesel_genset.value|intcomma}} {{results.epc_diesel_genset.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_diesel_genset.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_diesel_genset.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.epc_rectifier.verbose}}</div>
-                        <div class="item__value">{{results.epc_rectifier.value|intcomma}} {{results.epc_rectifier.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.epc_rectifier.value|intcomma}}</div>
+                          <div class="item__unit">{{results.epc_rectifier.unit}}</div>
+                        </div>
                       </div>
                       <div class="item">
                         <div class="item__name">{{results.lcoe.verbose}}</div>
-                        <div class="item__value">{{results.lcoe.value}} {{results.lcoe.unit}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.lcoe.value}}</div>
+                          <div class="item__unit">{{results.lcoe.unit}}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                <!-- Demand -->
+                <div class="tab-pane fade" id="demand-tabs-pane" role="tabpanel" aria-labelledby="demand-tabs" tabindex="0">
+                  <h2 class="subtitle">{% translate 'Demand' %}</h2>
+                  <div class="row">
+                    <div class="row__single">
+                      <div class="item">
+                        <div class="item__name">{{results.total_annual_consumption.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.total_annual_consumption.value|intcomma}}</div>
+                          <div class="item__unit">{{results.total_annual_consumption.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.peak_demand.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.peak_demand.value|intcomma}}</div>
+                          <div class="item__unit">{{results.peak_demand.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.base_load.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.base_load.value|intcomma}}</div>
+                          <div class="item__unit">{{results.base_load.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.average_annual_demand_per_consumer.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.average_annual_demand_per_consumer.value|intcomma}}</div>
+                          <div class="item__unit">{{results.average_annual_demand_per_consumer.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.shortage_total.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.shortage_total.value}}</div>
+                          <div class="item__unit">{{results.shortage_total.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.max_shortage.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.max_shortage.value}}</div>
+                          <div class="item__unit">{{results.max_shortage.unit}}</div>
+                        </div>
+                      </div>
+                      <div class="item">
+                        <div class="item__name">{{results.total_surplus.verbose}}</div>
+                        <div class="item__result">
+                          <div class="item__value">{{results.total_surplus.value}}</div>
+                          <div class="item__unit">{{results.total_surplus.unit}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Environmental -->
+                <div class="tab-pane fade" id="environmental-tabs-pane" role="tabpanel" aria-labelledby="environmental-tabs" tabindex="0">...</div>
               </div>
             </div>
             <div class="row" id="capacityChart">
@@ -416,7 +548,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Optimal Capacity of Components' %}</span>
+                      <h2 class="title">{% translate 'Optimal Capacity of Components' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -428,7 +560,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Breakdown of the LCOE' %}</span>
+                      <h2 class="title">{% translate 'Breakdown of the LCOE' %}</h2>
                     </div>
                     <div class="dropdown">
                       <button class="btn dropdown-toggle btn--transparent"
@@ -459,7 +591,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Sankey Diagram Representing the Energy Flow in the System' %}</span>
+                      <h2 class="title">{% translate 'Sankey Diagram Representing the Energy Flow in the System' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -474,7 +606,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}</span>
+                      <h2 class="title">{% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -488,7 +620,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Demand Coverage by Renewable and Non-Renewable Resources' %}</span>
+                      <h2 class="title">{% translate 'Demand Coverage by Renewable and Non-Renewable Resources' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -502,7 +634,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Annual Energy Flows with 1-Hour Resolution' %}</span>
+                      <h2 class="title">{% translate 'Annual Energy Flows with 1-Hour Resolution' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -516,7 +648,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Duration Curves for All Components' %}</span>
+                      <h2 class="title">{% translate 'Duration Curves for All Components' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
@@ -528,7 +660,7 @@
                 <div class="chart">
                   <div class="chart__header">
                     <div>
-                      <span class="title">{% translate 'Cumulative CO2 Emissions' %}</span>
+                      <h2 class="title">{% translate 'Cumulative CO2 Emissions' %}</h2>
                     </div>
                   </div>
                   <div class="chart__plot">
