@@ -4,6 +4,18 @@
     text-align: left;
 }
 
+#dashboard .btn--download {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.25rem 1rem;
+}
+
+#dashboard .btn--download + ul.dropdown-menu {
+    z-index: 1100;
+}
+
 #dashboard .chart {
     background-color: transparent;
     box-shadow: none;
