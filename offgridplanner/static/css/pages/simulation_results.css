@@ -177,3 +177,93 @@
     color: var(--font-color--highlight);
     line-height: 130%;
 }
+
+#dashboard .results-section {
+    margin-top: 4rem;
+    padding-top: 4rem;
+    border-top: 1px solid var(--border-color);
+}
+
+#dashboard .results-section .results-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+#dashboard .results-section button.nav-link {
+    font-size: var(--font-size--lg);
+    font-weight: 700;
+    color: var(--font-color--link) !important;
+}
+
+#dashboard .results-section button.nav-link.active {
+    color: var(--button-color--primary) !important;
+    background-color: var(--button-background--primary);
+    border-radius: var(--border-radius);
+}
+
+#dashboard .tab-content h2 {
+    font-size: var(--font-size--md);
+    font-weight: 700;
+    color: var(--font-color--secondary);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+#dashboard .tab-content .row__single {
+    display: flex;
+    gap: 1rem;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--background-color--main);
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+#dashboard .tab-content .row__single .item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    border-radius: 0;
+}
+
+#dashboard .tab-content .row__single .item:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+    padding-right: 1rem;
+}
+
+#dashboard .tab-content .row__single .item .item__name {
+    font-size: var(--font-size--sm);
+    color: var(--font-color--secondary);
+    font-weight: 400;
+    padding-bottom: 1rem;
+}
+
+#dashboard .tab-content .row__single .item .item__result {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+#dashboard .tab-content .row__single .item .item__value {
+    font-size: var(--font-size--lg);
+    font-weight: 900;
+    color: var(--font-color--highlight);
+    line-height: 130%;
+}
+
+#dashboard .tab-content .row__single .item .item__unit {
+    font-size: var(--font-size--sm);
+    font-weight: 400;
+    color: var(--font-color--highlight);
+    line-height: 130%;
+}
+
+#dashboard .chart__plot {
+    background-color: var(--background-color--main);
+}
