@@ -31,6 +31,10 @@
     color: var(--font-color--secondary);
 }
 
+#dashboard .chart.map-wrapper {
+    height: 42rem;
+}
+
 #dashboard .chart .row {
     margin-bottom: 1rem;
 }
@@ -264,6 +268,9 @@
     line-height: 130%;
 }
 
-#dashboard .chart__plot {
-    background-color: var(--background-color--main);
+#dashboard .chart:has(.chart__plot) {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--background-color--main);
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
 }
