@@ -104,8 +104,23 @@
                       </div>
                       <div class="item item--share">
                         <div class="item__title">{% translate 'Share of Costs in LCOE' %}</div>
-                        <div class="item__value">{{results.lcoe_share_supply.value}} {{results.lcoe_share_supply.unit}}</div>
-                        <div class="item__value">{{results.lcoe_share_grid.value}} {{results.lcoe_share_grid.unit}}</div>
+                        <div class="lcoe-chart-wrapper">
+                          <div class="label left-label">
+                            <div class="label-title">Generation-Related</div>
+                            <div>
+                              <span class="label-value" id="gen-value">{{results.lcoe_share_supply.value}}</span>
+                              <span class="label-percent">{{results.lcoe_share_supply.unit}}</span>
+                            </div>
+                          </div>
+                          <div id="lcoeChart"></div>
+                          <div class="label right-label">
+                            <div class="label-title">Grid-Related</div>
+                            <div>
+                              <span class="label-value" id="grid-value">{{results.lcoe_share_grid.value}}</span>
+                              <span class="label-percent">{{results.lcoe_share_grid.unit}}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div class="row">
@@ -720,11 +735,84 @@
       const downloadResultsUrl = `{% url 'projects:export_project_results' proj_id %}`;
     </script>
   <script src="{% static 'js/integrate_map.js' %}"></script>
-  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="{% static 'js/third_party/plotly.js' %}"></script>
   <script src="{% statici18n LANGUAGE_CODE %}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
   <script src="{% static 'js/pages/simulation_results.js' %}"></script>
   <script src="{% static 'js/backend_communication.js' %}"></script>
+
+  <script>
+    // Initial values
+    let generationValue = 38.9;
+    let gridValue = 61.1;
+    
+    // Chart dimensions
+    const width = 70;
+    const height = 70;
+    const radius = Math.min(width, height) / 2;
+    const innerRadius = radius * 0.6;
+    
+    // Create SVG
+    const svg = d3.select('#lcoeChart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .append('g')
+      .attr('transform', `translate(${width/2},${height/2})`);
+    
+    // Color scale - two colors only
+    const colors = ['#1F567D', '#87B2D1'];
+    
+    // Arc generator
+    const arc = d3.arc()
+      .innerRadius(innerRadius)
+      .outerRadius(radius);
+    
+    // Pie generator
+    const pie = d3.pie()
+      .sort(null)
+      .value(d => d.value);
+    
+    // Update chart
+    function updateChart(genValue, gridValue) {
+      const data = [
+        { label: 'Generation', value: genValue },
+        { label: 'Grid', value: gridValue }
+      ];
+        
+      // Update text values
+      document.getElementById('gen-value').textContent = genValue.toFixed(1);
+      document.getElementById('grid-value').textContent = gridValue.toFixed(1);
+      
+      // Bind data
+      const paths = svg.selectAll('path')
+        .data(pie(data));
+      
+      // Enter + Update
+      paths.enter()
+        .append('path')
+        .merge(paths)
+        .transition()
+        .duration(750)
+        .attrTween('d', function(d) {
+          const interpolate = d3.interpolate(this._current || d, d);
+          this._current = interpolate(1);
+          return t => arc(interpolate(t));
+        })
+      .attr('fill', (d, i) => colors[i])
+      .attr('stroke', 'white')
+      .attr('stroke-width', 2);
+      
+      // Exit
+      paths.exit().remove();
+    }
+    
+    // Initial render
+    updateChart(generationValue, gridValue);
+    
+    // Make updateChart function globally accessible
+    window.updateChart = updateChart;
+  </script>
 {% endblock end_body_scripts %}
 </html>

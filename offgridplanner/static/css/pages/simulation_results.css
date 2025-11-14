@@ -274,3 +274,42 @@
     background: var(--background-color--main);
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
 }
+
+/* LCOE Donut Chart */
+.lcoe-chart-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.lcoe-chart-wrapper > div {
+    flex: 1;
+}
+
+.lcoe-chart-wrapper .label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lcoe-chart-wrapper .label-title {
+    font-size: var(--font-size--sm);
+    line-height: 130%;
+    color: var(--font-color--secondary);
+    margin-bottom: 0.25rem;
+}
+
+.lcoe-chart-wrapper .label-value {
+    font-size: var(--font-size--xl);
+    font-weight: 700;
+    color: var(--font-color--highlight);
+}
+
+.lcoe-chart-wrapper .label-percent {
+    font-size: var(--font-size--sm);
+    color: var(--font-color--highlight);
+}
+
+.lcoe-chart-wrapper svg {
+    display: block;
+}
