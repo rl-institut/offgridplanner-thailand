@@ -112,7 +112,10 @@
                               <span class="label-percent">{{results.lcoe_share_supply.unit}}</span>
                             </div>
                           </div>
-                          <div id="lcoeChart"></div>
+                          <div id="lcoeChart"
+                            data-generation="{{ results.lcoe_share_supply.value }}"
+                            data-grid="{{ results.lcoe_share_grid.value }}">
+                          </div>
                           <div class="label right-label">
                             <div class="label-title">Grid-Related</div>
                             <div>
@@ -743,10 +746,10 @@
   <script src="{% static 'js/backend_communication.js' %}"></script>
 
   <script>
-    // Initial values
-    let generationValue = 38.9;
-    let gridValue = 61.1;
-    
+    const chartEl = document.getElementById('lcoeChart');
+    const generationValue = Number(chartEl.dataset.generation);
+    const gridValue       = Number(chartEl.dataset.grid);
+
     // Chart dimensions
     const width = 70;
     const height = 70;
@@ -761,7 +764,6 @@
       .append('g')
       .attr('transform', `translate(${width/2},${height/2})`);
     
-    // Color scale - two colors only
     const colors = ['#1F567D', '#87B2D1'];
     
     // Arc generator
