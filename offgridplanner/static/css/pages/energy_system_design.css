@@ -122,6 +122,16 @@
     display: none;
 }
 
+.esd-sources {
+    font-size: 12px;
+    color: var(--font-color--secondary);
+    margin-top: 2rem !important;
+}
+
+main:has(.esd) + .step-footer {
+    background-color: var(--background-color--secondary);
+}
+
 /* Energy System Diagram */
 #diagram {
     background: #fff;
