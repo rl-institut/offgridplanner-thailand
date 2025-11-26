@@ -125,7 +125,36 @@
 }
 
 .esd-component__input-row:has(.readonly-disabled) {
-    display: none;
+    opacity: 0.5;
+}
+
+.esd-component .accordion-header .d-flex {
+    position: relative;
+}
+
+.esd-component .accordion-header .form-check {
+    padding-left: 1.5rem;
+}
+
+.esd-component .accordion-header .accordion-button {
+    border: none;
+    padding-left: 0;
+}
+
+.esd-component .accordion-header .accordion-button:not(.collapsed) {
+    background-color: #eff6ff;
+}
+
+.accordion-item--not-selected .accordion-button {
+    opacity: 0.6;
+}
+
+.accordion-item--not-selected .grid-title {
+    color: #6c757d !important;
+}
+
+.accordion-item--not-selected .accordion-button:not(.collapsed) {
+    background-color: #f8f9fa !important;
 }
 
 .esd-sources {
