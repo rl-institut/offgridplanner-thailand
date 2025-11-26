@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
             el.addEventListener("click", () => refreshBlocksOnDiagram(id));
         }
     });
+    setupAccordionAutoClose();
 });
 
 /************************************************************/
@@ -224,6 +225,36 @@ function refreshBlocksOnDiagramOnLoad() {
     refreshBlocksOnDiagram('demand');
 }
 
+function setupAccordionAutoClose() {
+    // Get all accordion collapse elements
+    const allCollapseElements = document.querySelectorAll('.esd-sidebar__category .accordion-collapse');
+    
+    allCollapseElements.forEach(collapseElement => {
+        // Listen to Bootstrap's 'shown.bs.collapse' event (fires AFTER the accordion is fully opened)
+        collapseElement.addEventListener('shown.bs.collapse', function() {
+            
+            // Find all other open accordions
+            const allOpenCollapses = document.querySelectorAll('.esd-sidebar__category .accordion-collapse.show');
+            
+            allOpenCollapses.forEach(openCollapse => {
+                // Skip itself and parent/child relationships
+                if (openCollapse !== this && 
+                    !openCollapse.contains(this) && 
+                    !this.contains(openCollapse)) {
+                    
+                    const collapseInstance = bootstrap.Collapse.getInstance(openCollapse);
+                    if (collapseInstance) {
+                        collapseInstance.hide();
+                    } else {
+                        // If instance doesn't exist, create one and hide
+                        const newInstance = new bootstrap.Collapse(openCollapse, {toggle: false});
+                        newInstance.hide();
+                    }
+                }
+            });
+        });
+    });
+}
 
 /************************************************************/
 /*                 DRAW AND STYLE THE BLOCKS                */
