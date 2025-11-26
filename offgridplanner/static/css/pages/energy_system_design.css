@@ -19,7 +19,7 @@
 
 .esd > div {
     width: 100%;
-    max-width: 82rem;
+    max-width: 90rem;
     padding-left: var(--padding-normal);
     padding-right: var(--padding-normal);
 }
@@ -48,6 +48,12 @@
 .esd-sidebar__content, 
 .esd-diagram__content {
     padding: var(--padding-normal);
+}
+
+.esd-diagram img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .esd-sidebar__category:not(:last-of-type) {
