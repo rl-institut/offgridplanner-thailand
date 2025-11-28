@@ -40,6 +40,7 @@ const component = [
     'pv',
     'battery',
     'diesel_genset',
+    'hydrogen',
     'inverter',
     'rectifier',
     'shortage',
@@ -52,8 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
     component.forEach(id => {
         var el = document.getElementById(assetCheckBox(id))
         el.addEventListener("click", () => check_box_visibility(id));
-        el.addEventListener("click", () => refreshBlocksOnDiagram(id));
+        // Only add diagram refresh listener for components with diagrams
+        if (id !== 'hydrogen') {
+            el.addEventListener("click", () => refreshBlocksOnDiagram(id));
+        }
     });
+    setupAccordionAutoClose();
 });
 
 /************************************************************/
@@ -70,21 +75,34 @@ function optimizationCheckBox(id) {
 }
 
 function check_optimization_strategy(id) {
-    // Update the styles after changing the optimization strategy
-    styleBlock(id);
-    styleText(id);
-    styleLine(id);
-    styleArrow(id);
-    styleInformation(id);
+    // Check if the optimization checkbox exists first
+    const optimizationCheckbox = document.getElementById(optimizationCheckBox(id));
+    if (!optimizationCheckbox) return;
 
-    if (document.getElementById(optimizationCheckBox(id)).checked) {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").readOnly = true;
-        document.getElementById(id + "_parameters_nominal_capacity_label").classList.add('readonly-disabled');
-        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.add('readonly-disabled');
+    // Only update diagram styles for components that have diagram elements
+    const componentsWithDiagram = ['diesel_genset', 'pv', 'battery', 'inverter', 'rectifier', 'shortage'];
+    
+    if (componentsWithDiagram.includes(id)) {
+        // Update the styles after changing the optimization strategy
+        styleBlock(id);
+        styleText(id);
+        styleLine(id);
+        styleArrow(id);
+        styleInformation(id);
+    }
+
+    const nominalCapacityInput = document.getElementById("id_" + id + "_parameters_nominal_capacity");
+    const nominalCapacityLabel = document.getElementById(id + "_parameters_nominal_capacity_label");
+    const nominalCapacityUnit = document.getElementById(id + "_parameters_nominal_capacity_unit");
+
+    if (optimizationCheckbox.checked) {
+        if (nominalCapacityInput) nominalCapacityInput.readOnly = true;
+        if (nominalCapacityLabel) nominalCapacityLabel.classList.add('readonly-disabled');
+        if (nominalCapacityUnit) nominalCapacityUnit.classList.add('readonly-disabled');
     } else {
-        document.getElementById("id_" + id + "_parameters_nominal_capacity").readOnly = false;
-        document.getElementById(id + "_parameters_nominal_capacity_label").classList.remove('readonly-disabled');
-        document.getElementById(id + "_parameters_nominal_capacity_unit").classList.remove('readonly-disabled');
+        if (nominalCapacityInput) nominalCapacityInput.readOnly = false;
+        if (nominalCapacityLabel) nominalCapacityLabel.classList.remove('readonly-disabled');
+        if (nominalCapacityUnit) nominalCapacityUnit.classList.remove('readonly-disabled');
     }
 }
 
@@ -115,7 +133,13 @@ function check_box_visibility(id) {
         change_box_visibility('inverter');
         refreshBlocksOnDiagram('inverter');
     }
+    
     change_box_visibility(id);
+    
+    // Only refresh diagram for components that have diagrams
+    if (id !== 'hydrogen') {
+        refreshBlocksOnDiagram(id);
+    }
 }
 
 
@@ -128,46 +152,109 @@ function change_box_visibility(id) {
     let isChecked = checkBox.checked;
 
     // Update the box's selected state
-    box.classList.toggle('box--not-selected', !isChecked);
+    box.classList.toggle('accordion-item--not-selected', !isChecked);
 
-    // Find all relevant input fields within the box
-    let inputs = box.querySelectorAll("input:not(.form-check-input), select, textarea, button");
-    let labels = box.querySelectorAll("label, span.input-group-text");
+    // Find the accordion button and title
+    let accordionButton = box.querySelector('.accordion-button');
+    let accordionTitle = box.querySelector('.grid-title');
+    
+    if (accordionButton) {
+        accordionButton.classList.toggle('text-muted', !isChecked);
+    }
+    
+    if (accordionTitle) {
+        accordionTitle.classList.toggle('text-muted', !isChecked);
+    }
 
-    inputs.forEach(input => {
-        if (!isChecked) {
-            input.readOnly = true;
-            input.classList.add('readonly-disabled');
-        } else {
-            input.readOnly = false;
-            input.classList.remove('readonly-disabled');
-        }
-    });
+    // Find the accordion body (skip the checkbox in the header)
+    let accordionBody = box.querySelector('.accordion-body');
+    if (!accordionBody) return;
 
-    labels.forEach(label => {
-        label.classList.toggle('readonly-disabled', !isChecked);
-    });
+    // Special handling for hydrogen - disable all nested accordions
+    if (id === 'hydrogen') {
+        let nestedAccordions = accordionBody.querySelectorAll('.accordion-item');
+        nestedAccordions.forEach(nestedItem => {
+            let nestedButton = nestedItem.querySelector('.accordion-button');
+            let nestedTitle = nestedItem.querySelector('.grid-title');
+            let nestedBody = nestedItem.querySelector('.accordion-body');
+            
+            if (nestedButton) nestedButton.classList.toggle('text-muted', !isChecked);
+            if (nestedTitle) nestedTitle.classList.toggle('text-muted', !isChecked);
+            
+            if (nestedBody) {
+                let nestedInputs = nestedBody.querySelectorAll("input, select, textarea, button");
+                let nestedLabels = nestedBody.querySelectorAll("label, span.input-group-text");
+                
+                nestedInputs.forEach(input => input.disabled = !isChecked);
+                nestedLabels.forEach(label => label.classList.toggle('text-muted', !isChecked));
+            }
+        });
+    } else {
+        // Regular handling for non-hydrogen components
+        let inputs = accordionBody.querySelectorAll("input, select, textarea, button");
+        let labels = accordionBody.querySelectorAll("label, span.input-group-text");
+
+        inputs.forEach(input => input.disabled = !isChecked);
+        labels.forEach(label => label.classList.toggle('text-muted', !isChecked));
+    }
 
     // Check optimization strategy if applicable
-    if (id !== "shortage") {
+    if (id !== "shortage" && id !== "hydrogen") {
         check_optimization_strategy(id);
     }
 }
 
 function refreshBlocksOnDiagramOnLoad() {
+    const componentsWithDiagram = ['diesel_genset', 'pv', 'battery', 'inverter', 'rectifier', 'shortage'];
+    
     component.forEach(id => {
-        refreshBlocksOnDiagram(id);
-        if (id !== 'shortage') {
-            // if (id !== 'shortage' && component [i] !== 'surplus'){
+        // Only refresh diagram blocks for components that have diagrams
+        if (componentsWithDiagram.includes(id)) {
+            refreshBlocksOnDiagram(id);
+        }
+        
+        if (id !== 'shortage' && id !== 'hydrogen') {
             check_box_visibility(id);
             check_optimization_strategy(id);
         } else {
             change_box_visibility(id);
         }
     });
+    
+    // Refresh demand diagram
     refreshBlocksOnDiagram('demand');
 }
 
+function setupAccordionAutoClose() {
+    // Get all accordion collapse elements
+    const allCollapseElements = document.querySelectorAll('.esd-sidebar__category .accordion-collapse');
+    
+    allCollapseElements.forEach(collapseElement => {
+        // Listen to Bootstrap's 'shown.bs.collapse' event (fires AFTER the accordion is fully opened)
+        collapseElement.addEventListener('shown.bs.collapse', function() {
+            
+            // Find all other open accordions
+            const allOpenCollapses = document.querySelectorAll('.esd-sidebar__category .accordion-collapse.show');
+            
+            allOpenCollapses.forEach(openCollapse => {
+                // Skip itself and parent/child relationships
+                if (openCollapse !== this && 
+                    !openCollapse.contains(this) && 
+                    !this.contains(openCollapse)) {
+                    
+                    const collapseInstance = bootstrap.Collapse.getInstance(openCollapse);
+                    if (collapseInstance) {
+                        collapseInstance.hide();
+                    } else {
+                        // If instance doesn't exist, create one and hide
+                        const newInstance = new bootstrap.Collapse(openCollapse, {toggle: false});
+                        newInstance.hide();
+                    }
+                }
+            });
+        });
+    });
+}
 
 /************************************************************/
 /*                 DRAW AND STYLE THE BLOCKS                */
@@ -506,6 +593,12 @@ function refreshBusesOnDiagram() {
 }
 
 function refreshBlocksOnDiagram(id) {
+    // Skip if this component doesn't have diagram coordinates
+    const componentsWithDiagram = ['pv', 'battery', 'inverter', 'rectifier', 'diesel_genset', 'shortage', 'demand', 'surplus'];
+    if (!componentsWithDiagram.includes(id)) {
+        return;
+    }
+
     // This function draw/remove all blocks and their texts and flows in the diagram depending on
     // if they are selected by user or not.
     // For AC and DC buses, the function `refreshBusesOnDiagram` does the same work.

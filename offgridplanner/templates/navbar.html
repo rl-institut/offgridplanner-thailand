@@ -12,8 +12,8 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light {{ navbar_class }}">
   <div class="container-fluid">
     <a class="navbar-brand" href="{% url 'projects:home' %}">
-      <img src="{% static 'assets/logos/PeopleSunLogo.png' %}"
-           alt="PeopleSun Logo" />
+      <img src="{% static 'assets/logos/Green-H2Islands-Full-Logo.png' %}"
+           alt="GreenH2Islands Logo" />
     </a>
     <button class="navbar-toggler"
             type="button"
@@ -39,7 +39,7 @@
         <li class="nav-item dropdown locale" id="language-switcher">
           <form action="{% url 'set_language' %}" method="post">
             {% csrf_token %}
-            <input name="next" type="hidden" value="{{ redirect_to }}" />
+            <input name="next" type="hidden" value="{{ request.get_full_path|slice:'3:' }}">
             <select class="selectpicker" name="language" onchange="this.form.submit()">
               {% get_current_language as LANGUAGE_CODE %}
               {% get_available_languages as LANGUAGES %}
