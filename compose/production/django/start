@@ -9,7 +9,7 @@ python /app/manage.py collectstatic --noinput
 
 echo MANAGETRANSLATIONS
 python manage.py compilemessages --locale=th
-python manage.py compilejsi18n
+python manage.py compilejsi18n -d djangojs
 
 compress_enabled() {
 python << END
