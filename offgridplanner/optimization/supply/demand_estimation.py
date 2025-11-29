@@ -28,11 +28,11 @@ LARGE_LOAD_LIST = [
 
 # TODO replace with actual power info
 LARGE_LOAD_KW_MAPPING = {
-    "Water pump": 0,
+    "Water pump (150W)": 150,
     "AC ": 0,
-    "Computer/laptop": 0,
-    "Fridge": 0,
-    "Washing Machine": 0,
+    "Laptop (50W)": 50,
+    "Fridge (220W)": 220,
+    "Washing Machine (8kg, 400 W)": 400,
 }
 
 
