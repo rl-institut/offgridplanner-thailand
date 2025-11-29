@@ -30,11 +30,13 @@ const radioTotalDemand = document.getElementById('optionTotalDemand');
 const radioSingleHousehold = document.getElementById('optionSingleHousehold');
 const plotElement = document.getElementById("demand_plot");
 
+let layout;
 
 // Adjust input fields based on radio button selection
 document.addEventListener('DOMContentLoaded', function () {
     const proj_id = "{{ proj_id }}";
-    demand_ts(proj_id)
+    initializePlot();
+    plotDemandData();
 
 document.querySelectorAll(".btn-custom").forEach((btn) => {
     btn.addEventListener("click", function (event) {
@@ -55,6 +57,12 @@ document.querySelectorAll(".btn-custom").forEach((btn) => {
     handleOptions2Change();
 
 });
+
+function resetInitialShares() {
+  for (const [field, value] of Object.entries(previousValues)) {
+        document.querySelector(`#id_${field}`).value = value;
+      }
+}
 
 // Handle change of calibration values (total vs. peak)
 function handleOptions2Change() {
@@ -162,6 +170,7 @@ function updateAverageArray() {
     0});
 }
 
+// TODO this is currently not in use since the plot is not dynamically changing
 function resetToDefault() {
     // Recalculate 'Average' using default shares
     updateAverageArray();
@@ -241,9 +250,8 @@ function handleRadioButtonChange() {
 }
 
 
-function demand_ts(project_id) {
-
-    var layout = {
+function initializePlot() {
+    layout = {
         font: { size: 14 },
         autosize: true,
         xaxis: {
@@ -270,7 +278,9 @@ function demand_ts(project_id) {
 
     // Initialize the plot with empty data
     Plotly.newPlot(plotElement, [], layout);
+}
 
+function plotDemandData() {
     fetch(loadDemandPlotUrl)
         .then(response => {
             if (!response.ok) {
@@ -435,17 +445,8 @@ function demand_ts(project_id) {
             const customShare4 = document.getElementById('id_high');
             const customShare5 = document.getElementById('id_very_high');
 
-            // Initialize an object to store previous values of custom share inputs
-            const previousValues = {
-                'id_very_low': parseFloat(customShare1.value) || 0,
-                'id_low': parseFloat(customShare2.value) || 0,
-                'id_middle': parseFloat(customShare3.value) || 0,
-                'id_high': parseFloat(customShare4.value) || 0,
-                'id_very_high': parseFloat(customShare5.value) || 0
-            };
-
             // Attach event listener to reset button
-            document.getElementById('resetDefault').addEventListener('click', resetToDefault);
+            document.getElementById('resetDefault').addEventListener('click', resetInitialShares);
 
             // Add event listeners with threshold logic
             customShare1.addEventListener('input', handleInputChange('id_very_low'), 250, false);
