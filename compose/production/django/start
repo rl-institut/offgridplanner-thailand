@@ -4,12 +4,12 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-echo COLLECTSTATIC
-python /app/manage.py collectstatic --noinput
-
 echo MANAGETRANSLATIONS
 python manage.py compilemessages --locale=th
 python manage.py compilejsi18n -d djangojs
+
+echo COLLECTSTATIC
+python manage.py collectstatic --noinput
 
 compress_enabled() {
 python << END
