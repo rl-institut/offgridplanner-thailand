@@ -175,61 +175,78 @@ main:has(.esd) + .step-footer {
 }
 
 /* Energy System Diagram */
-#diagram {
-    background: #fff;
-    padding: 32px;
-    border-radius: 8px;
+#esd-diagram {
+    padding: 2rem 3rem;
+    width: 100%;
+    max-width: 100%;
 }
-.component-box {
-    fill: #F4F6F9;
-    stroke: #E1EBF1;
-    stroke-width: 1;
-    rx: 8;
+
+#esd-diagram svg {
+    display: block;
 }
-.section-box {
-    fill: none;
-    stroke: #E1EBF1;
-    stroke-width: 1;
-    rx: 8;
-}
-.home-box {
-    fill: #e8f5f3;
-    stroke: #4db6ac;
+
+.esd-category-box {
+    fill: #fff;
+    stroke: #94A3B8;
     stroke-width: 2;
+    stroke-dasharray: 5, 5;
     rx: 8;
+    ry: 8;
 }
-.component-title {
+
+.esd-component-box {
+    fill: rgba(223, 229, 237, 0.5);
+    stroke: #CBD5E1;
+    stroke-width: 1;
+    rx: 8;
+    ry: 8;
+}
+
+.esd-component-box.buildings {
+    fill: #E8F6F1;
+    stroke: #79A193;
+}
+
+.esd-category-label {
+    font-size: 16px;
+    font-weight: 700;
+    fill: #212529;
+}
+
+.esd-category-number {
     font-size: 14px;
-    font-weight: 600;
-    fill: #2c3e50;
+    font-weight: 700;
+    fill: #fff;
 }
-.status-dot {
-    r: 4;
+
+.esd-component-label {
+    font-size: 16px;
+    fill: #212529;
 }
-.status-optimized {
-    fill: #4caf50;
+
+.esd-component-label.buildings {
+    fill: #157754;
 }
-.status-fixed {
-    fill: #2196f3;
-}
-.status-text {
-    font-size: 13px;
+
+.esd-badge {
+    font-size: 12px;
     fill: #5E798D;
 }
-.section-header {
-    font-size: 15px;
-    font-weight: 600;
-    fill: #212529;
-    letter-spacing: 1px;
+
+.esd-no-component-text {
+    font-size: 14px;
+    fill: #5E798D;
 }
-.arrow {
-    fill: none;
+
+.esd-arrow {
     stroke: #72879A;
     stroke-width: 2;
+    fill: none;
     marker-end: url(#arrowhead);
 }
-.home-title {
+
+.esd-legend-text {
     font-size: 14px;
-    font-weight: 600;
-    fill: #157754;
+    fill: #5E798D;
+    text-align: center;
 }
