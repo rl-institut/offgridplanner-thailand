@@ -105,6 +105,8 @@ function check_optimization_strategy(id) {
         if (nominalCapacityLabel) nominalCapacityLabel.classList.remove('readonly-disabled');
         if (nominalCapacityUnit) nominalCapacityUnit.classList.remove('readonly-disabled');
     }
+
+    if (window.renderESDDiagram) window.renderESDDiagram();
 }
 
 function check_box_visibility(id) {
@@ -859,18 +861,57 @@ function initDiagram() {
 
 
     // Component data based on system configuration
+    const optBadge = (id) => {
+        const el = document.getElementById(optimizationCheckBox(id));
+        return (el && el.checked) ? "Optimized" : "Fixed";
+    };
+
+          function drawStatusBadge(parentGroup, centerX, centerY, badgeText) {
+        const badgeTextWidth = (badgeText || "").length * 6; // keep your existing approximation
+        const badgePadding = 8;
+        const badgeWidth = badgeTextWidth + badgePadding * 2 + 12; // +12 for dot space
+        const badgeHeight = 16;
+
+        const dotColor = badgeText === "Optimized" ? "#6BC779" : "#5E798D";
+
+        const badge = parentGroup.append("g")
+          .attr("transform", `translate(${centerX - badgeWidth / 2}, ${centerY - badgeHeight / 2})`);
+
+        badge.append("rect")
+          .attr("width", badgeWidth)
+          .attr("height", badgeHeight)
+          .attr("rx", badgeHeight / 2)
+          .attr("ry", badgeHeight / 2)
+          .attr("fill", "#fff");
+
+        badge.append("circle")
+          .attr("cx", badgePadding + 3)
+          .attr("cy", badgeHeight / 2)
+          .attr("r", 3)
+          .attr("fill", dotColor);
+
+        badge.append("text")
+          .attr("class", "esd-badge")
+          .attr("x", badgePadding + 10)
+          .attr("y", badgeHeight / 2 + 4)
+          .text(badgeText);
+
+        return badge;
+      }
+
+
     function getComponents() {
       const supply = [];
       const storage = [];
 
       if (systemData.diesel_genset) {
-        supply.push({ name: "Diesel Generator", badge: "Optimized" });
+        supply.push({ name: "Diesel Generator", badge: optBadge("diesel_genset") });
       }
       if (systemData.pv) {
-        supply.push({ name: "Solar Panels", badge: "Optimized" });
+        supply.push({ name: "Solar Panels", badge: optBadge("pv") });
       }
       if (systemData.battery) {
-        storage.push({ name: "Battery", badge: "Fixed" });
+        storage.push({ name: "Battery", badge: optBadge("battery") });
       }
       // Hydrogen is handled separately as it spans both categories
 
@@ -1076,36 +1117,7 @@ function initDiagram() {
         // Badge - 14px below the label (10px + 4px margin)
         if (!isUseCategory) {
           const badgeY = labelY + 14;
-          const badgeText = component.badge;
-          const badgeTextWidth = badgeText.length * 6; // Approximate text width
-          const badgePadding = 8;
-          const badgeWidth = badgeTextWidth + badgePadding * 2 + 12; // Include space for dot
-          const badgeHeight = 16;
-
-          const badge = componentGroup.append("g")
-            .attr("transform", `translate(${componentWidth / 2 - badgeWidth / 2}, ${badgeY - badgeHeight / 2})`);
-
-          // White rounded background
-          badge.append("rect")
-            .attr("width", badgeWidth)
-            .attr("height", badgeHeight)
-            .attr("rx", badgeHeight / 2)
-            .attr("ry", badgeHeight / 2)
-            .attr("fill", "#fff");
-
-          // Colored dot based on badge type
-          const dotColor = badgeText === "Optimized" ? "#6BC779" : "#5E798D";
-          badge.append("circle")
-            .attr("cx", badgePadding + 3)
-            .attr("cy", badgeHeight / 2)
-            .attr("r", 3)
-            .attr("fill", dotColor);
-
-          badge.append("text")
-            .attr("class", "esd-badge")
-            .attr("x", badgePadding + 10)
-            .attr("y", badgeHeight / 2 + 4)
-            .text(badgeText);
+          drawStatusBadge(componentGroup, componentWidth / 2, badgeY, component.badge);
           }
         });
       }
@@ -1212,31 +1224,12 @@ function initDiagram() {
 
     // Fuel cell badge (4px margin from description text)
     const fuelCellBadgeY = 97;
-    const fuelCellBadgeText = "Optimized";
-    const fuelCellBadgeWidth = 80;
-    const fuelCellBadgeHeight = 16;
-
-    const fuelCellBadge = fuelCellGroup.append("g")
-      .attr("transform", `translate(${esdConfig.hydrogenSubComponentWidth / 2 - fuelCellBadgeWidth / 2}, ${fuelCellBadgeY - fuelCellBadgeHeight / 2})`);
-
-    fuelCellBadge.append("rect")
-      .attr("width", fuelCellBadgeWidth)
-      .attr("height", fuelCellBadgeHeight)
-      .attr("rx", fuelCellBadgeHeight / 2)
-      .attr("ry", fuelCellBadgeHeight / 2)
-      .attr("fill", "#fff");
-
-    fuelCellBadge.append("circle")
-      .attr("cx", 11)
-      .attr("cy", fuelCellBadgeHeight / 2)
-      .attr("r", 3)
-      .attr("fill", "#6BC779");
-
-    fuelCellBadge.append("text")
-      .attr("class", "esd-badge")
-      .attr("x", 18)
-      .attr("y", fuelCellBadgeHeight / 2 + 4)
-      .text(fuelCellBadgeText);
+    drawStatusBadge(
+      fuelCellGroup,
+      esdConfig.hydrogenSubComponentWidth / 2,
+      fuelCellBadgeY,
+      optBadge("fuel_cell")
+      );
 
     // Hydrogen Storage
     const storageGroup = hydrogenGroup.append("g")
@@ -1276,31 +1269,12 @@ function initDiagram() {
 
     // Hydrogen storage badge (4px margin from description text)
     const storageBadgeY = 97;
-    const storageBadgeText = "Fixed";
-    const storageBadgeWidth = 55;
-    const storageBadgeHeight = 16;
-
-    const storageBadge = storageGroup.append("g")
-      .attr("transform", `translate(${esdConfig.hydrogenSubComponentWidth / 2 - storageBadgeWidth / 2}, ${storageBadgeY - storageBadgeHeight / 2})`);
-
-    storageBadge.append("rect")
-      .attr("width", storageBadgeWidth)
-      .attr("height", storageBadgeHeight)
-      .attr("rx", storageBadgeHeight / 2)
-      .attr("ry", storageBadgeHeight / 2)
-      .attr("fill", "#fff");
-
-    storageBadge.append("circle")
-      .attr("cx", 11)
-      .attr("cy", storageBadgeHeight / 2)
-      .attr("r", 3)
-      .attr("fill", "#5E798D");
-
-    storageBadge.append("text")
-      .attr("class", "esd-badge")
-      .attr("x", 18)
-      .attr("y", storageBadgeHeight / 2 + 4)
-      .text(storageBadgeText);
+    drawStatusBadge(
+      storageGroup,
+      esdConfig.hydrogenSubComponentWidth / 2,
+      storageBadgeY,
+      optBadge("h2_storage")
+    );
 
     // Electrolyzer
     const electrolyzerGroup = hydrogenGroup.append("g")
@@ -1340,31 +1314,12 @@ function initDiagram() {
 
     // Electrolyzer badge (4px margin from description text)
     const electrolyzerBadgeY = 97;
-    const electrolyzerBadgeText = "Optimized";
-    const electrolyzerBadgeWidth = 80;
-    const electrolyzerBadgeHeight = 16;
-
-    const electrolyzerBadge = electrolyzerGroup.append("g")
-      .attr("transform", `translate(${esdConfig.hydrogenSubComponentWidth / 2 - electrolyzerBadgeWidth / 2}, ${electrolyzerBadgeY - electrolyzerBadgeHeight / 2})`);
-
-    electrolyzerBadge.append("rect")
-      .attr("width", electrolyzerBadgeWidth)
-      .attr("height", electrolyzerBadgeHeight)
-      .attr("rx", electrolyzerBadgeHeight / 2)
-      .attr("ry", electrolyzerBadgeHeight / 2)
-      .attr("fill", "#fff");
-
-    electrolyzerBadge.append("circle")
-      .attr("cx", 11)
-      .attr("cy", electrolyzerBadgeHeight / 2)
-      .attr("r", 3)
-      .attr("fill", "#6BC779");
-
-    electrolyzerBadge.append("text")
-      .attr("class", "esd-badge")
-      .attr("x", 18)
-      .attr("y", electrolyzerBadgeHeight / 2 + 4)
-      .text(electrolyzerBadgeText);
+    drawStatusBadge(
+      electrolyzerGroup,
+      esdConfig.hydrogenSubComponentWidth / 2,
+      electrolyzerBadgeY,
+      optBadge("electrolyzer")
+    );
 
     // Internal arrows showing hydrogen flow
     const arrowY = subComponentY + esdConfig.hydrogenSubComponentHeight / 2;
