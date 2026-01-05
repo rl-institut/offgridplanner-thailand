@@ -141,6 +141,10 @@ function check_box_visibility(id) {
     if (id !== 'hydrogen') {
         refreshBlocksOnDiagram(id);
     }
+
+    if (window.renderESDDiagram) {
+        window.renderESDDiagram();
+    }
 }
 
 
@@ -224,6 +228,11 @@ function refreshBlocksOnDiagramOnLoad() {
 
     // Refresh demand diagram
     refreshBlocksOnDiagram('demand');
+
+    if (window.renderESDDiagram) {
+        window.renderESDDiagram();
+    }
+
 }
 
 function setupAccordionAutoClose() {
@@ -797,13 +806,19 @@ function initDiagram() {
       return;
     }
 
-    // Define systemData here
-    const systemData = {
-      diesel_generator: true, // here always true
-      pv: true,
-      battery: true,
-      hydrogen: true
-    };
+    function readSystemDataFromForm() {
+      const isChecked = (id) => {
+        const el = document.getElementById(id);
+        return !!(el && el.checked);
+      };
+
+      return {
+        diesel_genset: isChecked("id_diesel_genset_settings_is_selected"),
+        pv: isChecked("id_pv_settings_is_selected"),
+        battery: isChecked("id_battery_settings_is_selected"),
+        hydrogen: isChecked("id_hydrogen_settings_is_selected")
+      };
+    }
 
     // Configuration
     const esdConfig = {
@@ -836,12 +851,19 @@ function initDiagram() {
       "Buildings": "/static/images/energy-system/component-building.svg"
     };
 
+    window.renderESDDiagram = function () {
+        const systemData = readSystemDataFromForm();
+
+      // Clear existing diagram
+      d3.select("#esd-diagram").selectAll("*").remove();
+
+
     // Component data based on system configuration
     function getComponents() {
       const supply = [];
       const storage = [];
 
-      if (systemData.diesel_generator) {
+      if (systemData.diesel_genset) {
         supply.push({ name: "Diesel Generator", badge: "Optimized" });
       }
       if (systemData.pv) {
@@ -1433,4 +1455,7 @@ function initDiagram() {
     .attr("y", esdConfig.categoryTopMargin + maxCategoryHeight + 50)
     .attr("text-anchor", "middle")
     .text(legendText);
-  }
+  };
+
+  window.renderESDDiagram();
+  };
