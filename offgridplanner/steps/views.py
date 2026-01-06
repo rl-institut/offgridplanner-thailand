@@ -18,7 +18,6 @@ from config.settings.base import PENDING
 from offgridplanner.optimization.helpers import get_country_bounds
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
-from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
 from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_LIST
 from offgridplanner.projects.forms import OptionForm
@@ -125,7 +124,7 @@ def consumer_selection(request, proj_id=None):
             for ix, enterprise in enumerate(sorted(ENTERPRISE_LIST), 1)
         }
         large_load_list = {
-            f"group{ix}": f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
+            f"group{ix}": f"{machine}"
             for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
         }
 
@@ -169,6 +168,7 @@ def demand_estimation(request, proj_id=None):
         )
         calibration_initial = custom_demand.calibration_option
         calibration_active = calibration_initial is not None
+        household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
 
         if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
@@ -187,6 +187,7 @@ def demand_estimation(request, proj_id=None):
                 "active": calibration_active,
                 "initial": calibration_initial,
             },
+            "household_initial_shares": household_initial_shares,
             "form": form,
             "proj_id": proj_id,
             "step_id": step_id,

@@ -33,6 +33,7 @@ LANGUAGE_CODE = "en-us"
 
 LANGUAGES = [
     ("en", _("English")),
+    ("th", _("Thai")),
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
@@ -208,6 +209,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
                 "offgridplanner.users.context_processors.allauth_settings",
                 "offgridplanner.users.context_processors.app_version",
                 "offgridplanner.steps.context_processors.current_project",
@@ -383,7 +385,7 @@ SPECTACULAR_SETTINGS = {
 APP_VERSION_NUMBER = "1.0.1"
 
 # Assumed country based on timeseries data (used for map settings and user warning if a different country is selected)
-DEFAULT_COUNTRY = ("NG", "Nigeria")
+DEFAULT_COUNTRY = ("TH", "Thailand")
 
 # SIMULATION
 # ------------------------------------------------------------------------------

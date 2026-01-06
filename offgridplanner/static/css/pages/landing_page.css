@@ -4,11 +4,15 @@ body {
 
 .image-container {
     display: flex;
-    justify-content: space-between; /* Adjusts space between images */
+    justify-content: space-evenly; /* Adjusts space between images */
+}
+
+.image-container a {
+    align-content: center; /* Adjust width as needed */
 }
 
 .image-container img {
-    width: 150px; /* Adjust width as needed */
+    width: 400px; /* Adjust width as needed */
     height: auto; /* Maintains aspect ratio */
 }
 
