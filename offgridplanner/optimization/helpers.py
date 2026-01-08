@@ -12,7 +12,6 @@ from rest_framework.generics import get_object_or_404
 
 from config.settings.base import DEFAULT_COUNTRY
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
-from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_KW_MAPPING
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
 from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_LIST
 from offgridplanner.projects.helpers import df_to_file
@@ -81,11 +80,7 @@ def validate_column_inputs(input_values, column):
         "consumer_detail": {"", "default"}
         | set(ENTERPRISE_LIST)
         | set(PUBLIC_SERVICE_LIST),
-        "custom_specification": {
-            f"{machine} ({LARGE_LOAD_KW_MAPPING[machine]}kW)"
-            for machine in LARGE_LOAD_LIST
-        }
-        | {""},
+        "custom_specification": {f"{machine}" for machine in LARGE_LOAD_LIST} | {""},
     }
     invalid_values = set(input_values) - allowed_values[column]
     if invalid_values:

@@ -26,15 +26,6 @@ LARGE_LOAD_LIST = [
     if profile.split("_", maxsplit=1)[0] == "Appliances"
 ]
 
-# TODO replace with actual power info
-LARGE_LOAD_KW_MAPPING = {
-    "Water pump (150W)": 150,
-    "AC ": 0,
-    "Laptop (50W)": 50,
-    "Fridge (220W)": 220,
-    "Washing Machine (8kg, 400 W)": 400,
-}
-
 
 def get_demand_timeseries(nodes, custom_demand, time_range=None):
     """
