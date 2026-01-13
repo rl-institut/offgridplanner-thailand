@@ -24,21 +24,19 @@ from offgridplanner.optimization.helpers import check_imported_consumer_data
 from offgridplanner.optimization.helpers import check_imported_demand_data
 from offgridplanner.optimization.helpers import consumer_data_to_file
 from offgridplanner.optimization.helpers import convert_file_to_df
+from offgridplanner.optimization.helpers import df_to_file
+from offgridplanner.optimization.helpers import process_optimization_results
 from offgridplanner.optimization.helpers import validate_file_extension
 from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.models import Nodes
-from offgridplanner.optimization.models import Results
 from offgridplanner.optimization.models import Roads
 from offgridplanner.optimization.models import Simulation
-from offgridplanner.optimization.processing import GridProcessor
 from offgridplanner.optimization.processing import PreProcessor
-from offgridplanner.optimization.processing import SupplyProcessor
 from offgridplanner.optimization.requests import optimization_check_status
 from offgridplanner.optimization.requests import optimization_server_request
 from offgridplanner.optimization.supply.demand_estimation import LOAD_PROFILES
 from offgridplanner.optimization.supply.demand_estimation import get_demand_timeseries
 from offgridplanner.optimization.tasks import revoke_task
-from offgridplanner.projects.helpers import df_to_file
 from offgridplanner.projects.models import Project
 from offgridplanner.steps.models import CustomDemand
 
@@ -744,7 +742,7 @@ def waiting_for_results(request, proj_id):
     )
 
 
-def process_optimization_results(request, proj_id):
+def handle_optimization_results_request(request, proj_id):
     # Processes the results (contains both optimization result objects)
     data = json.loads(request.body)
     sim_res = data.get("results", {})
