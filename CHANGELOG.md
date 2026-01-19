@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Updated energy system diagram look and added H2 components
 
 ## [v1.0.1-thai.1.0] – 2026-01-07
 ### Added
