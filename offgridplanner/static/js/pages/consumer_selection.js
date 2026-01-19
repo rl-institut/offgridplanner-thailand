@@ -68,7 +68,7 @@ document.getElementById('consumer').addEventListener('change', function () {
     if (this.value === 'H') {
         document.getElementById('enterprise').value = '';
         document.getElementById('enterprise').disabled = true;
-        deactivate_large_loads();
+        activate_large_loads();
     } else if (this.value === 'E') {
         dropDownMenu(enterprise_list);
         document.getElementById('enterprise').innerHTML = enterprise_option;
@@ -147,8 +147,7 @@ function markerOnClick(e) {
                     document.getElementById('enterprise').value = '';
                     document.getElementById('shs_options').disabled = false;
                     document.getElementById('consumer').disabled = false;
-                    deactivate_large_loads();
-
+                    activate_large_loads();
                 } else if (marker.consumer_type === 'enterprise') {
                     dropDownMenu(enterprise_list);
                     document.getElementById('consumer').value = 'E';
