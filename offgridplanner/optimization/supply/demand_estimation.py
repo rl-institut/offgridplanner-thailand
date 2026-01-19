@@ -121,14 +121,15 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
                 load_profiles,
             )
 
-        # Add machinery loads to enterprises
-        if consumer_type == "enterprise":
+        # Add machinery loads to enterprises and households
+        if consumer_type in ["enterprise", "household"]:
             # Check if there are any large loads in the custom_specifications
             if nodes.have_custom_machinery:
-                ent_nodes = nodes.filter_consumers("enterprise")
-                large_load_enterprises = ent_nodes[ent_nodes.custom_specification != ""]
-                machinery = unpack_machinery(large_load_enterprises)
-
+                consumer_nodes = nodes.filter_consumers(consumer_type)
+                large_load_nodes = consumer_nodes[
+                    consumer_nodes.custom_specification != ""
+                ]
+                machinery = unpack_machinery(large_load_nodes)
                 # Compute machinery demand and add to enterprises
                 machinery_demand = compute_standard_demand(
                     "machinery",
@@ -183,7 +184,7 @@ def compute_standard_demand(consumer_type, consumer_type_counts, load_profiles):
         total_demand (pd.Series): Total demand
     """
     if consumer_type == "machinery":
-        ts_string_prefix = "Appliances_"
+        ts_string_prefix = "Appliances"
     else:
         ts_string_prefix = f"{consumer_type.title().replace('_', ' ')}"
     ts_cols = [f"{ts_string_prefix}_{ts}" for ts in consumer_type_counts.index]
@@ -212,7 +213,7 @@ def unpack_machinery(large_load_enterprises):
     # Drop power ratings and extract counts from string, create series with machinery as index
     large_loads = (
         expanded["custom_specification"]
-        .str.extract(r"(\d+)\s*x\s*([^\(]+?)\s*(?:\(|$)")
+        .str.extract(r"(\d+)\s*x\s*(.+)")
         .astype({0: int})
         .groupby(1)[0]
         .sum()  # Sum duplicate machinery types

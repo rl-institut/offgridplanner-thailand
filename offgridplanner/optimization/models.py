@@ -49,14 +49,16 @@ class Nodes(BaseJsonData):
 
     @property
     def have_custom_machinery(self):
-        enterprises = self.df[self.df.consumer_type == "enterprise"]
-        machinery = (
-            enterprises.groupby(["consumer_type", "consumer_detail"])
-            .agg({"custom_specification": ";".join})
-            .custom_specification.loc["enterprise"]
+        s = (
+            self.df.loc[
+                self.df["consumer_type"].isin(["enterprise", "household"]),
+                "custom_specification",
+            ]
+            .fillna("")
+            .astype(str)
+            .str.strip()
         )
-        machinery.replace(";", "")
-        return bool(not machinery.eq("").all())
+        return s.ne("").any()
 
 
 class Links(BaseJsonData):
