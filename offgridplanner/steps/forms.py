@@ -117,3 +117,27 @@ class EnergySystemDesignForm(CustomModelForm):
     class Meta:
         model = EnergySystemDesign
         exclude = ["project"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        def _is_selected_lbl(component):
+            # Return the label for the corresponding "is_selected" form field
+            return f"{component}_settings_is_selected"
+
+        def _switch_related_fields(key_component, component_group):
+            # Switch a group of components to selected if a key component is selected
+            key_component_is_selected = cleaned_data.get(
+                _is_selected_lbl(key_component)
+            )
+            if key_component_is_selected:
+                # Remove the key component as it is already selected
+                component_group.remove(key_component)
+                for component in component_group:
+                    cleaned_data[_is_selected_lbl(component)] = True
+
+        # If h2_storage is selected, select all other hydrogen components (as they do not have a checkbox each)
+        _switch_related_fields(
+            "h2_storage", ["h2_storage", "fuel_cell", "electrolyzer"]
+        )
+        return cleaned_data
