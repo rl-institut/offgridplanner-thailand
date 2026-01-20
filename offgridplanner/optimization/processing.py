@@ -40,7 +40,16 @@ class OptimizationDataHandler:
 
         self.energy_system_dict = self.add_epc_to_dict(
             self.energy_system_dict,
-            ["battery", "diesel_genset", "inverter", "rectifier", "pv"],
+            [
+                "battery",
+                "diesel_genset",
+                "inverter",
+                "rectifier",
+                "pv",
+                "h2_storage",
+                "electrolyzer",
+                "fuel_cell",
+            ],
         )
 
         self.grid_design_dict = self.add_epc_to_dict(
