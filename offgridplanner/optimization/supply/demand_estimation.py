@@ -121,22 +121,18 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
                 load_profiles,
             )
 
-        # Add machinery loads to enterprises and households
-        if consumer_type in ["enterprise", "household"]:
-            # Check if there are any large loads in the custom_specifications
-            if nodes.have_custom_machinery:
-                consumer_nodes = nodes.filter_consumers(consumer_type)
-                large_load_nodes = consumer_nodes[
-                    consumer_nodes.custom_specification != ""
-                ]
-                machinery = unpack_machinery(large_load_nodes)
-                # Compute machinery demand and add to enterprises
-                machinery_demand = compute_standard_demand(
-                    "machinery",
-                    machinery,
-                    load_profiles,
-                )
-                total_demand += machinery_demand
+        # Add machinery loads to demand
+        if nodes.have_custom_machinery([consumer_type]):
+            consumer_nodes = nodes.filter_consumers(consumer_type)
+            large_load_nodes = consumer_nodes[consumer_nodes.custom_specification != ""]
+            machinery = unpack_machinery(large_load_nodes)
+            # Compute machinery demand and add to enterprises
+            machinery_demand = compute_standard_demand(
+                "machinery",
+                machinery,
+                load_profiles,
+            )
+            total_demand += machinery_demand
 
     # consumer_type does not exist
     except KeyError:

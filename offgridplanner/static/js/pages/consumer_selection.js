@@ -180,7 +180,10 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     let key2 = getKeyByValue(public_service_list, marker.consumer_detail);
                     document.getElementById('enterprise').value = key2;
-                    deactivate_large_loads()
+                    activate_large_loads();
+                    if (marker.custom_specification.length > 5) {
+                        display_large_loads_on_marker(marker)
+                    }
                 }
                 if (marker.node_type !== 'power-house') {
                     if (marker.shs_options == 0) {

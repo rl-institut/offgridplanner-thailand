@@ -47,11 +47,16 @@ class Nodes(BaseJsonData):
         counts = self.df.groupby(["consumer_type", "consumer_detail"]).size()
         return counts
 
-    @property
-    def have_custom_machinery(self):
+    def have_custom_machinery(self, consumer_type=None):
+        """
+        Parameters:
+            consumer_type (list): List containing a combination of "household", "enterprise", "public_service". If None, defaults to all consumer types
+        """
+        if consumer_type is None:
+            consumer_type = ["household", "enterprise", "public_service"]
         s = (
             self.df.loc[
-                self.df["consumer_type"].isin(["enterprise", "household"]),
+                self.df["consumer_type"].isin(consumer_type),
                 "custom_specification",
             ]
             .fillna("")
