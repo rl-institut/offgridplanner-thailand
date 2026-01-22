@@ -47,16 +47,23 @@ class Nodes(BaseJsonData):
         counts = self.df.groupby(["consumer_type", "consumer_detail"]).size()
         return counts
 
-    @property
-    def have_custom_machinery(self):
-        enterprises = self.df[self.df.consumer_type == "enterprise"]
-        machinery = (
-            enterprises.groupby(["consumer_type", "consumer_detail"])
-            .agg({"custom_specification": ";".join})
-            .custom_specification.loc["enterprise"]
+    def have_custom_machinery(self, consumer_type=None):
+        """
+        Parameters:
+            consumer_type (list): List containing a combination of "household", "enterprise", "public_service". If None, defaults to all consumer types
+        """
+        if consumer_type is None:
+            consumer_type = ["household", "enterprise", "public_service"]
+        s = (
+            self.df.loc[
+                self.df["consumer_type"].isin(consumer_type),
+                "custom_specification",
+            ]
+            .fillna("")
+            .astype(str)
+            .str.strip()
         )
-        machinery.replace(";", "")
-        return bool(not machinery.eq("").all())
+        return s.ne("").any()
 
 
 class Links(BaseJsonData):

@@ -68,7 +68,7 @@ document.getElementById('consumer').addEventListener('change', function () {
     if (this.value === 'H') {
         document.getElementById('enterprise').value = '';
         document.getElementById('enterprise').disabled = true;
-        deactivate_large_loads();
+        activate_large_loads();
     } else if (this.value === 'E') {
         dropDownMenu(enterprise_list);
         document.getElementById('enterprise').innerHTML = enterprise_option;
@@ -104,6 +104,16 @@ let old_marker
 
 function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
+}
+
+function display_large_loads_on_marker(marker) {
+    activate_large_loads(false);
+    fillList(marker.custom_specification);
+    document.getElementById('toggleswitch2').checked = true;
+    const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
+        toggle: false
+    });
+    accordionItem3.show();
 }
 
 // TODO this can stay
@@ -147,7 +157,10 @@ function markerOnClick(e) {
                     document.getElementById('enterprise').value = '';
                     document.getElementById('shs_options').disabled = false;
                     document.getElementById('consumer').disabled = false;
-                    deactivate_large_loads();
+                    activate_large_loads();
+                    if (marker.custom_specification.length > 5) {
+                        display_large_loads_on_marker(marker);
+                    }
 
                 } else if (marker.consumer_type === 'enterprise') {
                     dropDownMenu(enterprise_list);
@@ -158,13 +171,7 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     activate_large_loads();
                     if (marker.custom_specification.length > 5) {
-                        activate_large_loads(false);
-                        fillList(marker.custom_specification);
-                        document.getElementById('toggleswitch2').checked = true;
-                        const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
-                            toggle: false
-                        });
-                        accordionItem3.show();
+                        display_large_loads_on_marker(marker)
                     }
                 } else if (marker.consumer_type === 'public_service') {
                     dropDownMenu(public_service_list);
@@ -173,7 +180,10 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     let key2 = getKeyByValue(public_service_list, marker.consumer_detail);
                     document.getElementById('enterprise').value = key2;
-                    deactivate_large_loads()
+                    activate_large_loads();
+                    if (marker.custom_specification.length > 5) {
+                        display_large_loads_on_marker(marker)
+                    }
                 }
                 if (marker.node_type !== 'power-house') {
                     if (marker.shs_options == 0) {

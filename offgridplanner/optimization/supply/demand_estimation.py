@@ -26,15 +26,6 @@ LARGE_LOAD_LIST = [
     if profile.split("_", maxsplit=1)[0] == "Appliances"
 ]
 
-# TODO replace with actual power info
-LARGE_LOAD_KW_MAPPING = {
-    "Water pump (150W)": 150,
-    "AC ": 0,
-    "Laptop (50W)": 50,
-    "Fridge (220W)": 220,
-    "Washing Machine (8kg, 400 W)": 400,
-}
-
 
 def get_demand_timeseries(nodes, custom_demand, time_range=None):
     """
@@ -130,21 +121,18 @@ def combine_profiles(nodes, consumer_type, load_profiles, custom_demand=None):
                 load_profiles,
             )
 
-        # Add machinery loads to enterprises
-        if consumer_type == "enterprise":
-            # Check if there are any large loads in the custom_specifications
-            if nodes.have_custom_machinery:
-                ent_nodes = nodes.filter_consumers("enterprise")
-                large_load_enterprises = ent_nodes[ent_nodes.custom_specification != ""]
-                machinery = unpack_machinery(large_load_enterprises)
-
-                # Compute machinery demand and add to enterprises
-                machinery_demand = compute_standard_demand(
-                    "machinery",
-                    machinery,
-                    load_profiles,
-                )
-                total_demand += machinery_demand
+        # Add machinery loads to demand
+        if nodes.have_custom_machinery([consumer_type]):
+            consumer_nodes = nodes.filter_consumers(consumer_type)
+            large_load_nodes = consumer_nodes[consumer_nodes.custom_specification != ""]
+            machinery = unpack_machinery(large_load_nodes)
+            # Compute machinery demand and add to enterprises
+            machinery_demand = compute_standard_demand(
+                "machinery",
+                machinery,
+                load_profiles,
+            )
+            total_demand += machinery_demand
 
     # consumer_type does not exist
     except KeyError:
@@ -192,7 +180,7 @@ def compute_standard_demand(consumer_type, consumer_type_counts, load_profiles):
         total_demand (pd.Series): Total demand
     """
     if consumer_type == "machinery":
-        ts_string_prefix = "Appliances_"
+        ts_string_prefix = "Appliances"
     else:
         ts_string_prefix = f"{consumer_type.title().replace('_', ' ')}"
     ts_cols = [f"{ts_string_prefix}_{ts}" for ts in consumer_type_counts.index]
@@ -221,7 +209,7 @@ def unpack_machinery(large_load_enterprises):
     # Drop power ratings and extract counts from string, create series with machinery as index
     large_loads = (
         expanded["custom_specification"]
-        .str.extract(r"(\d+)\s*x\s*([^\(]+?)\s*(?:\(|$)")
+        .str.extract(r"(\d+)\s*x\s*(.+)")
         .astype({0: int})
         .groupby(1)[0]
         .sum()  # Sum duplicate machinery types
