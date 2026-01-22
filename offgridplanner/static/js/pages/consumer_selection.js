@@ -106,6 +106,16 @@ function getKeyByValue(object, value) {
     return Object.keys(object).find(key => object[key] === value);
 }
 
+function display_large_loads_on_marker(marker) {
+    activate_large_loads(false);
+    fillList(marker.custom_specification);
+    document.getElementById('toggleswitch2').checked = true;
+    const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
+        toggle: false
+    });
+    accordionItem3.show();
+}
+
 // TODO this can stay
 function markerOnClick(e) {
     L.DomEvent.stopPropagation(e);
@@ -148,6 +158,10 @@ function markerOnClick(e) {
                     document.getElementById('shs_options').disabled = false;
                     document.getElementById('consumer').disabled = false;
                     activate_large_loads();
+                    if (marker.custom_specification.length > 5) {
+                        display_large_loads_on_marker(marker);
+                    }
+
                 } else if (marker.consumer_type === 'enterprise') {
                     dropDownMenu(enterprise_list);
                     document.getElementById('consumer').value = 'E';
@@ -157,13 +171,7 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     activate_large_loads();
                     if (marker.custom_specification.length > 5) {
-                        activate_large_loads(false);
-                        fillList(marker.custom_specification);
-                        document.getElementById('toggleswitch2').checked = true;
-                        const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
-                            toggle: false
-                        });
-                        accordionItem3.show();
+                        display_large_loads_on_marker(marker)
                     }
                 } else if (marker.consumer_type === 'public_service') {
                     dropDownMenu(public_service_list);
