@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v1.0.1-thai.2.0] – 2026-01-22
 ### Changed
 - Updated energy system diagram look and added H2 components
 - Enable adding large loads to all consumer types
