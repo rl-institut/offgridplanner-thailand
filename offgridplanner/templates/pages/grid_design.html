@@ -184,7 +184,7 @@
   window.onload = function () {
     addDrawingToolsToGridMap();
     db_nodes_to_js({{proj_id}}, true);
-    db_roads_to_js({{ proj_id }});
+    db_roads_to_js({{ proj_id }}, true);
   };
 </script>
 <script src="{% static 'js/integrate_map.js' %}"></script>

@@ -85,13 +85,18 @@ async function file_nodes_to_js(formData) {
 }
 
 // osm roads
-async function db_roads_to_js(proj_id) {
+async function db_roads_to_js(proj_id, clickable = false) {
     try {
         const response = await fetch(dbRoadsToJsUrl);
         const data = await response.json();
 
         if (data !== null) {
             road_elements = data.road_elements || [];
+            road_elements = road_elements.map(r => ({
+                ...r,
+                is_clicked: r.is_clicked ?? false
+            }));
+
             if (road_elements.length > 0) {
                 put_roads_on_map(road_elements);
             }
@@ -99,7 +104,10 @@ async function db_roads_to_js(proj_id) {
             road_elements = [];
             put_roads_on_map([]);
         }
-    } catch (err) {
+        if (clickable) {
+            make_roads_clickable();
+        }
+        } catch (err) {
         console.error("Error loading roads from DB:", err);
     }
 }
@@ -233,9 +241,15 @@ function add_roads_inside_boundary({boundariesCoordinates} = {}) {
                 responseMsg.innerHTML = "";
                 road_elements = res.new_roads;
                 put_roads_on_map(res.new_roads);
+                road_elements = res.new_roads.map(r => ({
+                    ...r,
+                    is_clicked: r.is_clicked ?? false
+                }));
+                put_roads_on_map(road_elements);
+                make_roads_clickable(drawnItems);
             }
         })
-        .catch((error) => {
+                .catch((error) => {
             console.error("Error fetching roads:", error);
         });
 }
@@ -243,7 +257,10 @@ function add_roads_inside_boundary({boundariesCoordinates} = {}) {
 function put_roads_on_map(roads) {
     roads.forEach((road) => {
         const latlngs = road.coordinates.map(c => [c[0], c[1]]);
-        const polyline = L.polyline(latlngs, { color: "#cc99ff", weight: 2 });
+        const polyline = L.polyline(latlngs, {
+            color: road.is_clicked ? '#9933ff' : '#cc99ff',
+            weight: road.is_clicked ? 4 : 2
+        });
         drawnItems.addLayer(polyline);
     });
 }
