@@ -99,6 +99,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "widget_tweaks",
     "statici18n",
+    "captcha",
 ]
 
 LOCAL_APPS = [
