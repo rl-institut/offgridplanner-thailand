@@ -26,7 +26,7 @@ const component = [
     'pv',
     'battery',
     'diesel_genset',
-    'hydrogen',
+    'h2_storage',
     'inverter',
     'rectifier',
     'shortage',
@@ -140,7 +140,7 @@ function change_box_visibility(id) {
     if (!accordionBody) return;
 
     // Special handling for hydrogen - disable all nested accordions
-    if (id === 'hydrogen') {
+    if (id === 'h2_storage') {
         let nestedAccordions = accordionBody.querySelectorAll('.accordion-item');
         nestedAccordions.forEach(nestedItem => {
             let nestedButton = nestedItem.querySelector('.accordion-button');
@@ -168,14 +168,14 @@ function change_box_visibility(id) {
     }
 
     // Check optimization strategy if applicable
-    if (id !== "shortage" && id !== "hydrogen") {
+    if (id !== "shortage" && id !== "h2_storage") {
         check_optimization_strategy(id);
     }
 }
 
 function refreshBlocksOnDiagramOnLoad() {
     component.forEach(id => {
-        if (id !== 'shortage' && id !== 'hydrogen') {
+        if (id !== 'shortage' && id !== 'h2_storage') {
             check_box_visibility(id);
             check_optimization_strategy(id);
         } else {
@@ -249,10 +249,10 @@ function initDiagram() {
       };
 
       return {
-        diesel_genset: isChecked("id_diesel_genset_settings_is_selected"),
-        pv: isChecked("id_pv_settings_is_selected"),
-        battery: isChecked("id_battery_settings_is_selected"),
-        hydrogen: isChecked("id_hydrogen_settings_is_selected")
+        diesel_genset: isChecked(assetCheckBox("diesel_genset")),
+        pv: isChecked(assetCheckBox("pv")),
+        battery: isChecked(assetCheckBox("battery")),
+        hydrogen: isChecked(assetCheckBox("h2_storage"))
       };
     }
 
