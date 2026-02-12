@@ -175,8 +175,16 @@ function change_box_visibility(id) {
 
 function refreshBlocksOnDiagramOnLoad() {
     component.forEach(id => {
-        if (id !== 'shortage' && id !== 'h2_storage') {
+        if (id !== 'shortage') {
             check_box_visibility(id);
+            if (id == 'h2_storage') {
+                const subComps = ["h2_storage", "fuel_cell", "electrolyzer"]
+                subComps.forEach(function (asset, index) {
+                    check_optimization_strategy(asset);
+                });
+            } else {
+                check_optimization_strategy(id);
+            }
             check_optimization_strategy(id);
         } else {
             change_box_visibility(id);

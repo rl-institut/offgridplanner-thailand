@@ -93,5 +93,5 @@ fuel_cell_settings_design,Optimize Capacity,bool,True,,EnergySystemDesign,
 fuel_cell_parameters_nominal_capacity,Capacity,float,,kW,EnergySystemDesign,
 fuel_cell_parameters_lifetime,Lifetime,int,40000,hours,EnergySystemDesign,"Lifespan of the component, after expiration a replacement investment must be made"
 fuel_cell_parameters_capex,CapEx,float,870,currency/kW,EnergySystemDesign,Capital Expenditure (CapEx) is the money that has to be spent to purchase the component
-fuel_cell_parameters_opex,OpEx,float,22.2,currency/kg/year,EnergySystemDesign,Operating Expense (OpEx) is the cost associated with the operation of the component
-fuel_cell_parameters_efficiency,Efficiency,float,50,%,EnergySystemDesign,
+fuel_cell_parameters_opex,OpEx,float,52.2,currency/kg/year,EnergySystemDesign,Operating Expense (OpEx) is the cost associated with the operation of the component
+fuel_cell_parameters_efficiency,Efficiency,float,45,%,EnergySystemDesign,
