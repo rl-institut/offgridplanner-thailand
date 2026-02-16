@@ -154,7 +154,6 @@ function change_box_visibility(id) {
                 let nestedInputs = nestedBody.querySelectorAll("input, select, textarea, button");
                 let nestedLabels = nestedBody.querySelectorAll("label, span.input-group-text");
 
-                nestedInputs.forEach(input => input.disabled = !isChecked);
                 nestedLabels.forEach(label => label.classList.toggle('text-muted', !isChecked));
             }
         });
@@ -163,7 +162,6 @@ function change_box_visibility(id) {
         let inputs = accordionBody.querySelectorAll("input, select, textarea, button");
         let labels = accordionBody.querySelectorAll("label, span.input-group-text");
 
-        inputs.forEach(input => input.disabled = !isChecked);
         labels.forEach(label => label.classList.toggle('text-muted', !isChecked));
     }
 
