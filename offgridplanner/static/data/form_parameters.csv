@@ -43,7 +43,7 @@ diesel_genset_parameters_capex,CapEx,float,350,currency/kW,EnergySystemDesign,Ca
 diesel_genset_parameters_opex,OpEx,float,25,currency/kW/year,EnergySystemDesign,"Operating Expense (OpEx) refers to the fixed annual costs incurred in the operation of a component, specifically excluding fuel and other variable expenses"
 diesel_genset_parameters_variable_cost,Variable Cost,float,0,currency/kWh,EnergySystemDesign,
 diesel_genset_parameters_fuel_cost,Fuel Cost,float,1.7,currency/L,EnergySystemDesign,
-diesel_genset_parameters_fuel_lhv,Fuel LHV,float,11.8,kWh/kg,EnergySystemDesign,
+diesel_genset_parameters_fuel_lhv,Fuel LHV,float,11.8,kWh/kg,EnergySystemDesign,kWh produced by combustion of kg of fuel
 diesel_genset_parameters_min_efficiency,Min. Efficiency,float,22,%,EnergySystemDesign,
 diesel_genset_parameters_max_efficiency,Max. Efficiency,float,30,%,EnergySystemDesign,
 diesel_genset_parameters_min_load,Min. Load,float,20,%,EnergySystemDesign,
@@ -94,4 +94,5 @@ fuel_cell_parameters_nominal_capacity,Capacity,float,,kW,EnergySystemDesign,
 fuel_cell_parameters_lifetime,Lifetime,int,40000,hours,EnergySystemDesign,"Lifespan of the component, after expiration a replacement investment must be made"
 fuel_cell_parameters_capex,CapEx,float,870,currency/kW,EnergySystemDesign,Capital Expenditure (CapEx) is the money that has to be spent to purchase the component
 fuel_cell_parameters_opex,OpEx,float,52.2,currency/kg/year,EnergySystemDesign,Operating Expense (OpEx) is the cost associated with the operation of the component
+fuel_cell_parameters_fuel_lhv,H2 LHV,float,33.3,kWh/kg,EnergySystemDesign,kWh produced by combustion of kg of fuel
 fuel_cell_parameters_efficiency,Efficiency,float,45,%,EnergySystemDesign,

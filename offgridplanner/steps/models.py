@@ -397,6 +397,11 @@ class EnergySystemDesign(NestedModel):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+    fuel_cell_parameters_fuel_lhv = models.FloatField(
+        db_column="fuel_cell__parameters__fuel_lhv",
+        blank=True,
+        null=True,
+    )
     fuel_cell_parameters_efficiency = models.FloatField(
         db_column="fuel_cell__parameters__efficiency",
         blank=True,
