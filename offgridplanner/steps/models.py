@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 
 from django.db import models
@@ -462,3 +463,42 @@ class EnergySystemDesign(NestedModel):
 
     def __str__(self):
         return f"EnergySystemDesign {self.id}: Project {self.project.name}"
+
+    @property
+    def estimated_operating_hours(self):
+        op_hrs = {"electrolyzer": None, "fuel_cell": None}
+        return op_hrs
+
+    @property
+    def h2_components(self):
+        return ["h2_storage", "fuel_cell", "electrolyzer"]
+
+    def kg_to_kwh(self, val, comp):
+        if comp in self.h2_components:
+            lhv = self.fuel_cell_parameters_fuel_lhv
+        else:
+            err = f"kg to kWh conversion factor for {comp} not found."
+            raise ValueError(err)
+        return val / lhv
+
+    def h_to_years(self, val, comp):
+        op_h_per_year = self.estimated_operating_hours.get(comp, None)
+        h_per_year = 8760  # 365 * 24
+        if op_h_per_year is None:
+            op_h_per_year = h_per_year
+        return val / op_h_per_year
+
+    def apply_unit_conversion_for_simulation(self):
+        nested_dict = copy.deepcopy(self.to_nested_dict())
+        field_conversions = {
+            "h2_storage": {"capex": self.kg_to_kwh, "opex": self.kg_to_kwh},
+            "electrolyzer": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
+            "fuel_cell": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
+        }
+        for comp, param_map in field_conversions.items():
+            for param, fn in param_map.items():
+                old_val = nested_dict[comp]["parameters"][param]
+                new_val = fn(old_val, comp)
+                nested_dict[comp]["parameters"][param] = new_val
+
+        return nested_dict

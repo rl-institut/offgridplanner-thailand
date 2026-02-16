@@ -27,7 +27,9 @@ class OptimizationDataHandler:
     def __init__(self, proj_id):
         self.project = get_object_or_404(Project, id=proj_id)
         self.options = self.project.options
-        self.energy_system_dict = self.project.energysystemdesign.to_nested_dict()
+        self.energy_system_dict = (
+            self.project.energysystemdesign.apply_unit_conversion_for_simulation()
+        )
         self.supply_components = self.energy_system_dict.keys()
         self.grid_design_dict = self.project.griddesign.to_nested_dict()
         self.grid_components = self.grid_design_dict.keys()
