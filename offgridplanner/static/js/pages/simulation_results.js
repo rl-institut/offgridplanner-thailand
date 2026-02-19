@@ -427,45 +427,41 @@ document.getElementById("msgBox").style.zIndex = "9999";
 
 
 function plot_bar_chart(data) {
-    let yValue = [0, 0, 0, 0, 0, 0, 0];
-    let yValue2 = [0];
+    kwAssets = {"pv": "PV", "inverter": "Inverter", "rectifier": "Rectifier", "diesel_genset": "Diesel Genset", "peak_demand": "Peak Demand", "surplus": "Max. Surplus"}
+    kwhAssets = {"battery": "Battery"}
+    let yValueKw = [];
+    let yValueKwh = [];
+    let xValueKw = [];
+    let xValueKwh = [];
+    let colors = [];
     let optimal_capacities = data;
-    yValue[0] = Number(optimal_capacities['pv']);
-    yValue[1] = Number(optimal_capacities['inverter']);
-    yValue[2] = Number(optimal_capacities['rectifier']);
-    yValue[3] = Number(optimal_capacities['diesel_genset']);
-    yValue[4] = Number(optimal_capacities['peak_demand']);
-    yValue[5] = Number(optimal_capacities['surplus']);
-    yValue2 = Number(optimal_capacities['battery']);
+
+    for (const [key, label] of Object.entries(kwAssets)) {
+        xValueKw.push(Number(optimal_capacities[key]));
+        yValueKw.push(gettext(label));
+        if (key === "surplus") {colors.push("rgb(133, 52, 124)")} else {colors.push("rgb(8, 48, 107)")};
+    }
+
+    for (const [key, label] of Object.entries(kwhAssets)) {
+        xValueKwh.push(Number(optimal_capacities[key]));
+        yValueKwh.push(gettext(label));
+    }
 
     let optimalSizes = document.getElementById('optimalSizes');
-    let xValue = [
-      gettext('PV'),
-      gettext('Inverter'),
-      gettext('Rectifier'),
-      gettext('Diesel Genset'),
-      gettext('Peak Demand'),
-      gettext('Max. Surplus'),
-      gettext('Battery'),
-    ];
 
     // Reverse the arrays
-    xValue = xValue.reverse();
-    yValue = yValue.reverse();
-    let colors = [
-        'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(8,48,107)',
-        'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(133, 52, 124)'
-    ];
+    xValueKw = xValueKw.reverse();
+    yValueKw = yValueKw.reverse();
     colors = colors.reverse();  // Reverse the color array
 
     var dataTraces = [
         {
-            y: xValue,
-            x: yValue,
+            y: yValueKw,
+            x: xValueKw,
             xaxis: 'x1',
             type: 'bar',
             orientation: 'h',
-            text: yValue.map(String),
+            text: xValueKw.map(String),
             textposition: 'auto',
             hoverinfo: 'none',
             opacity: 0.7,
@@ -479,14 +475,12 @@ function plot_bar_chart(data) {
             showlegend: false
         },
         {
-            y: ['Battery'],
-            x: [yValue2],
+            y: yValueKwh,
+            x: xValueKwh,
             xaxis: 'x2',
             type: 'bar',
             orientation: 'h',
-            marker: {
-                color: 'rgb(133, 52, 124)'
-            },
+            marker: { color: 'rgb(133, 52, 124)' },
             showlegend: false
         }
     ];
@@ -546,17 +540,24 @@ function plot_bar_chart(data) {
 
 
 function plot_lcoe_pie(lcoe_breakdown) {
-    cost_renewable_assets = Number(lcoe_breakdown['renewable_assets']);
-    cost_non_renewable_assets = Number(lcoe_breakdown['non_renewable_assets']);
-    cost_grid = Number(lcoe_breakdown['grid']);
-    cost_fuel = Number(lcoe_breakdown['fuel']);
+    const items = [
+        { key: 'renewable_assets', label: gettext('Renewable Assets'), color: 'rgb(9, 188, 138)' },
+        { key: 'non_renewable_assets', label: gettext('Non-Renewable Assets'), color: 'rgb(73, 89, 101)' },
+        { key: 'grid', label: gettext('Grid'), color: 'rgb(236, 154, 41)' },
+        { key: 'fuel', label: gettext('Fuel'), color: 'rgb(154, 3, 30)' },
+    ];
+
+    const values = items.map(({ key }) => Number(lcoe_breakdown[key]));
+    const labels = items.map(({ label }) => label);
+    const colors = items.map(({ color }) => color);
+
     let data = [{
         type: 'pie',
         hole: .6,
-        values: [cost_renewable_assets, cost_non_renewable_assets, cost_grid, cost_fuel],
-        labels: [gettext('Renewable Assets'), gettext('Non-Renewable Assets'), gettext('Grid'), gettext('Fuel')],
+        values: values,
+        labels: labels,
         marker: {
-            colors: ['rgb(9, 188, 138)', 'rgb(73, 89, 101)', 'rgb(236, 154, 41)', 'rgb(154, 3, 30)'],
+            colors: colors,
             line: {
                 color: 'black',
                 width: 1.5
@@ -566,37 +567,64 @@ function plot_lcoe_pie(lcoe_breakdown) {
         textposition: 'outside',
         automargin: true,
         opacity: 0.9,
-    }]
+    }];
 
     let layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
-        // height: 400,
-        // width: 400,
-        margin: {'t': 0, 'b': 0, 'l': 0, 'r': 0},
+        margin: { 't': 0, 'b': 0, 'l': 0, 'r': 0 },
         showlegend: false,
         font: {
             size: 16,
             color: 'black'
         }
-    }
-    Plotly.newPlot(lcoeBreakdown, data, layout)
+    };
+
+    Plotly.newPlot(lcoeBreakdown, data, layout);
 }
 
 
 function plot_sankey(data) {
+    const sankey_data = data;
 
-    sankey_data = data;
-    fuel_to_diesel_genset = Number(sankey_data['fuel_to_diesel_genset'])
-    diesel_genset_to_rectifier = Number(sankey_data['diesel_genset_to_rectifier'])
-    diesel_genset_to_demand = Number(sankey_data['diesel_genset_to_demand'])
-    rectifier_to_dc_bus = Number(sankey_data['rectifier_to_dc_bus'])
-    pv_to_dc_bus = Number(sankey_data['pv_to_dc_bus'])
-    battery_to_dc_bus = Number(sankey_data['battery_to_dc_bus'])
-    dc_bus_to_battery = Number(sankey_data['dc_bus_to_battery'])
-    dc_bus_to_inverter = Number(sankey_data['dc_bus_to_inverter'])
-    pv_to_surplus = 0
-    inverter_to_demand = Number(sankey_data['inverter_to_demand'])
+    // Keep identical output: pv_to_surplus is hard-set to 0 in the original
+    const valueByKey = {
+        fuel_to_diesel_genset: Number(sankey_data['fuel_to_diesel_genset']),
+        diesel_genset_to_rectifier: Number(sankey_data['diesel_genset_to_rectifier']),
+        diesel_genset_to_demand: Number(sankey_data['diesel_genset_to_demand']),
+        rectifier_to_dc_bus: Number(sankey_data['rectifier_to_dc_bus']),
+        pv_to_dc_bus: Number(sankey_data['pv_to_dc_bus']),
+        battery_to_dc_bus: Number(sankey_data['battery_to_dc_bus']),
+        dc_bus_to_battery: Number(sankey_data['dc_bus_to_battery']),
+        dc_bus_to_inverter: Number(sankey_data['dc_bus_to_inverter']),
+        pv_to_surplus: 0,
+        inverter_to_demand: Number(sankey_data['inverter_to_demand']),
+    };
+
+    const nodes = [
+        gettext('Fuel'),
+        gettext('Diesel Genset'),
+        gettext('Rectifier'),
+        gettext('PV'),
+        gettext('DC Bus'),
+        gettext('Battery'),
+        gettext('Inverter'),
+        gettext('Demand'),
+        gettext('Surplus'),
+    ];
+
+    const links = [
+        { source: 0, target: 1, key: 'fuel_to_diesel_genset', label: gettext('Fuel supplied to the diesel genset') },
+        { source: 1, target: 2, key: 'diesel_genset_to_rectifier', label: gettext('Diesel genset output sent to the rectifier') },
+        { source: 1, target: 7, key: 'diesel_genset_to_demand', label: gettext('AC demand covered by the diesel genset') },
+        { source: 2, target: 4, key: 'rectifier_to_dc_bus', label: gettext('Diesel genset electricity converted to DC') },
+        { source: 3, target: 4, key: 'pv_to_dc_bus', label: gettext('PV electricity generation') },
+        { source: 5, target: 4, key: 'battery_to_dc_bus', label: gettext('Battery discharge') },
+        { source: 4, target: 5, key: 'dc_bus_to_battery', label: gettext('Battery charge') },
+        { source: 4, target: 6, key: 'dc_bus_to_inverter', label: gettext('DC electricity sent to the inverter') },
+        { source: 3, target: 8, key: 'pv_to_surplus', label: gettext('Surplus PV electricity') },
+        { source: 6, target: 7, key: 'inverter_to_demand', label: gettext('AC demand covered by the PV system') },
+    ];
 
     var data = [{
         type: 'sankey',
@@ -610,157 +638,93 @@ function plot_sankey(data) {
                 color: 'black',
                 width: 0.5
             },
-            label: [gettext('Fuel'),
-                gettext('Diesel Genset'),
-                gettext('Rectifier'),
-                gettext('PV'),
-                gettext('DC Bus'),
-                gettext('Battery'),
-                gettext('Inverter'),
-                gettext('Demand'),
-                gettext('Surplus')],
+            label: nodes,
             color: 'rgb(23, 64, 92)',
         },
-
         link: {
-            source: [0, 1, 1, 2, 3, 5, 4, 4, 3, 6], // Modified
-            target: [1, 2, 7, 4, 4, 4, 5, 6, 8, 7], // Modified
-            value: [fuel_to_diesel_genset,
-                diesel_genset_to_rectifier,
-                diesel_genset_to_demand,
-                rectifier_to_dc_bus,
-                pv_to_dc_bus,
-                battery_to_dc_bus,
-                dc_bus_to_battery,
-                dc_bus_to_inverter,
-                pv_to_surplus,
-                inverter_to_demand],
-            label: [gettext('Fuel supplied to the diesel genset'),
-                gettext('Diesel genset output sent to the rectifier'),
-                gettext('AC demand covered by the diesel genset'),
-                gettext('Diesel genset electricity converted to DC'),
-                gettext('PV electricity generation'),
-                gettext('Battery discharge'),
-                gettext('Battery charge'),
-                gettext('DC electricity sent to the inverter'),
-                gettext('Surplus PV electricity'),
-                gettext('AC demand covered by the PV system')],
+            source: links.map(l => l.source),
+            target: links.map(l => l.target),
+            value: links.map(l => valueByKey[l.key]),
+            label: links.map(l => l.label),
             color: 'rgb(168, 181, 192)',
         }
-    }]
-
+    }];
 
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
-        font: {size: 16, color: 'black'}
+        font: { size: 16, color: 'black' }
     };
-    Plotly.react(sankeyDiagram, data, layout)
+
+    Plotly.react(sankeyDiagram, data, layout);
 }
 
 
 // ENERGY FLOWS PLOT
 function plot_energy_flows(energy_flows) {
+    const {
+        diesel_genset_production,
+        pv_production,
+        battery,
+        battery_content,
+        demand,
+        surplus
+    } = energy_flows;
 
-
-
-    const { diesel_genset_production, pv_production, battery, battery_content, demand, surplus } = energy_flows;
     const time = Array.from({ length: pv_production.length }, (_, i) => i);
 
     const energyFlows = document.getElementById("energyFlows");
-    const trace1 = {
-        x: time,
-        y: diesel_genset_production,
-        mode: 'lines',
-        name: gettext('Diesel Genset'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace2 = {
-        x: time,
-        y: pv_production,
-        mode: 'lines',
-        name: gettext('PV'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace3 = {
-        x: time,
-        y: battery,
-        mode: 'lines',
-        name: gettext('Battery In-/Output'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace4 = {
-        x: time,
-        y: battery_content,
-        mode: 'lines',
-        name: gettext('Battery Content'),
-        yaxis: 'y2',  //this makes sure that the trace uses the second y-axis.
-        line: {shape: 'hv'},
-        type: 'scatter',
-        visible: 'legendonly',
 
-    };
-    const trace5 = {
-        x: time,
-        y: demand,
-        mode: 'lines',
-        name: gettext('Demand'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace6 = {
-        x: time,
-        y: surplus,
-        mode: 'lines',
-        name: gettext('Surplus'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
+    const tracesSpec = [
+        { y: diesel_genset_production, name: gettext('Diesel Genset') },
+        { y: pv_production, name: gettext('PV') },
+        { y: battery, name: gettext('Battery In-/Output') },
+        { y: battery_content, name: gettext('Battery Content'), yaxis: 'y2', visible: 'legendonly' },
+        { y: demand, name: gettext('Demand') },
+        { y: surplus, name: gettext('Surplus') },
+    ];
 
-    const data = [trace1, trace2, trace3, trace4, trace5, trace6];
+    const data = tracesSpec.map(spec => ({
+        x: time,
+        y: spec.y,
+        mode: 'lines',
+        name: spec.name,
+        line: { shape: 'hv' },
+        type: 'scatter',
+        ...(spec.yaxis ? { yaxis: spec.yaxis } : {}),
+        ...(spec.visible ? { visible: spec.visible } : {}),
+    }));
 
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
             title: 'Time in hours',
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
         yaxis: {
             title: gettext('Energy Flow in kW'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
-        yaxis2: {   // second y-axis
+        yaxis2: {
             title: gettext('Battery Content in kWh'),
             overlaying: 'y',
             side: 'right',
             showgrid: false,
         },
         legend: {
-            x: 0.5,           // Positions the legend horizontally at the center (50% of the plot width)
-            y: 1.15,          // Positions the legend vertically above the plot area
-            xanchor: 'center',// Anchors the legend horizontally at its center
-            yanchor: 'bottom',// Anchors the legend vertically at the bottom
-            orientation: 'h', // Sets the legend items to be displayed horizontally
-            bgcolor: 'rgba(255, 255, 255, 1)', // Fully opaque white background
+            x: 0.5,
+            y: 1.15,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            orientation: 'h',
+            bgcolor: 'rgba(255, 255, 255, 1)',
             bordercolor: '#E2E2E2',
             borderwidth: 2,
         },
         autosize: true,
-        // title: 'Energy flows in different components of the system.',
     };
     Plotly.newPlot(energyFlows, data, layout);
 }
@@ -772,78 +736,48 @@ function plot_demand_coverage(demand_coverage) {
     const { renewable, non_renewable, demand, surplus } = demand_coverage;
     const time = Array.from({ length: renewable.length }, (_, i) => i);
 
-
     const demandCoverage = document.getElementById("demandCoverage");
-    const trace1 = {
-        x: time,
-        y: non_renewable,
-        // mode: 'none',
-        // fill: 'tozeroy',
-        stackgroup: 'one',
-        name: gettext('Non-Renewable'),
-    };
-    const trace2 = {
-        x: time,
-        y: renewable,
-        // mode: 'none',
-        // fill: 'tonexty',
-        stackgroup: 'one',
-        name: gettext('Renewable')
 
-    };
-    const trace3 = {
+    const tracesSpec = [
+        { y: non_renewable, name: gettext('Non-Renewable'), stackgroup: 'one' },
+        { y: renewable, name: gettext('Renewable'), stackgroup: 'one' },
+        { y: demand, name: gettext('Demand'), mode: 'line', line: { color: 'black', width: 2.5 } },
+        { y: surplus, name: gettext('Surplus'), stackgroup: 'one' },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: time,
-        y: demand,
-        mode: 'line',
-        name: gettext('Demand'),
-        line: {
-            color: 'black',
-            width: 2.5
-        },
-    };
-    const trace4 = {
-        x: time,
-        y: surplus,
-        // mode: 'none',
-        // fill: 'tonexty',
-        stackgroup: 'one',
-        name: gettext('Surplus'),
-    };
+        y: spec.y,
+        name: spec.name,
+        ...(spec.stackgroup ? { stackgroup: spec.stackgroup } : {}),
+        ...(spec.mode ? { mode: spec.mode } : {}),
+        ...(spec.line ? { line: spec.line } : {}),
+    }));
 
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
             title: gettext('Time in hours'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
         yaxis: {
             title: gettext('Demand in kW'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
         legend: {
-            x: 0.5,           // Positions the legend horizontally at the center (50% of the plot width)
-            y: 1.15,          // Positions the legend vertically above the plot area
-            xanchor: 'center',// Anchors the legend horizontally at its center
-            yanchor: 'bottom',// Anchors the legend vertically at the bottom
-            orientation: 'h', // Sets the legend items to be displayed horizontally
-            bgcolor: 'rgba(255, 255, 255, 1)', // Fully opaque white background
+            x: 0.5,
+            y: 1.15,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            orientation: 'h',
+            bgcolor: 'rgba(255, 255, 255, 1)',
             bordercolor: '#E2E2E2',
             borderwidth: 2,
         },
     };
-
-    const data = [trace1, trace2, trace3, trace4];
 
     Plotly.newPlot(demandCoverage, data, layout);
 }
@@ -851,136 +785,93 @@ function plot_demand_coverage(demand_coverage) {
 
 // DURATION CURVES
 function plot_duration_curves(duration_curves) {
-
-    const { diesel_genset_duration, pv_percentage, pv_duration, rectifier_duration, inverter_duration, battery_charge_duration,
-        battery_discharge_duration } = duration_curves;
-
+    const {
+        diesel_genset_duration,
+        pv_percentage,
+        pv_duration,
+        rectifier_duration,
+        inverter_duration,
+        battery_charge_duration,
+        battery_discharge_duration
+    } = duration_curves;
 
     const durationCurves = document.getElementById("durationCurves");
-    const trace1 = {
+
+    const tracesSpec = [
+        { y: diesel_genset_duration, name: gettext('Diesel Genset') },
+        { y: pv_duration, name: gettext('PV') },
+        { y: rectifier_duration, name: gettext('Rectifier') },
+        { y: inverter_duration, name: gettext('Inverter') },
+        { y: battery_charge_duration, name: gettext('Battery - Charging') },
+        { y: battery_discharge_duration, name: gettext('Battery - Discharging') },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: pv_percentage,
-        y: diesel_genset_duration,
+        y: spec.y,
         mode: 'lines',
-        name: gettext('Diesel Genset')
-
-    };
-    const trace2 = {
-        x: pv_percentage,
-        y: pv_duration,
-        mode: 'lines',
-        name: gettext('PV')
-
-    };
-    const trace3 = {
-        x: pv_percentage,
-        y: rectifier_duration,
-        mode: 'lines',
-        name: gettext('Rectifier')
-
-    };
-    const trace4 = {
-        x: pv_percentage,
-        y: inverter_duration,
-        mode: 'lines',
-        name: gettext('Inverter')
-
-    };
-    const trace5 = {
-        x: pv_percentage,
-        y: battery_charge_duration,
-        mode: 'lines',
-        name: gettext('Battery - Charging')
-
-    };
-    const trace6 = {
-        x: pv_percentage,
-        y: battery_discharge_duration,
-        mode: 'lines',
-        name: gettext('Battery - Discharging')
-
-    };
-
-    var data = [trace1, trace2, trace3, trace4, trace5, trace6];
+        name: spec.name,
+    }));
 
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
             title: gettext('Percentage of Operation in %'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
         yaxis: {
             title: gettext('Load in %'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
     };
+
     Plotly.newPlot(durationCurves, data, layout);
 }
 
-// DEMAND COVERAGE PLOT
+
+// CO2 EMISSIONS PLOT
 function plot_co2_emissions(co2_emissions) {
+    const { non_renewable_electricity_production, hybrid_electricity_production } = co2_emissions;
 
-
-    const { non_renewable_electricity_production, hybrid_electricity_production} = co2_emissions;
     const time = Array.from({ length: non_renewable_electricity_production.length }, (_, i) => i);
     const non_renewable = non_renewable_electricity_production;
     const hybrid = hybrid_electricity_production;
 
-
     const xAxisTitle = time.length > 366 ? 'Time in hours' : 'Time in days';
     const co2Emissions = document.getElementById("co2Emissions");
-    const trace1 = {
+
+    const tracesSpec = [
+        { y: non_renewable, mode: 'lines', name: gettext('Non-Renewable') },
+        { y: hybrid, mode: 'none', fill: 'tonexty', name: gettext('Savings') },
+        { y: hybrid, mode: 'lines', name: gettext('Hybrid') },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: time,
-        y: non_renewable,
-        mode: 'lines',
-        name: gettext('Non-Renewable')
-    };
-    const trace2 = {
-        x: time,
-        y: hybrid,
-        mode: 'none',
-        fill: 'tonexty',
-        name: gettext('Savings')
-    };
-    const trace3 = {
-        x: time,
-        y: hybrid,
-        mode: 'lines',
-        name: gettext('Hybrid')
-    };
-    var data = [trace1, trace2, trace3];
+        y: spec.y,
+        mode: spec.mode,
+        name: spec.name,
+        ...(spec.fill ? { fill: spec.fill } : {}),
+    }));
+
     const layout = {
         plot_bgcolor: '#FAFAFA',
         paper_bgcolor: '#FAFAFA',
         xaxis: {
             title: xAxisTitle,
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
         yaxis: {
             title: gettext('CO<sub>2</sub> Emissions [tons]'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
         },
     };
+
     Plotly.newPlot(co2Emissions, data, layout);
 }
 
