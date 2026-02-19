@@ -24,12 +24,18 @@ upfront_invest_inverter,Inverter upfront Investment Cost,USD
 upfront_invest_rectifier,Rectifier upfront Investment Cost,USD
 upfront_invest_battery,Battery upfront Investment Cost,USD
 upfront_invest_pv,PV upfront Investment Cost,USD
+upfront_invest_h2_storage,H2 Storage upfront Investment Cost,USD
+upfront_invest_fuel_cell,Fuel cell upfront Investment Cost,USD
+upfront_invest_electrolyzer,Electrolyzer upfront Investment Cost,USD
 upfront_invest_total,Total upfront Investment Cost,USD
 battery_capacity,Capacity Battery,kWh
 pv_capacity,Capacity PV,kWp
 diesel_genset_capacity,Capacity Diesel Generator,kW
 inverter_capacity,Capacity Inverter,kW
 rectifier_capacity,Capacity Rectifier,kW
+h2_storage_capacity,Capacity H2 Storage,kWh
+electrolyzer_capacity,Capacity Electrolyzer,kW
+fuel_cell_capacity,Capacity Fuel Cell,kW
 co2_emissions,Annual CO2 Emissions,t/a
 fuel_consumption,Annual Fuel Consumption,liter/a
 peak_demand,Peak Demand,kW
@@ -41,4 +47,7 @@ epc_diesel_genset,Diesel Generator's annualized Cost,USD/a
 epc_inverter,Inverter's annualized Cost,USD/a
 epc_rectifier,Rectifier's annualized Cost,USD/a
 epc_battery,Battery's annualized Cost,USD/a
+epc_h2_storage,H2 Storage's annualized Cost,USD/a
+epc_electrolyzer,Electrolyzer's annualized Cost,USD/a
+epc_fuel_cell,Fuel cell's annualized Cost,USD/a
 epc_total,Total annualized Cost,USD/a

@@ -248,13 +248,13 @@ def energy_system_design(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
 
-    energy_system_design, _ = EnergySystemDesign.objects.get_or_create(
+    esd, _ = EnergySystemDesign.objects.get_or_create(
         project=project,
         defaults=get_param_from_metadata("default", "EnergySystemDesign"),
     )
     if request.method == "GET":
         form = EnergySystemDesignForm(
-            instance=energy_system_design,
+            instance=esd,
             set_db_column_attribute=True,
         )
 
@@ -279,7 +279,7 @@ def energy_system_design(request, proj_id=None):
         return render(request, "pages/energy_system_design.html", context)
     if request.method == "POST":
         form = EnergySystemDesignForm(
-            request.POST, instance=energy_system_design, set_db_column_attribute=True
+            request.POST, instance=esd, set_db_column_attribute=True
         )
         if form.is_valid():
             form.save()
