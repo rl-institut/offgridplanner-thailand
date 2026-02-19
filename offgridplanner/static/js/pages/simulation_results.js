@@ -427,8 +427,10 @@ document.getElementById("msgBox").style.zIndex = "9999";
 
 
 function plot_bar_chart(data) {
-    kwAssets = {"pv": "PV", "inverter": "Inverter", "rectifier": "Rectifier", "diesel_genset": "Diesel Genset", "peak_demand": "Peak Demand", "surplus": "Max. Surplus"}
-    kwhAssets = {"battery": "Battery"}
+    kwAssets = {"pv": "PV", "inverter": "Inverter", "rectifier": "Rectifier",
+     "diesel_genset": "Diesel Genset", "fuel_cell": "Fuel Cell", "electrolyzer": "Electrolyzer",
+     "peak_demand": "Peak Demand", "surplus": "Max. Surplus"}
+    kwhAssets = {"battery": "Battery", "h2_storage": "H2 storage"}
     let yValueKw = [];
     let yValueKwh = [];
     let xValueKw = [];
@@ -599,19 +601,29 @@ function plot_sankey(data) {
         dc_bus_to_inverter: Number(sankey_data['dc_bus_to_inverter']),
         pv_to_surplus: 0,
         inverter_to_demand: Number(sankey_data['inverter_to_demand']),
+        hydrogen_bus_to_h2_storage: Number(sankey_data['hydrogen_bus_to_h2_storage']),
+        h2_storage_to_hydrogen_bus: Number(sankey_data['h2_storage_to_hydrogen_bus']),
+        fuel_cell_to_dc_bus: Number(sankey_data['fuel_cell_to_dc_bus']),
+        electrolyzer_to_hydrogen_bus: Number(sankey_data['electrolyzer_to_hydrogen_bus']),
+        dc_bus_to_electrolyzer: Number(sankey_data['dc_bus_to_electrolyzer']),
+        hydrogen_bus_to_fuel_cell: Number(sankey_data['hydrogen_bus_to_fuel_cell']),
     };
 
-    const nodes = [
-        gettext('Fuel'),
-        gettext('Diesel Genset'),
-        gettext('Rectifier'),
-        gettext('PV'),
-        gettext('DC Bus'),
-        gettext('Battery'),
-        gettext('Inverter'),
-        gettext('Demand'),
-        gettext('Surplus'),
-    ];
+const nodes = [
+    gettext('Fuel'),          // 0
+    gettext('Diesel Genset'), // 1
+    gettext('Rectifier'),     // 2
+    gettext('PV'),            // 3
+    gettext('DC Bus'),        // 4
+    gettext('Battery'),       // 5
+    gettext('Inverter'),      // 6
+    gettext('Demand'),        // 7
+    gettext('Surplus'),       // 8
+    gettext('Hydrogen'),       // 9
+    gettext('H2 Storage'),       // 10
+    gettext('Electrolyzer'),       // 11
+    gettext('Fuel Cell'),       // 12
+];
 
     const links = [
         { source: 0, target: 1, key: 'fuel_to_diesel_genset', label: gettext('Fuel supplied to the diesel genset') },
@@ -624,6 +636,12 @@ function plot_sankey(data) {
         { source: 4, target: 6, key: 'dc_bus_to_inverter', label: gettext('DC electricity sent to the inverter') },
         { source: 3, target: 8, key: 'pv_to_surplus', label: gettext('Surplus PV electricity') },
         { source: 6, target: 7, key: 'inverter_to_demand', label: gettext('AC demand covered by the PV system') },
+        { source: 9, target: 10, key: 'hydrogen_bus_to_h2_storage', label: gettext('H2 storage charge') },
+        { source: 10, target: 9, key: 'h2_storage_to_hydrogen_bus', label: gettext('H2 storage discharge') },
+        { source: 12, target: 4, key: 'fuel_cell_to_dc_bus', label: gettext('DC electricity produced by fuel cell') },
+        { source: 11, target: 9, key: 'electrolyzer_to_hydrogen_bus', label: gettext('Hydrogen produced by electrolyzer') },
+        { source: 4, target: 11, key: 'dc_bus_to_electrolyzer', label: gettext('DC electricity going into electrolyzer') },
+        { source: 9, target: 12, key: 'hydrogen_bus_to_fuel_cell', label: gettext('Hydrogen going into fuel cell') },
     ];
 
     var data = [{
@@ -667,6 +685,10 @@ function plot_energy_flows(energy_flows) {
         pv_production,
         battery,
         battery_content,
+        h2_storage,
+        h2_storage_content,
+        electrolyzer_production,
+        fuel_cell_production,
         demand,
         surplus
     } = energy_flows;
@@ -680,6 +702,10 @@ function plot_energy_flows(energy_flows) {
         { y: pv_production, name: gettext('PV') },
         { y: battery, name: gettext('Battery In-/Output') },
         { y: battery_content, name: gettext('Battery Content'), yaxis: 'y2', visible: 'legendonly' },
+        { y: h2_storage, name: gettext('H2 Storage In-/Output'), yaxis: 'y2'},
+        { y: h2_storage_content, name: gettext('H2 Storage Content'), yaxis: 'y2', visible: 'legendonly' },
+        { y: electrolyzer_production, name: gettext('Electrolyzer')},
+        { y: fuel_cell_production, name: gettext('Fuel cell')},
         { y: demand, name: gettext('Demand') },
         { y: surplus, name: gettext('Surplus') },
     ];

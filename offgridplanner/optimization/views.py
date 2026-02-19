@@ -424,6 +424,12 @@ def load_plot_data(request, proj_id, plot_type=None):
             energy_flow["battery_discharge"] - energy_flow["battery_charge"]
         )
         energy_flow = energy_flow.drop(columns=["battery_charge", "battery_discharge"])
+        energy_flow["h2_storage"] = (
+            energy_flow["h2_storage_discharge"] - energy_flow["h2_storage_charge"]
+        )
+        energy_flow = energy_flow.drop(
+            columns=["h2_storage_charge", "h2_storage_discharge"]
+        )
         energy_flow = energy_flow.reset_index(drop=True)
         energy_flow = energy_flow.dropna(how="all", axis=0).fillna(0).to_dict("list")
         return JsonResponse({"energy_flow": energy_flow})
@@ -452,6 +458,9 @@ def load_plot_data(request, proj_id, plot_type=None):
             "inverter",
             "rectifier",
             "diesel_genset",
+            "h2_storage",
+            "fuel_cell",
+            "electrolyzer",
             "peak_demand",
             "surplus",
         ]
@@ -478,6 +487,12 @@ def load_plot_data(request, proj_id, plot_type=None):
             "dc_bus_to_inverter",
             "dc_bus_to_surplus",
             "inverter_to_demand",
+            "hydrogen_bus_to_h2_storage",
+            "h2_storage_to_hydrogen_bus",
+            "fuel_cell_to_dc_bus",
+            "electrolyzer_to_hydrogen_bus",
+            "dc_bus_to_electrolyzer",
+            "hydrogen_bus_to_fuel_cell",
         ]
         sankey_data = {key: df[key] for key in sankey_keys}
         return JsonResponse(
