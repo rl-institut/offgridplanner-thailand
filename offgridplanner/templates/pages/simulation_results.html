@@ -22,13 +22,14 @@
 {% endblock head_block %}
 {% block progression_content %}
       <main>
+       {% include 'warning_box.html' %}
         <section id="dashboard" class="dashboard">
           <div>
             <div class="row" id="actionButtonsRow" style="padding: 0 0.75rem">
               <div style="display: flex; justify-content: flex-end; align-items: center; gap: 2rem; width: 100%; padding: 0; margin: 0;">
                 <a href="/">{% translate 'My Projects' %}</a>
                 <div class="btn-group">
-                  <button 
+                  <button
                     type="button"
                     class="btn btn--download dropdown-toggle"
                     data-bs-toggle="dropdown"
@@ -758,7 +759,7 @@
     const height = 70;
     const radius = Math.min(width, height) / 2;
     const innerRadius = radius * 0.6;
-    
+
     // Create SVG
     const svg = d3.select('#lcoeChart')
       .append('svg')
@@ -766,34 +767,34 @@
       .attr('height', height)
       .append('g')
       .attr('transform', `translate(${width/2},${height/2})`);
-    
+
     const colors = ['#1F567D', '#87B2D1'];
-    
+
     // Arc generator
     const arc = d3.arc()
       .innerRadius(innerRadius)
       .outerRadius(radius);
-    
+
     // Pie generator
     const pie = d3.pie()
       .sort(null)
       .value(d => d.value);
-    
+
     // Update chart
     function updateChart(genValue, gridValue) {
       const data = [
         { label: 'Generation', value: genValue },
         { label: 'Grid', value: gridValue }
       ];
-        
+
       // Update text values
       document.getElementById('gen-value').textContent = genValue.toFixed(1);
       document.getElementById('grid-value').textContent = gridValue.toFixed(1);
-      
+
       // Bind data
       const paths = svg.selectAll('path')
         .data(pie(data));
-      
+
       // Enter + Update
       paths.enter()
         .append('path')
@@ -808,14 +809,14 @@
       .attr('fill', (d, i) => colors[i])
       .attr('stroke', 'white')
       .attr('stroke-width', 2);
-      
+
       // Exit
       paths.exit().remove();
     }
-    
+
     // Initial render
     updateChart(generationValue, gridValue);
-    
+
     // Make updateChart function globally accessible
     window.updateChart = updateChart;
   </script>
