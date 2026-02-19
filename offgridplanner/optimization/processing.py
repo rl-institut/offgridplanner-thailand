@@ -446,6 +446,8 @@ class SupplyProcessor(OptimizationDataHandler):
                 "h2_storage_charge": self.sequences["h2_storage_charge"],
                 "h2_storage_discharge": self.sequences["h2_storage_discharge"],
                 "h2_storage_content": self.sequences["h2_storage_content"],
+                "electrolyzer_production": self.sequences["electrolyzer"],
+                "fuel_cell_production": self.sequences["fuel_cell"],
                 "demand": self.sequences["demand"],
                 "surplus": self.sequences["surplus"],
             },
@@ -699,9 +701,18 @@ class SupplyProcessor(OptimizationDataHandler):
             self.sequences["inverter"].sum()
             / self.energy_system_dict["inverter"]["parameters"]["efficiency"]
         )
+        results.dc_bus_to_electrolyzer = (
+            self.sequences["electrolyzer"].sum()
+            / self.energy_system_dict["electrolyzer"]["parameters"]["efficiency"]
+        )
         results.dc_bus_to_surplus = self.sequences["surplus"].sum()
-        results.inverter_to_demand = self.sequences["inverter"].sum()
-        # TODO add categories for h2 flows
+        results.hydrogen_bus_to_h2_storage = self.sequences["h2_storage_charge"].sum()
+        results.h2_storage_to_hydrogen_bus = self.sequences[
+            "h2_storage_discharge"
+        ].sum()
+        results.hydrogen_bus_to_fuel_cell = self.sequences["h2_storage_discharge"].sum()
+        results.fuel_cell_to_dc_bus = self.sequences["fuel_cell"].sum()
+        results.electrolyzer_to_hydrogen_bus = self.sequences["electrolyzer"].sum()
 
         # --- Demand and shortage statistics ---
         results.total_annual_consumption = self.annualize(
