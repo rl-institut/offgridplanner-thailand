@@ -645,7 +645,17 @@ def process_optimization_results(request, proj_id):
         (results.epc_total - results.cost_grid) / results.epc_total * 100
     )
     results.lcoe_share_grid = 100 - results.lcoe_share_supply
-    assets = ["grid", "diesel_genset", "inverter", "rectifier", "battery", "pv"]
+    assets = [
+        "grid",
+        "diesel_genset",
+        "inverter",
+        "rectifier",
+        "battery",
+        "pv",
+        "h2_storage",
+        "fuel_cell",
+        "electrolyzer",
+    ]
     results.upfront_invest_total = sum(
         [getattr(results, f"upfront_invest_{key}") for key in assets]
     )
