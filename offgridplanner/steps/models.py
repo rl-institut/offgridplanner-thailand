@@ -492,8 +492,8 @@ class EnergySystemDesign(NestedModel):
         nested_dict = copy.deepcopy(self.to_nested_dict())
         field_conversions = {
             "h2_storage": {"capex": self.kg_to_kwh, "opex": self.kg_to_kwh},
-            "electrolyzer": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
-            "fuel_cell": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
+            "electrolyzer": {"opex": self.kg_to_kwh},
+            "fuel_cell": {"opex": self.kg_to_kwh},
         }
         for comp, param_map in field_conversions.items():
             for param, fn in param_map.items():
