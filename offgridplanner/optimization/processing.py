@@ -655,7 +655,7 @@ class SupplyProcessor(OptimizationDataHandler):
         project_setup.email_notification = False
         project_setup.save()
 
-    def _scalar_results_to_db(self):
+    def _scalar_results_to_db(self):  # noqa:PLR0915
         # Annualized cost calculations
         results = self.results_obj
 
@@ -706,6 +706,7 @@ class SupplyProcessor(OptimizationDataHandler):
             / self.energy_system_dict["electrolyzer"]["parameters"]["efficiency"]
         )
         results.dc_bus_to_surplus = self.sequences["surplus"].sum()
+        results.inverter_to_demand = self.sequences["inverter"].sum()
         results.hydrogen_bus_to_h2_storage = self.sequences["h2_storage_charge"].sum()
         results.h2_storage_to_hydrogen_bus = self.sequences[
             "h2_storage_discharge"

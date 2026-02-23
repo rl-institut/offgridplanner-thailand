@@ -609,21 +609,21 @@ function plot_sankey(data) {
         hydrogen_bus_to_fuel_cell: Number(sankey_data['hydrogen_bus_to_fuel_cell']),
     };
 
-const nodes = [
-    gettext('Fuel'),          // 0
-    gettext('Diesel Genset'), // 1
-    gettext('Rectifier'),     // 2
-    gettext('PV'),            // 3
-    gettext('DC Bus'),        // 4
-    gettext('Battery'),       // 5
-    gettext('Inverter'),      // 6
-    gettext('Demand'),        // 7
-    gettext('Surplus'),       // 8
-    gettext('Hydrogen'),       // 9
-    gettext('H2 Storage'),       // 10
-    gettext('Electrolyzer'),       // 11
-    gettext('Fuel Cell'),       // 12
-];
+    const nodes = [
+        gettext('Fuel'),          // 0
+        gettext('Diesel Genset'), // 1
+        gettext('Rectifier'),     // 2
+        gettext('PV'),            // 3
+        gettext('DC Bus'),        // 4
+        gettext('Battery'),       // 5
+        gettext('Inverter'),      // 6
+        gettext('Demand'),        // 7
+        gettext('Surplus'),       // 8
+        gettext('Hydrogen'),       // 9
+        gettext('H2 Storage'),       // 10
+        gettext('Electrolyzer'),       // 11
+        gettext('Fuel Cell'),       // 12
+    ];
 
     const links = [
         { source: 0, target: 1, key: 'fuel_to_diesel_genset', label: gettext('Fuel supplied to the diesel genset') },
