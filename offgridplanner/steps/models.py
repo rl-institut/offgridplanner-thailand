@@ -365,6 +365,11 @@ class EnergySystemDesign(NestedModel):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+    electrolyzer_parameters_variable_cost = models.FloatField(
+        db_column="electrolyzer__parameters__variable_cost",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
     electrolyzer_parameters_efficiency = models.FloatField(
         db_column="electrolyzer__parameters__efficiency",
         blank=True,
@@ -395,6 +400,11 @@ class EnergySystemDesign(NestedModel):
     )  # Field renamed because it contained more than one '_' in a row.
     fuel_cell_parameters_opex = models.FloatField(
         db_column="fuel_cell__parameters__opex",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
+    fuel_cell_parameters_variable_cost = models.FloatField(
+        db_column="fuel_cell__parameters__variable_cost",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
@@ -492,8 +502,8 @@ class EnergySystemDesign(NestedModel):
         nested_dict = copy.deepcopy(self.to_nested_dict())
         field_conversions = {
             "h2_storage": {"capex": self.kg_to_kwh, "opex": self.kg_to_kwh},
-            "electrolyzer": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
-            "fuel_cell": {"lifetime": self.h_to_years, "opex": self.kg_to_kwh},
+            "electrolyzer": {"opex": self.kg_to_kwh},
+            "fuel_cell": {"opex": self.kg_to_kwh},
         }
         for comp, param_map in field_conversions.items():
             for param, fn in param_map.items():
