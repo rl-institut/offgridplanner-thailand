@@ -365,6 +365,11 @@ class EnergySystemDesign(NestedModel):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+    electrolyzer_parameters_variable_cost = models.FloatField(
+        db_column="electrolyzer__parameters__variable_cost",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
     electrolyzer_parameters_efficiency = models.FloatField(
         db_column="electrolyzer__parameters__efficiency",
         blank=True,
@@ -395,6 +400,11 @@ class EnergySystemDesign(NestedModel):
     )  # Field renamed because it contained more than one '_' in a row.
     fuel_cell_parameters_opex = models.FloatField(
         db_column="fuel_cell__parameters__opex",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
+    fuel_cell_parameters_variable_cost = models.FloatField(
+        db_column="fuel_cell__parameters__variable_cost",
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
