@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v1.0.1-thai.3.0] – 2026-02-23
 ### Added
 - Enable supply system simulation including H2 components ([#23](https://github.com/rl-institut/offgridplanner-thailand/pull/23))
 - Display additional H2 results in results page ([#23](https://github.com/rl-institut/offgridplanner-thailand/pull/23))
