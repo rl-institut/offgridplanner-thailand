@@ -172,8 +172,10 @@ def demand_estimation(request, proj_id=None):
 
         if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
-            if form.is_valid():
+            opts = OptionForm(request.POST)
+            if form.is_valid() and opts.is_valid():
                 form.save()
+                opts.save()
                 return redirect("steps:ogp_steps", proj_id, step_id + 1)
             else:
                 errors = form.non_field_errors()
@@ -181,6 +183,7 @@ def demand_estimation(request, proj_id=None):
                 messages.add_message(request, messages.WARNING, display_error)
         else:
             form = CustomDemandForm(instance=custom_demand)
+            opts = OptionForm(instance=project.options)
 
         context = {
             "calibration": {
@@ -189,6 +192,7 @@ def demand_estimation(request, proj_id=None):
             },
             "household_initial_shares": household_initial_shares,
             "form": form,
+            "opts_form": opts,
             "proj_id": proj_id,
             "step_id": step_id,
             "step_list": STEP_LIST_RIBBON,
