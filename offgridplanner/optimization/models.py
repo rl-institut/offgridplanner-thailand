@@ -195,7 +195,17 @@ class Results(models.Model):
             (self.epc_total - self.cost_grid) / self.epc_total * 100
         )
         self.lcoe_share_grid = 100 - self.lcoe_share_supply
-        assets = ["grid", "diesel_genset", "inverter", "rectifier", "battery", "pv"]
+        assets = [
+            "grid",
+            "diesel_genset",
+            "inverter",
+            "rectifier",
+            "battery",
+            "pv",
+            "electrolyzer",
+            "fuel_cell",
+            "h2_storage",
+        ]
         self.upfront_invest_total = sum(
             [getattr(self, f"upfront_invest_{key}") for key in assets]
         )

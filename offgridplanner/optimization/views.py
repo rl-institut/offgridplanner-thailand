@@ -762,34 +762,7 @@ def handle_optimization_results_request(request, proj_id):
     # Processes the results (contains both optimization result objects)
     data = json.loads(request.body)
     sim_res = data.get("results", {})
-    grid_processor = GridProcessor(proj_id=proj_id, results_json=sim_res.get("grid"))
-    grid_processor.grid_results_to_db()
-    supply_processor = SupplyProcessor(
-        proj_id=proj_id, results_json=sim_res.get("supply")
-    )
-    supply_processor.process_supply_optimization_results()
-    supply_processor.supply_results_to_db()
-    # Process shared results (after both grid and supply have been processed)
-    results = Results.objects.get(simulation__project__id=proj_id)
-    results.lcoe_share_supply = (
-        (results.epc_total - results.cost_grid) / results.epc_total * 100
-    )
-    results.lcoe_share_grid = 100 - results.lcoe_share_supply
-    assets = [
-        "grid",
-        "diesel_genset",
-        "inverter",
-        "rectifier",
-        "battery",
-        "pv",
-        "h2_storage",
-        "fuel_cell",
-        "electrolyzer",
-    ]
-    results.upfront_invest_total = sum(
-        [getattr(results, f"upfront_invest_{key}") for key in assets]
-    )
-    results.save()
+    process_optimization_results(proj_id, sim_res)
     return JsonResponse({"msg": "Optimization results saved to database"})
 
 
