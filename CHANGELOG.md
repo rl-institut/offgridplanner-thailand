@@ -1,13 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [v1.1.1-thai.3.0] – 2026-02-26
 ### Added
-- Display roads on map ([#138](https://github.com/rl-institut/django-offgridplanner/pull/138)).
-- Allow user to duplicate projects ([#191](https://github.com/rl-institut/django-offgridplanner/pull/191))
-- Offer example project to users with no projects ([#191](https://github.com/rl-institut/django-offgridplanner/pull/191))
-
-### Fixed
-- Fix grid error on recalculation due to label column in nodes
+- Merge changes and bug fixes made in upstream repository ([#28](https://github.com/rl-institut/offgridplanner-thailand/pull/28))
 
 ## [v1.0.1-thai.3.0] – 2026-02-23
 ### Added
