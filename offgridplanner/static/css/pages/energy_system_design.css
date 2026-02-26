@@ -24,7 +24,7 @@
     padding-right: var(--padding-normal);
 }
 
-.esd-sidebar, 
+.esd-sidebar,
 .esd-diagram {
     background-color: var(--background-color--main);
     border: 1px solid var(--border-color);
@@ -45,7 +45,7 @@
     margin-bottom: 0;
 }
 
-.esd-sidebar__content, 
+.esd-sidebar__content,
 .esd-diagram__content {
     padding: var(--padding-normal);
 }
