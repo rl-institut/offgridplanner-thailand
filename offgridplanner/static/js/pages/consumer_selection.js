@@ -139,6 +139,7 @@ function markerOnClick(e) {
         selectedMarkers.forEach(marker => {
             resetMarkerIcon(marker);
         });
+        updateConsumerDropdownForSelection();
     }
     if (!isShift) {
         //reset if "normal" click without shift
@@ -146,6 +147,7 @@ function markerOnClick(e) {
         oldMarkers = [];
         document.getElementById('longitude').disabled = false;
         document.getElementById('latitude').disabled = false;
+        updateConsumerDropdownForSelection();
     }
 
     expandAccordionItem2();
@@ -228,6 +230,7 @@ function markerOnClick(e) {
             }
         }
     });
+    updateConsumerDropdownForSelection();
 }
 
 function update_map_elements() {
@@ -352,6 +355,65 @@ function resetMarkerIcon(marker) {
             }
         }
     });
+}
+
+function updateConsumerDropdownForSelection() {
+
+    const consumerDropdown = document.getElementById('consumer');
+    const enterpriseDropdown = document.getElementById('enterprise');
+
+    if (selectedMarkers.length === 0) {
+        consumerDropdown.value = '';
+        enterpriseDropdown.innerHTML = '';
+        enterpriseDropdown.disabled = true;
+        return;
+    }
+
+    const firstType = selectedMarkers[0].consumer_type;
+    const allSameType = selectedMarkers.every(m =>
+        m.consumer_type === firstType
+    );
+
+    if (!allSameType) {
+        consumerDropdown.value = '';
+        enterpriseDropdown.innerHTML = '';
+        enterpriseDropdown.disabled = true;
+        return;
+    }
+
+    // alle gleicher Typ
+    switch (firstType) {
+        case 'household':
+            consumerDropdown.value = 'H';
+            break;
+        case 'public_service':
+            consumerDropdown.value = 'P';
+            break;
+        case 'enterprise':
+            consumerDropdown.value = 'E';
+            break;
+        case 'power-house':
+            consumerDropdown.value = '';
+            break;
+        default:
+            console.error("Invalid consumer type (firstType): " + firstType);
+    }
+
+    // handling of dropdown #enterprise selection
+    if (firstType === 'enterprise') {
+
+        const firstDetail = selectedMarkers[0].consumer_detail;
+        const allSameDetail = selectedMarkers.every(m =>
+            m.consumer_detail === firstDetail
+        );
+
+        dropDownMenu(enterprise_list, allSameDetail ? firstDetail : null);
+
+    } else {
+
+        enterpriseDropdown.innerHTML = '';
+        enterpriseDropdown.disabled = true;
+    }
 }
 
 function move_marker() {
