@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from config.settings.base import DEFAULT_COUNTRY
 from config.settings.base import PENDING
 from offgridplanner.optimization.helpers import get_country_bounds
+from offgridplanner.optimization.models import Results
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
@@ -42,12 +43,11 @@ STEPS = {
     "demand_estimation": _("Demand Estimation"),
     "grid_design": _("Grid Design"),
     "energy_system_design": _("Energy System Design"),
-    "calculating": _("Calculating"),
     "simulation_results": _("Simulation Results"),
 }
 
 # Remove the calculating step from the top ribbon
-STEP_LIST_RIBBON = [step for step in STEPS.values() if step != _("Calculating")]
+STEP_LIST_RIBBON = list(STEPS.values())
 
 
 @login_required
@@ -99,6 +99,7 @@ def project_setup(request, proj_id=None):
                 project.user = User.objects.get(email=request.user.email)
                 project.options = opts
             project.save()
+            simulation, _ = Simulation.objects.get_or_create(project=project)
 
         return HttpResponseRedirect(
             reverse("steps:consumer_selection", args=[project.id]),
@@ -162,7 +163,7 @@ def demand_estimation(request, proj_id=None):
     step_id = list(STEPS.keys()).index("demand_estimation") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
-
+        options = project.options
         custom_demand, _ = CustomDemand.objects.get_or_create(
             project=project, defaults=get_param_from_metadata("default", "CustomDemand")
         )
@@ -172,15 +173,28 @@ def demand_estimation(request, proj_id=None):
 
         if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
-            if form.is_valid():
+            opts = OptionForm(request.POST, instance=options)
+            display_error = None
+            if form.is_valid() and opts.is_valid():
                 form.save()
-                return redirect("steps:ogp_steps", proj_id, step_id + 1)
+                opts.save()
+                if (
+                    options.do_demand_estimation is False
+                    and custom_demand.uploaded_data is None
+                ):
+                    display_error = "You have selected the option to use a custom demand timeseries, but not provided any data. Please upload a timeseries or unselect the given slider."
             else:
                 errors = form.non_field_errors()
                 display_error = errors[0] if len(errors) == 1 else errors
                 messages.add_message(request, messages.WARNING, display_error)
+
+            if display_error:
+                messages.add_message(request, messages.WARNING, display_error)
+            else:
+                return redirect("steps:ogp_steps", proj_id, step_id + 1)
         else:
             form = CustomDemandForm(instance=custom_demand)
+            opts = OptionForm(instance=options)
 
         context = {
             "calibration": {
@@ -189,6 +203,7 @@ def demand_estimation(request, proj_id=None):
             },
             "household_initial_shares": household_initial_shares,
             "form": form,
+            "opts_form": opts,
             "proj_id": proj_id,
             "step_id": step_id,
             "step_list": STEP_LIST_RIBBON,
@@ -324,11 +339,17 @@ def calculating(request, proj_id=None):
 @login_required
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
-    step_id = list(STEPS.keys()).index("calculating") + 1
+    step_id = list(STEPS.keys()).index("simulation_results") + 1
 
     project = get_object_or_404(Project, id=proj_id)
     opts = project.options
-    res = project.simulation.results
+    res_qs = Results.objects.filter(simulation=project.simulation)
+
+    if res_qs.exists():
+        res = res_qs.get()
+    else:
+        return redirect("steps:calculating", proj_id)
+
     df = pd.Series(model_to_dict(res))
 
     df = df.astype(float)

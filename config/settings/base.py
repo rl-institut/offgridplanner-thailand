@@ -3,9 +3,11 @@
 
 import os
 import ssl
+from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -60,8 +62,9 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # External data files
-DATA_DIR = Path(APPS_DIR) / "static" / "data"
+DATA_DIR = Path(APPS_DIR) / "data"
 FULL_PATH_PROFILES = Path(DATA_DIR) / "1-hour_mean_365_days_all_users.parquet"
+EXAMPLE_PROJECT_PATH = Path(DATA_DIR) / "example_project.json"
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -97,6 +100,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "widget_tweaks",
     "statici18n",
+    "captcha",
 ]
 
 LOCAL_APPS = [
@@ -164,6 +168,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_auto_logout.middleware.auto_logout",
 ]
 
 # STATIC
@@ -210,6 +215,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
+                "django_auto_logout.context_processors.auto_logout_client",
                 "offgridplanner.users.context_processors.allauth_settings",
                 "offgridplanner.users.context_processors.app_version",
                 "offgridplanner.steps.context_processors.current_project",
@@ -217,6 +223,9 @@ TEMPLATES = [
         },
     },
 ]
+
+# https://django-simple-captcha.readthedocs.io/en/latest/advanced.html
+CAPTCHA_FONT_SIZE = 30
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
@@ -326,6 +335,13 @@ CELERY_TASK_TIME_LIMIT = 5 * 60
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-schedule
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-expired-demo-accounts": {
+        "task": "offgridplanner.users.tasks.cleanup_expired_demo_accounts",
+        "schedule": crontab(minute="*/10"),
+    },
+}
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-send-task-events
 CELERY_WORKER_SEND_TASK_EVENTS = True
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std-setting-task_send_sent_event
@@ -382,7 +398,17 @@ SPECTACULAR_SETTINGS = {
 }
 
 # OFFGRIDPLANNER SETTINGS
-APP_VERSION_NUMBER = "1.0.1-thai.3.0"
+APP_VERSION_NUMBER = "1.1.1-thai.3.0"
+
+# Demo user expiry time
+DEMO_EXPIRY_SECONDS = 2 * 60 * 60  # 2 hours
+
+# Automatic logout settings
+AUTO_LOGOUT = {
+    "IDLE_TIME": timedelta(minutes=60),
+    "REDIRECT_TO_LOGIN_IMMEDIATELY": True,
+    "MESSAGE": "The session has expired. Please login again to continue.",
+}
 
 # Assumed country based on timeseries data (used for map settings and user warning if a different country is selected)
 DEFAULT_COUNTRY = ("TH", "Thailand")

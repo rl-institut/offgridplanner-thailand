@@ -27,7 +27,7 @@
     <div>
       <div class="row" id="actionButtonsRow" style="padding: 0 0.75rem">
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 2rem; width: 100%; padding: 0; margin: 0;">
-          <a href="/">{% translate 'My Projects' %}</a>
+          <a href="{% url 'projects:projects_list' %}">{% translate 'My Projects' %}</a>
           <div class="btn-group">
             <button
               type="button"
@@ -58,18 +58,9 @@
               </li>
             </ul>
           </div>
-          <!-- Can delete if not needed anymore -->
-          <!-- <a id="rerunCalculation"
-             class="btn btn--medium"
-             style="height: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 50%;
-                    margin-right: 10px;
-                    margin-left: 10px"
-             href="javascript:void(0);"
-             onclick="forward_if_no_task_is_pending({{ proj_id }});">{% translate 'Recalculate' %}</a> -->
+          <a id="rerunCalculation"
+             class="btn btn--download"
+             href="{% url 'steps:calculating' proj_id %}">{% translate 'Recalculate' %}</a>
         </div>
       </div>
       <div class="row" id="firstRow">
@@ -823,18 +814,20 @@
   const csrfToken = '{{ csrf_token }}';
   const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
   const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
+  const dbRoadsToJsUrl = "{% url 'optimization:db_roads_to_js' proj_id %}";
   const loadPlotDataUrl = `{% url 'optimization:load_plot_data' proj_id %}`;
   const loadDemandPlotUrl = `{% url 'optimization:load_demand_plot_data' proj_id %}`;
   const downloadPDFReportUrl = `{% url 'projects:download_pdf_report' proj_id %}`;
   const downloadExcelResultsUrl = `{% url 'projects:download_excel_results' proj_id %}`;
 </script>
+<script src="{% static 'js/backend_communication.js' %}"></script>
 <script src="{% static 'js/integrate_map.js' %}"></script>
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{% static 'js/third_party/plotly.js' %}"></script>
 <script src="{% statici18n LANGUAGE_CODE %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
 <script src="{% static 'js/pages/simulation_results.js' %}"></script>
-<script src="{% static 'js/backend_communication.js' %}"></script>
 
 <script>
   const chartEl = document.getElementById('lcoeChart');
