@@ -3,6 +3,7 @@
 
 import os
 import ssl
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -167,6 +168,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_auto_logout.middleware.auto_logout",
 ]
 
 # STATIC
@@ -213,6 +215,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
+                "django_auto_logout.context_processors.auto_logout_client",
                 "offgridplanner.users.context_processors.allauth_settings",
                 "offgridplanner.users.context_processors.app_version",
                 "offgridplanner.steps.context_processors.current_project",
@@ -399,6 +402,13 @@ APP_VERSION_NUMBER = "1.1.1-thai.3.0"
 
 # Demo user expiry time
 DEMO_EXPIRY_SECONDS = 2 * 60 * 60  # 2 hours
+
+# Automatic logout settings
+AUTO_LOGOUT = {
+    "IDLE_TIME": timedelta(minutes=60),
+    "REDIRECT_TO_LOGIN_IMMEDIATELY": True,
+    "MESSAGE": "The session has expired. Please login again to continue.",
+}
 
 # Assumed country based on timeseries data (used for map settings and user warning if a different country is selected)
 DEFAULT_COUNTRY = ("TH", "Thailand")
