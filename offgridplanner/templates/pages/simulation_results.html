@@ -27,7 +27,7 @@
     <div>
       <div class="row" id="actionButtonsRow" style="padding: 0 0.75rem">
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 2rem; width: 100%; padding: 0; margin: 0;">
-          <a href="/">{% translate 'My Projects' %}</a>
+          <a href="{% url 'projects:projects_list' %}">{% translate 'My Projects' %}</a>
           <div class="btn-group">
             <button
               type="button"
@@ -58,18 +58,9 @@
               </li>
             </ul>
           </div>
-          <!-- Can delete if not needed anymore -->
-          <!-- <a id="rerunCalculation"
-             class="btn btn--medium"
-             style="height: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 50%;
-                    margin-right: 10px;
-                    margin-left: 10px"
-             href="javascript:void(0);"
-             onclick="forward_if_no_task_is_pending({{ proj_id }});">{% translate 'Recalculate' %}</a> -->
+          <a id="rerunCalculation"
+             class="btn btn--download"
+             href="{% url 'steps:calculating' proj_id %}">{% translate 'Recalculate' %}</a>
         </div>
       </div>
       <div class="row" id="firstRow">
