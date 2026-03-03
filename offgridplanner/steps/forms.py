@@ -49,7 +49,7 @@ class CustomModelForm(ModelForm):
 
 
 class CustomDemandForm(CustomModelForm):
-    percentage_fields = ["very_low", "low", "middle", "high", "very_high"]
+    percentage_fields = ["low", "middle", "high"]
 
     class Meta:
         model = CustomDemand
