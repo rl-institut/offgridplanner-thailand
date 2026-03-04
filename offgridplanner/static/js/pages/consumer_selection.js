@@ -105,6 +105,9 @@ document.getElementById('shs_options').value = '';
 document.getElementById('enterprise').addEventListener('change', function () {
     update_map_elements();
 });
+document.getElementById('shs_options').addEventListener('change', function () {
+    update_map_elements();
+});
 
 
 let markerConsumerSelected = new L.Icon({
@@ -219,13 +222,6 @@ function markerOnClick(e) {
                     activate_large_loads();
                     if (marker.custom_specification.length > 5) {
                         display_large_loads_on_marker(clickedMarker)
-                    }
-                }
-                if (clickedMarker.node_type !== 'power-house') {
-                    if (clickedMarker.shs_options == 0) {
-                        document.getElementById('shs_options').value = 'optimize';
-                    } else if (clickedMarker.shs_options == 1) {
-                        document.getElementById('shs_options').value = 'grid';
                     }
                 }
             }
@@ -364,6 +360,7 @@ function updateConsumerDropdownForSelection() {
     // if yes, the chosen type is shown as selected, if not the default list is shown
     const consumerDropdown = document.getElementById('consumer');
     const enterpriseDropdown = document.getElementById('enterprise');
+    const shsOptionsDropdown = document.getElementById('shs_options');
 
     if (selectedMarkers.length === 0) {
         consumerDropdown.value = '';
@@ -411,6 +408,26 @@ function updateConsumerDropdownForSelection() {
                 break;
             default:
                 console.error("Invalid consumer type (firstType): " + firstType);
+        }
+    }
+
+    const firstShsOption = selectedMarkers[0].shs_options;
+    const allSameShsOption = selectedMarkers.every(m =>
+        m.shs_options === firstShsOption
+    );
+
+    if (!allSameShsOption) {
+        shsOptionsDropdown.value = 'optimize';
+    } else {
+        switch (firstShsOption) {
+            case 0:
+                shsOptionsDropdown.value = 'optimize';
+                break;
+            case 1:
+                shsOptionsDropdown.value = 'grid';
+                break;
+            default:
+                console.error("Invalid shs Option (firstShsOption): " + firstShsOption);
         }
     }
 }
