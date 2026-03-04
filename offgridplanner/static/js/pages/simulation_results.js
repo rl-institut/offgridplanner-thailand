@@ -784,7 +784,7 @@ function plot_sankey(data) {
 
 
 // ENERGY FLOWS PLOT
-function plot_energy_flows(energy_flows) {
+function plot_energy_flows(energy_flows, elementId, filterKeys = null) {
     const {
         diesel_genset_production,
         pv_production,
@@ -800,9 +800,9 @@ function plot_energy_flows(energy_flows) {
 
     const time = Array.from({ length: pv_production.length }, (_, i) => i);
 
-    const energyFlows = document.getElementById("energyFlows");
+    const energyFlows = document.getElementById(elementId);
 
-    const tracesSpec = [
+    var tracesSpec = [
         { y: diesel_genset_production, name: gettext('Diesel Genset') },
         { y: pv_production, name: gettext('PV') },
         { y: battery, name: gettext('Battery In-/Output') },
@@ -815,6 +815,17 @@ function plot_energy_flows(energy_flows) {
         { y: surplus, name: gettext('Surplus') },
     ];
 
+    if (filterKeys?.length) {
+      tracesSpec = tracesSpec
+        .filter(t => filterKeys.includes(t.name))
+        .map(t => {
+          if (t.visible === 'legendonly') {
+            const { visible, ...rest } = t;
+            return rest;            // equivalent to default visible = true
+          }
+          return t;
+        });
+    }
     const data = tracesSpec.map(spec => ({
         x: time,
         y: spec.y,
@@ -850,6 +861,17 @@ function plot_energy_flows(energy_flows) {
     ];
 
     Plotly.newPlot(energyFlows, data, layout, PLOTLY_CONFIG);
+}
+
+// Storage states plot
+function plot_storage_states(data, elementId) {
+  const filteredData = { ...data };
+
+  filteredData.series = data.series.filter(s =>
+    ['H2 Storage', 'Battery Storage'].includes(s.name)
+  );
+
+  plot_energy_flows(filteredData, elementId);
 }
 
 
