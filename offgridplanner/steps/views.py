@@ -425,10 +425,16 @@ def simulation_results(request, proj_id=None):
         "peak_demand",
         "base_load",
         "average_annual_demand_per_consumer",
-        "shortage_total",
-        "max_shortage",
         "surplus_rate",
     ]
+
+    shortage_fields = [
+        "shortage_total",
+        "max_shortage",
+    ]
+
+    esd = EnergySystemDesign.objects.get(project=project)
+    shortage_is_selected = esd.shortage_settings_is_selected
 
     # Environmental tab
     environmental_kpis_row_fields = [
@@ -453,6 +459,8 @@ def simulation_results(request, proj_id=None):
             "upfront_invest_row_fields": upfront_invest_row_fields,
             "annualized_cost_row_fields": annualized_cost_row_fields,
             "demand_kpis_row_fields": demand_kpis_row_fields,
+            "shortage_fields": shortage_fields,
+            "shortage_is_selected": shortage_is_selected,
             "environmental_kpis_row_fields": environmental_kpis_row_fields,
             "do_grid_optimization": opts.do_grid_optimization,
             "do_supply_optimization": opts.do_es_design_optimization,

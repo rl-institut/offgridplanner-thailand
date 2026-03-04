@@ -408,6 +408,17 @@
                     </div>
                   </div>
                   {% endfor %}
+                  {% if shortage_is_selected %}
+                  {% for field in shortage_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                  {% endif %}
                 </div>
               </div>
             </div>
