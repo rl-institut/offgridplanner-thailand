@@ -197,7 +197,7 @@ function markerOnClick(e) {
                     document.getElementById('consumer').disabled = false;
                     activate_large_loads();
                     if (marker.custom_specification.length > 5) {
-                        display_large_loads_on_marker(marker);
+                        display_large_loads_on_marker(clickedMarker);
                     }
 
                 } else if (clickedMarker.consumer_type === 'enterprise') {
@@ -214,11 +214,11 @@ function markerOnClick(e) {
                     document.getElementById('shs_options').disabled = false;
                     document.getElementById('consumer').value = 'P';
                     document.getElementById('consumer').disabled = false;
-                    let key2 = getKeyByValue(public_service_list, clickedMarker.consumer_detail);
-                    document.getElementById('enterprise').value = key2;
+                    //let key2 = getKeyByValue(public_service_list, clickedMarker.consumer_detail);
+                    //document.getElementById('enterprise').value = key2;
                     activate_large_loads();
                     if (marker.custom_specification.length > 5) {
-                        display_large_loads_on_marker(marker)
+                        display_large_loads_on_marker(clickedMarker)
                     }
                 }
                 if (clickedMarker.node_type !== 'power-house') {
@@ -277,7 +277,6 @@ function update_map_elements() {
                 break;
             case 'P':
                 marker.consumer_type = 'public_service';
-                marker.consumer_detail = document.getElementById('enterprise').value;
                 let key2 = document.getElementById('enterprise').value;
                 marker._consumer_detail_key = key2;
                 marker.consumer_detail = public_service_list[key2];
@@ -361,7 +360,8 @@ function resetMarkerIcon(marker) {
 }
 
 function updateConsumerDropdownForSelection() {
-
+    // function differentiates on multi-consumer selection if all selected consumers have the same type or not
+    // if yes, the chosen type is shown as selected, if not the default list is shown
     const consumerDropdown = document.getElementById('consumer');
     const enterpriseDropdown = document.getElementById('enterprise');
 
@@ -378,44 +378,40 @@ function updateConsumerDropdownForSelection() {
     );
 
     if (!allSameType) {
+        // consumer_type doesn't match between all the selectedMarkes -> default #consumer dropdown is shown (empty)
         consumerDropdown.value = '';
         enterpriseDropdown.innerHTML = '';
         enterpriseDropdown.disabled = true;
         return;
     }
 
-    // alle gleicher Typ
-    switch (firstType) {
-        case 'household':
-            consumerDropdown.value = 'H';
-            break;
-        case 'public_service':
-            consumerDropdown.value = 'P';
-            break;
-        case 'enterprise':
-            consumerDropdown.value = 'E';
-            break;
-        case 'power-house':
-            consumerDropdown.value = '';
-            break;
-        default:
-            console.error("Invalid consumer type (firstType): " + firstType);
-    }
-
-    // handling of dropdown #enterprise selection
-    if (firstType === 'enterprise') {
-
+    if (firstType !== 'enterprise' && firstType !== 'public_service') {
+        enterpriseDropdown.innerHTML = '';
+        enterpriseDropdown.disabled = true;
+    } else {
         const firstDetail = selectedMarkers[0].consumer_detail;
         const allSameDetail = selectedMarkers.every(m =>
             m.consumer_detail === firstDetail
         );
 
-        dropDownMenu(enterprise_list, allSameDetail ? getKeyByValue(enterprise_list, firstDetaill) : null);
-
-    } else {
-
-        enterpriseDropdown.innerHTML = '';
-        enterpriseDropdown.disabled = true;
+        switch (firstType) {
+            case 'household':
+                consumerDropdown.value = 'H';
+                break;
+            case 'public_service':
+                consumerDropdown.value = 'P';
+                dropDownMenu(public_service_list, allSameDetail ? getKeyByValue(public_service_list, firstDetail) : null);
+                break;
+            case 'enterprise':
+                consumerDropdown.value = 'E';
+                dropDownMenu(enterprise_list, allSameDetail ? getKeyByValue(enterprise_list, firstDetail) : null);
+                break;
+            case 'power-house':
+                consumerDropdown.value = '';
+                break;
+            default:
+                console.error("Invalid consumer type (firstType): " + firstType);
+        }
     }
 }
 
