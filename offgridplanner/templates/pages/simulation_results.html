@@ -95,14 +95,21 @@
                 </div>
               </div>
               <div class="row">
-                <div class="item item--main item--res">
-                  <div class="item__name">{{results.res.verbose}}</div>
-                  <div class="item__result">
-                    <div class="item__value">{{results.res.value|floatformat:"0g"}}</div>
-                    <div class="item__unit">{{results.res.unit}}</div>
+                <div class="item item--res item--main">
+                  <div class="item__title">{% translate 'Renewable Energy Share' %}</div>
+                  <div class="res-chart-wrapper">
+                    <div id="resChart"
+                      data-res="{{ results.res.value }}">
+                    </div>
+                    <div class="label res-label">
+                      <div>
+                        <span class="label-value" id="res-share-value">{{results.res_share.value|floatformat:"0g"}}</span>
+                        <span class="label-percent">{{results.res.unit}}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="item item--share">
+                <div class="item item--share item--main">
                   <div class="item__title">{% translate 'Share of Costs in LCOE' %}</div>
                   <div class="lcoe-chart-wrapper">
                     <div class="label left-label">
@@ -579,6 +586,70 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
 <script src="{% static 'js/pages/simulation_results.js' %}"></script>
 
+<script>
+  const resChartEl = document.getElementById('resChart');
+  const resValue = Number(resChartEl.dataset.res);
+
+  // Chart dimensions
+  const resWidth = 70;
+  const resHeight = 70;
+  const resRadius = Math.min(resWidth, resHeight) / 2;
+  const resInnerRadius = resRadius * 0.6;
+
+  // Create SVG
+  const resSvg = d3.select('#resChart')
+    .append('svg')
+    .attr('width', resWidth)
+    .attr('height', resHeight)
+    .append('g')
+    .attr('transform', `translate(${resWidth/2},${resHeight/2})`);
+
+  const resColors = ['#1F7D5C', '#F4F7F9']; // green for RES, grey for remainder
+
+  // Arc generator
+  const resArc = d3.arc()
+    .innerRadius(resInnerRadius)
+    .outerRadius(resRadius);
+
+  // Pie generator
+  const resPie = d3.pie()
+    .sort(null)
+    .value(d => d.value);
+
+  // Update res chart
+  function updateResChart(resVal) {
+    const remainder = Math.max(0, 100 - resVal);
+    const data = [
+      { label: 'Renewable', value: resVal },
+      { label: 'Other',     value: remainder }
+    ];
+
+    document.getElementById('res-share-value').textContent = resVal.toFixed(1);
+
+    const paths = resSvg.selectAll('path')
+      .data(resPie(data));
+
+    paths.enter()
+      .append('path')
+      .merge(paths)
+      .transition()
+      .duration(750)
+      .attrTween('d', function(d) {
+        const interpolate = d3.interpolate(this._current || d, d);
+        this._current = interpolate(1);
+        return t => resArc(interpolate(t));
+      })
+      .attr('fill', (d, i) => resColors[i])
+
+    paths.exit().remove();
+  }
+
+  // Initial render
+  updateResChart(resValue);
+
+  // Expose globally for dynamic updates
+  window.updateResChart = updateResChart;
+</script>
 <script>
   const chartEl = document.getElementById('lcoeChart');
   const generationValue = Number(chartEl.dataset.generation);
