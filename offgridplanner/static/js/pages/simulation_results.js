@@ -17,9 +17,9 @@ const PLOTLY_THEME = {
         accent: '#A1D58F',    // violet
         warn: '#FF7D00',      // amber
         danger: '#DC2626',    // red
-        neutral: '#78290F',   // slate
+        neutral: '#64748B',   // slate
         grid: '#E5E7EB',
-        axis: '#111827',
+        axis: '#374151',
         paper: '#FFFFFF',
         plot: '#FFFFFF',
     },
