@@ -53,7 +53,7 @@
     align-items: flex-start;
     border-radius: 0.5rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .chart .item.item--main {
@@ -166,7 +166,7 @@
     border-radius: 0.5rem;
     padding: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .chart .row__single .item {
@@ -247,7 +247,7 @@
     padding: 1rem;
     margin-bottom: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .tab-content .row__single .item {
@@ -297,7 +297,7 @@
     border-radius: 0.5rem;
     padding: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 /* LCOE Donut Chart */

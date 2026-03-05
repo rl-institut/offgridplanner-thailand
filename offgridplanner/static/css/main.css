@@ -1,5 +1,5 @@
 :root {
-    --bcc: #FAFAFA;
+    --bcc: #F4F7F9;
     --bct: #fff;
     --ccb: #1F567D;
     --cdg: #ccc;
@@ -1168,8 +1168,8 @@ a.dropdown-item:active {
 }
 
 .footer {
-    background-color: #F4F7F9;
-    height: 4.5rem;
+    background-color: var(--bct);
+    height: 8rem;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -1185,6 +1185,7 @@ a.dropdown-item:active {
     align-items: center;
     -ms-flex-negative: 0;
     flex-shrink: 0;
+    border-top: 1px solid #CEDBE3;
 }
 
 .footer > div {
@@ -1205,7 +1206,7 @@ a.dropdown-item:active {
 }
 
 .footer__logo img {
-    height: 2rem;
+    height: 4rem;
 }
 
 .footer__links {
@@ -1218,7 +1219,7 @@ a.dropdown-item:active {
     flex-direction: column;
     -webkit-box-pack: center;
     -ms-flex-pack: center;
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 .footer__links ul {
@@ -1232,9 +1233,12 @@ a.dropdown-item:active {
     padding-left: 1rem;
 }
 
+.footer__links li a {
+    color: #5E798D !important;
+}
+
 .step-footer {
     background-color: var(--bcc);
-    height: 4rem;
     bottom: 0;
     width: 100%;
     border-top: 2px solid #F4F7F9;
@@ -1253,6 +1257,7 @@ a.dropdown-item:active {
     align-items: center;
     -ms-flex-negative: 0;
     flex-shrink: 0;
+    padding-bottom: 4rem;
 }
 
 .step-footer > div {
@@ -1629,35 +1634,51 @@ table.table > :not(caption) > * > * {
 }
 
 nav.navbar {
-    position: fixed;
+    display: flex;
+    justify-content: center;
     width: 100%;
-    background-color: var(--bcc);
     z-index: 9;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.1);
+}
+
+nav.navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    width: 100% !important;
+    max-width: 82rem !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 nav.navbar.navbar-light {
-    background-color: var(--bcc) !important;
+    background-color: var(--bct) !important;
+}
+
+nav.navbar.navbar-light.bg-white {
+    background-color: var(--bct) !important;
 }
 
 nav.navbar .navbar-brand img {
-    height: 4rem;
+    height: 3rem;
 }
 
 nav.navbar .dropdown-menu[data-bs-popper] {
     left: auto;
     right: 0;
-    background-color: var(--bcc)
+    background-color: var(--bct);
 }
 
 nav.navbar .dropdown-item:focus,
 nav.navbar .dropdown-item:hover {
-    background-color: var(--bcc);
+    background-color: var(--bct);
 }
 
 nav.navbar .dropdown-menu li {
     padding-top: .5rem;
     padding-bottom: .5rem;
-    background-color: var(--bcc)
+    background-color: var(--bct)
 }
 
 @media (min-width: 992px) {
@@ -1788,8 +1809,7 @@ nav.navbar .dropdown-menu li {
 .wizard {
     position: relative;
     background-color: var(--bcc);
-    height: 5.5rem;
-    min-height: 4.5rem;
+    height: 4rem;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -1800,7 +1820,6 @@ nav.navbar .dropdown-menu li {
     -webkit-box-pack: center;
     -ms-flex-pack: center;
     justify-content: center;
-    padding-bottom: 2rem;
 }
 
 .wizard > div {
@@ -1828,6 +1847,7 @@ nav.navbar .dropdown-menu li {
     padding-top: 2rem;
     position: relative;
     background-color: var(--bcc);
+    padding-bottom: 3rem;
 }
 
 .wizard__back {
@@ -1882,6 +1902,7 @@ nav.navbar .dropdown-menu li {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    width: 100%;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
     -ms-flex-direction: column;
@@ -1895,6 +1916,9 @@ nav.navbar .dropdown-menu li {
 }
 
 .wizard__steps ul {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
     list-style: none;
     margin-bottom: 0;
     padding-left: 0;
@@ -1902,7 +1926,7 @@ nav.navbar .dropdown-menu li {
 
 .wizard__steps li {
     display: inline-block;
-    color: #A8B5C0;
+    color: #95B0C4;
     position: relative;
     font-weight: 700;
     font-size: 0.875rem;
@@ -1922,7 +1946,7 @@ nav.navbar .dropdown-menu li {
     font-weight: 700;
     margin-right: 0.5rem;
     color: #fff;
-    background-color: #A8B5C0;
+    background-color: #95B0C4;
     padding: 0.25rem 0.5rem;
     width: 2rem;
     border-radius: 100px;
@@ -2035,7 +2059,7 @@ content: "7"; }
 }
 
 .dashboard .chart {
-    background-color: var(--bcc);
+    background-color: var(--bct);
     border-radius: 8px;
     -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
     box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
@@ -2044,7 +2068,7 @@ content: "7"; }
 }
 
 .dashboard .box {
-    background-color: var(--bcc);
+    background-color: var(--bct);
     border-radius: 10px;
     -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
     box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
