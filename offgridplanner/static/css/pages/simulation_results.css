@@ -27,7 +27,7 @@
 }
 
 #dashboard .chart .chart__header h2 {
-    font-size: var(--font-size--md);
+    font-size: var(--font-size--lg);
     font-weight: 900;
     color: var(--font-color--secondary);
 }
@@ -42,6 +42,7 @@
 
 #dashboard .chart .row:has(.item--main) {
     gap: 1rem;
+    flex-wrap: nowrap;
 }
 
 #dashboard .chart .item {
@@ -218,6 +219,10 @@
 @media (max-height: 982px) or (max-width: 1308px) {
     #dashboard .chart.map-wrapper {
         height: 43rem;
+    }
+
+    #dashboard .chart .row:has(.item--main) {
+        flex-wrap: wrap;
     }
 
     #dashboard .chart .item.item--main {
