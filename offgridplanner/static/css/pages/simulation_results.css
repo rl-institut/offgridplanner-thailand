@@ -112,6 +112,14 @@
     line-height: 130%;
 }
 
+#dashboard .chart .item.item--main .item__illustration {
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
+
 #dashboard .chart .item.item--main.item--res .item__unit {
     color: var(--font-color--success);
 }
