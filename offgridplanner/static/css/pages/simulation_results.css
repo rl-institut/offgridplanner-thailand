@@ -207,6 +207,31 @@
     line-height: 130%;
 }
 
+@media (max-height: 982px) or (max-width: 1308px) {
+    #dashboard .chart.map-wrapper {
+        height: 43rem;
+    }
+
+    #dashboard .chart .item.item--main {
+        height: 8rem;
+        padding: 1rem 1.25rem;
+    }
+
+    #dashboard .chart .item.item--main .item__name,
+    #dashboard .chart .item.item--main.item--res .item__title,
+    #dashboard .chart .item.item--share .item__title {
+        font-size: var(--font-size--md);
+    }
+
+    #dashboard .chart .item.item--main .item__value {
+        font-size: var(--font-size--xl);
+    }
+
+    #dashboard .chart .row__single {
+        height: 5.5rem;
+    }
+}
+
 #dashboard .results-section {
     margin-top: 4rem;
     padding-top: 4rem;
