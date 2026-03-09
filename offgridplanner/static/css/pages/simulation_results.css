@@ -114,10 +114,10 @@
 }
 
 #dashboard .chart .item.item--main .item__illustration {
-    width: 100%; 
-    height: 100%; 
-    display: flex; 
-    align-items: center; 
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
