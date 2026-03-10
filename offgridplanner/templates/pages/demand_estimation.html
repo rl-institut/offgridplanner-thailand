@@ -222,6 +222,75 @@
               </div>
               <div id="demand_upload_plot"></div>
             </div>
+            <div class="accordion-item" style="border-top: none; padding: 10px">
+
+              <p style="display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        color: var(--ccb)">
+
+                <span></span>
+
+                <span style="display: flex; align-items: center; margin-right: 10px">
+
+                  <a style="margin-right: 10px;">
+                    {% translate 'Apply Annual Demand Increase' %}
+                  </a>
+
+                  <span class="icon icon-question"
+                        data-bs-toggle="tooltip"
+                        title="{% translate 'Applies a fixed yearly growth rate to electricity demand.' %}"
+                        style="margin-right: 10px"></span>
+
+                  <label class="switch" style="margin-right: 0px;">
+                    <input type="checkbox"
+                           id="growthToggle"
+                           data-bs-toggle="collapse"
+                           data-bs-target="#collapseGrowth">
+                    <span class="slider round"></span>
+                  </label>
+
+                </span>
+
+              </p>
+
+            </div>
+
+
+              <!-- Collapsible Input Section -->
+              <div class="accordion-item" style="border-top: none; padding: 10px">
+
+                <div id="collapseGrowth"
+                     class="accordion-collapse collapse">
+
+                  <div class="accordion-body">
+
+                    <p>
+                      <a>{% translate 'Annual Demand Increase (%)' %}</a>
+                    </p>
+
+                    <p style="color: grey;">
+                      {% translate 'Enter the expected annual growth rate of electricity demand.' %}
+                    </p>
+
+                    <div class="input-group" style="max-width: 200px">
+                      <input type="number"
+                             id="annualDemandGrowth"
+                             class="form-control"
+                             value="0"
+                             step="0.1"
+                             min="0">
+                      <span class="input-group-text">%</span>
+                    </div>
+
+                    <p style="margin-top:10px; font-style: italic; color: grey;">
+                      This feature is not active yet and currently does not affect the demand calculation.
+                    </p>
+
+                  </div>
+                </div>
+
+              </div>
           </div>
         </div>
       </div>
