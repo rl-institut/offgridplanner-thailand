@@ -40,11 +40,9 @@ class CustomDemand(models.Model):
     # Corresponds to class Demand in tier_spatial planning, removed fields id (obsolete), use_custom_demand and use_custom_shares
     # (one or both of them should just be None in database if not used), and household_option (not sure what it is used for)
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    very_low = models.FloatField(blank=True, null=True)
     low = models.FloatField(blank=True, null=True)
     middle = models.FloatField(blank=True, null=True)
     high = models.FloatField(blank=True, null=True)
-    very_high = models.FloatField(blank=True, null=True)
     annual_total_consumption = models.FloatField(blank=True, null=True)
     annual_peak_consumption = models.FloatField(blank=True, null=True)
     uploaded_data = models.JSONField(null=True)
@@ -69,7 +67,7 @@ class CustomDemand(models.Model):
 
     def get_shares_dict(self, *, as_percentage=False):
         multiplier = 100 if as_percentage else 1
-        shares_fields = ["very_low", "low", "middle", "high", "very_high"]
+        shares_fields = ["low", "middle", "high"]
         shares_dict = {
             field: getattr(self, field) * multiplier for field in shares_fields
         }
