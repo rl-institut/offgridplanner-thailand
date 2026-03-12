@@ -3,10 +3,10 @@ n_poles,Number of Poles,
 n_consumers,Number of grid-connected Consumers,
 n_shs_consumers,Number of SHS Consumers,
 length_distribution_cable,Distribution Cable Length,m
-average_length_distribution_cable,Average Length Distribution,m
+average_length_distribution_cable,Average Length Distribution Cable,m
 length_connection_cable,Connection Cable Length,m
-average_length_connection_cable,Average Length Connection,m
-cost_grid,Grid's annualized Cost,USD/a
+average_length_connection_cable,Average Length Connection Cable,m
+cost_grid,Grid annualized Cost,USD/a
 lcoe,Levelized Cost of Electricity (w/o SHS),cent/kWh
 lcoe_share_grid,Share of Grid-Related Costs in the LCOE,%
 lcoe_share_supply,Share of Generation-Related Costs in LCOE,%
@@ -42,12 +42,12 @@ peak_demand,Peak Demand,kW
 base_load,Base Load,kW
 max_shortage,Max. Shortage per Time Step,%
 cost_fuel,Annual fuel cost,USD/a
-epc_pv,PV's annualized Cost,USD/a
-epc_diesel_genset,Diesel Generator's annualized Cost,USD/a
-epc_inverter,Inverter's annualized Cost,USD/a
-epc_rectifier,Rectifier's annualized Cost,USD/a
-epc_battery,Battery's annualized Cost,USD/a
-epc_h2_storage,H2 Storage's annualized Cost,USD/a
-epc_electrolyzer,Electrolyzer's annualized Cost,USD/a
-epc_fuel_cell,Fuel cell's annualized Cost,USD/a
+epc_pv,PV annualized Cost,USD/a
+epc_diesel_genset,Diesel Generator annualized Cost,USD/a
+epc_inverter,Inverter annualized Cost,USD/a
+epc_rectifier,Rectifier annualized Cost,USD/a
+epc_battery,Battery annualized Cost,USD/a
+epc_h2_storage,H2 Storage annualized Cost,USD/a
+epc_electrolyzer,Electrolyzer annualized Cost,USD/a
+epc_fuel_cell,Fuel cell annualized Cost,USD/a
 epc_total,Total annualized Cost,USD/a

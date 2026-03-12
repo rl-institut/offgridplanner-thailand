@@ -80,7 +80,8 @@ async function plot_results(sequential = false) {
         // Fetch and plot 'energy_flow' data
         const response2 = await fetch(loadPlotDataUrl + '/energy_flow');
         const data2 = await response2.json();
-        plot_energy_flows(data2.energy_flow);
+        plot_energy_flows(data2, 'energyFlows');
+        plot_energy_flows(data2, 'energyFlowsStorage', ['H2 Storage Content', 'Battery Storage Content']);
 
         // Fetch and plot 'duration_curve' data
         const response4 = await fetch(loadPlotDataUrl + '/duration_curve');
@@ -107,7 +108,11 @@ async function plot_results(sequential = false) {
         // Fetch and plot 'energy_flow' data
         const fetchAndPlot2 = fetch(loadPlotDataUrl + '/energy_flow')
             .then(response => response.json())
-            .then(data => plot_energy_flows(data.energy_flow));
+            .then(data => {
+                plot_energy_flows(data.energy_flow, 'energyFlows');
+                plot_energy_flows(data.energy_flow, 'energyFlowsStorage', ['H2 Storage Content', 'Battery Content']);
+            }
+            );
         fetchAndPlotPromises.push(fetchAndPlot2);
 
         // Fetch and plot 'other' data

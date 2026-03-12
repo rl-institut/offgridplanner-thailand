@@ -360,6 +360,91 @@ def simulation_results(request, proj_id=None):
 
     country_bounds = get_country_bounds(proj_id)
 
+    # Summary fields
+    elec_summary_capacity_fields = [
+        "pv_capacity",
+        "battery_capacity",
+        "diesel_genset_capacity",
+    ]
+    h2_summary_capacity_fields = [
+        "h2_storage_capacity",
+        "electrolyzer_capacity",
+        "fuel_cell_capacity",
+    ]
+
+    # Technical tab
+    capacity_row_fields = [
+        "pv_capacity",
+        "battery_capacity",
+        "inverter_capacity",
+        "diesel_genset_capacity",
+        "rectifier_capacity",
+        "h2_storage_capacity",
+        "electrolyzer_capacity",
+        "fuel_cell_capacity",
+    ]
+    grid_row_fields = [
+        "n_consumers",
+        "n_shs_consumers",
+        "n_poles",
+        "length_distribution_cable",
+        "average_length_distribution_cable",
+        "length_connection_cable",
+        "average_length_connection_cable",
+    ]
+
+    # Economic tab
+    upfront_invest_row_fields = [
+        "upfront_invest_total",
+        "upfront_invest_grid",
+        "upfront_invest_pv",
+        "upfront_invest_battery",
+        "upfront_invest_inverter",
+        "upfront_invest_diesel_genset",
+        "upfront_invest_rectifier",
+        "upfront_invest_h2_storage",
+        "upfront_invest_electrolyzer",
+        "upfront_invest_fuel_cell",
+    ]
+    annualized_cost_row_fields = [
+        "epc_total",
+        "cost_grid",
+        "epc_pv",
+        "epc_battery",
+        "epc_inverter",
+        "epc_diesel_genset",
+        "epc_rectifier",
+        "epc_h2_storage",
+        "epc_electrolyzer",
+        "epc_fuel_cell",
+    ]
+
+    # Demand tab
+    demand_kpis_row_fields = [
+        "total_annual_consumption",
+        "peak_demand",
+        "base_load",
+        "average_annual_demand_per_consumer",
+        "surplus_rate",
+    ]
+
+    shortage_fields = [
+        "shortage_total",
+        "max_shortage",
+    ]
+
+    esd = EnergySystemDesign.objects.get(project=project)
+    shortage_is_selected = esd.shortage_settings_is_selected
+
+    # Environmental tab
+    environmental_kpis_row_fields = [
+        "co2_savings",
+        "co2_emissions",
+        "fuel_consumption",
+        "surplus_rate",
+        "shortage_total",
+    ]
+
     return render(
         request,
         "pages/simulation_results.html",
@@ -367,6 +452,16 @@ def simulation_results(request, proj_id=None):
             "proj_id": proj_id,
             "step_id": step_id,
             "results": output_kpis,
+            "h2_summary_capacity_fields": h2_summary_capacity_fields,
+            "elec_summary_capacity_fields": elec_summary_capacity_fields,
+            "capacity_row_fields": capacity_row_fields,
+            "grid_row_fields": grid_row_fields,
+            "upfront_invest_row_fields": upfront_invest_row_fields,
+            "annualized_cost_row_fields": annualized_cost_row_fields,
+            "demand_kpis_row_fields": demand_kpis_row_fields,
+            "shortage_fields": shortage_fields,
+            "shortage_is_selected": shortage_is_selected,
+            "environmental_kpis_row_fields": environmental_kpis_row_fields,
             "do_grid_optimization": opts.do_grid_optimization,
             "do_supply_optimization": opts.do_es_design_optimization,
             "bounds_dict": country_bounds,

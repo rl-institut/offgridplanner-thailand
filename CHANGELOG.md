@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Changed
+- Improve results layout ([#29](https://github.com/rl-institut/offgridplanner-thailand/pull/29))
 - Use three instead of five custom demand tiers (low to high) ([#30](https://github.com/rl-institut/offgridplanner-thailand/pull/30))
 
 ## [v1.1.2-thai.3.0] – 2026-02-26

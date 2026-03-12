@@ -330,3 +330,4 @@ offgridplanner/media/
 .env
 .envs/*
 !.envs/.local/
+offgridplanner/static/jsi18n/

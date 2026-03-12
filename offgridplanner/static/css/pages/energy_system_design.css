@@ -11,7 +11,7 @@
     -webkit-box-pack: center;
     -ms-flex-pack: center;
     justify-content: center;
-    background-color: var(--background-color--secondary);
+    background-color: #F4F7F9;
     color: var(--font-color--main);
     min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
     padding: 3rem 0 4rem;
