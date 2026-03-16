@@ -51,6 +51,11 @@ class CustomDemand(models.Model):
         return f"CustomDemand {self.id}: Project {self.project.name}"
 
     @property
+    def shares_tiers(self):
+        shares_tiers = ["low", "middle", "high"]
+        return shares_tiers
+
+    @property
     def calibration_option(self):
         if (
             self.annual_total_consumption is None
@@ -67,10 +72,10 @@ class CustomDemand(models.Model):
 
     def get_shares_dict(self, *, as_percentage=False):
         multiplier = 100 if as_percentage else 1
-        shares_fields = ["low", "middle", "high"]
         shares_dict = {
-            field: getattr(self, field) * multiplier for field in shares_fields
+            field: getattr(self, field) * multiplier for field in self.shares_tiers
         }
+
         return shares_dict
 
 

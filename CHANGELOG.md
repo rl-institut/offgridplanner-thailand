@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [v1.1.3-thai.4.0] – 2026-03-16
+- Merge changes and bug fixes made in upstream repository ([#33](https://github.com/rl-institut/offgridplanner-thailand/pull/33))
 
-## [v1.1.1-thai.4.0] – 2026-03-16
+## [v1.1.2-thai.4.0] – 2026-03-16
 ### Changed
 - Improve results layout ([#29](https://github.com/rl-institut/offgridplanner-thailand/pull/29))
 - Use three instead of five custom demand tiers (low to high) ([#30](https://github.com/rl-institut/offgridplanner-thailand/pull/30))

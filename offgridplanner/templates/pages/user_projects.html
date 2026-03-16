@@ -42,19 +42,19 @@
   </div>
 </div>
 {% endif %}
-{% if not projects and not signup_form.errors %}
-<div id="projectExample"
-         class="modal">
-      <form class="modal-content" style="max-width: 24rem">
-          <h1>{% translate "Create Example Project" %}</h1>
-          <p>{% translate "You have not created any projects yet. Would you like an example project to be set up for you?" %}</p>
-        <div class="modal-actions">
-          <a class="btn btn--small" href="{% url 'projects:create_example_project' %}" type="button">{% translate "Yes" %}</a>
-          <a class="btn btn--small btn--hollow" onclick="document.getElementById('projectExample').style.display='none'" type="button">{% translate "No" %}</a>
-          </div>
-      </form>
-    </div>
-{% endif %}
+<!--{% if not projects and not signup_form.errors %}-->
+<!--<div id="projectExample"-->
+<!--         class="modal">-->
+<!--      <form class="modal-content" style="max-width: 24rem">-->
+<!--          <h1>{% translate "Create Example Project" %}</h1>-->
+<!--          <p>{% translate "You have not created any projects yet. Would you like an example project to be set up for you?" %}</p>-->
+<!--        <div class="modal-actions">-->
+<!--          <a class="btn btn&#45;&#45;small" href="{% url 'projects:create_example_project' %}" type="button">{% translate "Yes" %}</a>-->
+<!--          <a class="btn btn&#45;&#45;small btn&#45;&#45;hollow" onclick="document.getElementById('projectExample').style.display='none'" type="button">{% translate "No" %}</a>-->
+<!--          </div>-->
+<!--      </form>-->
+<!--    </div>-->
+<!--{% endif %}-->
 
 <main>
   <section class="dashboard">
@@ -207,10 +207,10 @@
     cancelBtn.addEventListener("click", closeModal);
   });
 </script>
-{% if not projects %}
-<script>
-  const modal = document.getElementById('projectExample');
-  modal.style.display = 'block';
-</script>
-{% endif %}
+<!--{% if not projects %}-->
+<!--<script>-->
+<!--  const modal = document.getElementById('projectExample');-->
+<!--  modal.style.display = 'block';-->
+<!--</script>-->
+<!--{% endif %}-->
 {% endblock end_body_scripts %}
