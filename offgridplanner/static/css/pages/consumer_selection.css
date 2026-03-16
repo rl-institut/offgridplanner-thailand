@@ -1,3 +1,5 @@
+@import "../variables.css";
+
 .leaflet-control-trashbin a {
     font-size: 20px;
     line-height: 20px;
@@ -23,7 +25,7 @@
 }
 
 .list {
-    border: 1px solid black;
+    border: 1px solid rgb(154, 154, 154);
     min-height: 100px;
 }
 
@@ -42,4 +44,12 @@
 
 .input-group input, .input-group-text {
     padding: 0 8px; /* Adds padding inside input fields and text spans */
+}
+
+.dashboard .chart h2 {
+    font-size: var(--font-size--lg);
+    font-weight: 900;
+    color: var(--font-color--secondary);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
 }
