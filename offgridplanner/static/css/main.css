@@ -1296,13 +1296,17 @@ a.dropdown-item:active {
     align-items: center;
 }
 
+.input-group>.form-control {
+    padding: 0.75rem 1rem;
+}
+
 .form-control:disabled,
 .form-control:disabled::file-selector-button {
     color: #ccc;
 }
 
 .form-control:valid {
-    background-color: var(--bcc) !important;
+    background-color: #fff !important;
 }
 
 form .form-control:focus {
@@ -2003,7 +2007,7 @@ content: "7"; }
     -ms-flex-pack: center;
     justify-content: center;
     background-color: var(--bcc);
-    min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
+    min-height: auto;
     padding: 3rem 0 4rem;
 }
 
