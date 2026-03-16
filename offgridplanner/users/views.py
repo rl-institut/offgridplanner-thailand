@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
@@ -71,6 +72,19 @@ class CustomLoginView(LoginView):
         context.setdefault("captcha_form", CaptchaForm())
         context.setdefault("show_modal", False)
         return context
+
+    def get(self, request, *args, **kwargs):
+        if not request.session.get("wip_info_shown", False):
+            msg = mark_safe(  # noqa: S308 (safe since no content is user-provided)
+                "Dear user, <br> The Offgridplanner Thailand tool is currently under development and will continue to "
+                "be improved throughout the duration of the Green-H2-Islands project. As the tool evolves, certain features or results may change. "
+                "We welcome feedback that can help us further enhance the tool. If you have suggestions, comments, or "
+                "encounter any issues, please contact us at <a href='mailto:offgridplanner@rl-institut.de'>offgridplanner@rl-institut.de</a>."
+            )
+            messages.info(request, msg)
+            request.session["wip_info_shown"] = True
+
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         if "guest_submit" in request.POST:
