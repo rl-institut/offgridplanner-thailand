@@ -1,3 +1,5 @@
+@import "../variables.css";
+
 .input-item select, .input-group input, .input-group-text {
     height: 32px; /* Adjust this value to your preference */
 }
@@ -41,4 +43,13 @@
 
 .shares_incorrect {
     color: #9A031E;
+}
+
+#headingOne button {
+    color: var(--font-color--main);
+    background-color: var(--background-color--secondary);
+}
+
+#headingOne button::after {
+    display: none;
 }
