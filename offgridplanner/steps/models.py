@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 
 from django.db import models
@@ -39,17 +40,20 @@ class CustomDemand(models.Model):
     # Corresponds to class Demand in tier_spatial planning, removed fields id (obsolete), use_custom_demand and use_custom_shares
     # (one or both of them should just be None in database if not used), and household_option (not sure what it is used for)
     project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    very_low = models.FloatField(blank=True, null=True)
     low = models.FloatField(blank=True, null=True)
     middle = models.FloatField(blank=True, null=True)
     high = models.FloatField(blank=True, null=True)
-    very_high = models.FloatField(blank=True, null=True)
     annual_total_consumption = models.FloatField(blank=True, null=True)
     annual_peak_consumption = models.FloatField(blank=True, null=True)
     uploaded_data = models.JSONField(null=True)
 
     def __str__(self):
         return f"CustomDemand {self.id}: Project {self.project.name}"
+
+    @property
+    def shares_tiers(self):
+        shares_tiers = ["low", "middle", "high"]
+        return shares_tiers
 
     @property
     def calibration_option(self):
@@ -68,10 +72,10 @@ class CustomDemand(models.Model):
 
     def get_shares_dict(self, *, as_percentage=False):
         multiplier = 100 if as_percentage else 1
-        shares_fields = ["very_low", "low", "middle", "high", "very_high"]
         shares_dict = {
-            field: getattr(self, field) * multiplier for field in shares_fields
+            field: getattr(self, field) * multiplier for field in self.shares_tiers
         }
+
         return shares_dict
 
 
@@ -364,6 +368,11 @@ class EnergySystemDesign(NestedModel):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+    electrolyzer_parameters_variable_cost = models.FloatField(
+        db_column="electrolyzer__parameters__variable_cost",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
     electrolyzer_parameters_efficiency = models.FloatField(
         db_column="electrolyzer__parameters__efficiency",
         blank=True,
@@ -397,6 +406,16 @@ class EnergySystemDesign(NestedModel):
         blank=True,
         null=True,
     )  # Field renamed because it contained more than one '_' in a row.
+    fuel_cell_parameters_variable_cost = models.FloatField(
+        db_column="fuel_cell__parameters__variable_cost",
+        blank=True,
+        null=True,
+    )  # Field renamed because it contained more than one '_' in a row.
+    fuel_cell_parameters_fuel_lhv = models.FloatField(
+        db_column="fuel_cell__parameters__fuel_lhv",
+        blank=True,
+        null=True,
+    )
     fuel_cell_parameters_efficiency = models.FloatField(
         db_column="fuel_cell__parameters__efficiency",
         blank=True,
@@ -457,3 +476,42 @@ class EnergySystemDesign(NestedModel):
 
     def __str__(self):
         return f"EnergySystemDesign {self.id}: Project {self.project.name}"
+
+    @property
+    def estimated_operating_hours(self):
+        op_hrs = {"electrolyzer": None, "fuel_cell": None}
+        return op_hrs
+
+    @property
+    def h2_components(self):
+        return ["h2_storage", "fuel_cell", "electrolyzer"]
+
+    def kg_to_kwh(self, val, comp):
+        if comp in self.h2_components:
+            lhv = self.fuel_cell_parameters_fuel_lhv
+        else:
+            err = f"kg to kWh conversion factor for {comp} not found."
+            raise ValueError(err)
+        return val / lhv
+
+    def h_to_years(self, val, comp):
+        op_h_per_year = self.estimated_operating_hours.get(comp, None)
+        h_per_year = 8760  # 365 * 24
+        if op_h_per_year is None:
+            op_h_per_year = h_per_year
+        return val / op_h_per_year
+
+    def apply_unit_conversion_for_simulation(self):
+        nested_dict = copy.deepcopy(self.to_nested_dict())
+        field_conversions = {
+            "h2_storage": {"capex": self.kg_to_kwh, "opex": self.kg_to_kwh},
+            "electrolyzer": {"opex": self.kg_to_kwh},
+            "fuel_cell": {"opex": self.kg_to_kwh},
+        }
+        for comp, param_map in field_conversions.items():
+            for param, fn in param_map.items():
+                old_val = nested_dict[comp]["parameters"][param]
+                new_val = fn(old_val, comp)
+                nested_dict[comp]["parameters"][param] = new_val
+
+        return nested_dict

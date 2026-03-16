@@ -27,7 +27,9 @@ class OptimizationDataHandler:
     def __init__(self, proj_id):
         self.project = get_object_or_404(Project, id=proj_id)
         self.options = self.project.options
-        self.energy_system_dict = self.project.energysystemdesign.to_nested_dict()
+        self.energy_system_dict = (
+            self.project.energysystemdesign.apply_unit_conversion_for_simulation()
+        )
         self.supply_components = self.energy_system_dict.keys()
         self.grid_design_dict = self.project.griddesign.to_nested_dict()
         self.grid_components = self.grid_design_dict.keys()
@@ -40,7 +42,16 @@ class OptimizationDataHandler:
 
         self.energy_system_dict = self.add_epc_to_dict(
             self.energy_system_dict,
-            ["battery", "diesel_genset", "inverter", "rectifier", "pv"],
+            [
+                "battery",
+                "diesel_genset",
+                "inverter",
+                "rectifier",
+                "pv",
+                "h2_storage",
+                "electrolyzer",
+                "fuel_cell",
+            ],
         )
 
         self.grid_design_dict = self.add_epc_to_dict(
@@ -396,6 +407,13 @@ class SupplyProcessor(OptimizationDataHandler):
             "battery_content": np.array(results["battery__None"]["sequences"]),
             "inverter": np.array(results["inverter__electricity_ac"]["sequences"]),
             "rectifier": np.array(results["rectifier__electricity_dc"]["sequences"]),
+            "h2_storage_content": np.array(results["h2_storage__None"]["sequences"]),
+            "h2_storage_charge": np.array(results["hydrogen__h2_storage"]["sequences"]),
+            "h2_storage_discharge": np.array(
+                results["h2_storage__hydrogen"]["sequences"]
+            ),
+            "fuel_cell": np.array(results["fuel_cell__electricity_dc"]["sequences"]),
+            "electrolyzer": np.array(results["electrolyzer__hydrogen"]["sequences"]),
             "surplus": np.array(results["electricity_ac__surplus"]["sequences"]),
             "shortage": np.array(results["shortage__electricity_ac"]["sequences"]),
             "demand": np.array(
@@ -425,6 +443,11 @@ class SupplyProcessor(OptimizationDataHandler):
                 "battery_charge": self.sequences["battery_charge"],
                 "battery_discharge": self.sequences["battery_discharge"],
                 "battery_content": self.sequences["battery_content"],
+                "h2_storage_charge": self.sequences["h2_storage_charge"],
+                "h2_storage_discharge": self.sequences["h2_storage_discharge"],
+                "h2_storage_content": self.sequences["h2_storage_content"],
+                "electrolyzer_production": self.sequences["electrolyzer"],
+                "fuel_cell_production": self.sequences["fuel_cell"],
                 "demand": self.sequences["demand"],
                 "surplus": self.sequences["surplus"],
             },
@@ -461,6 +484,10 @@ class SupplyProcessor(OptimizationDataHandler):
                 "inverter_duration": duration_sequence("inverter"),
                 "battery_charge_duration": duration_sequence("battery_charge"),
                 "battery_discharge_duration": duration_sequence("battery_discharge"),
+                "h2_storage_charge_duration": duration_sequence("h2_storage_charge"),
+                "h2_storage_discharge_duration": duration_sequence(
+                    "h2_storage_discharge"
+                ),
             }
         ).round(3)
 
@@ -496,6 +523,9 @@ class SupplyProcessor(OptimizationDataHandler):
             "inverter": get_capacity("inverter", "electricity_dc__inverter"),
             "rectifier": get_capacity("rectifier", "electricity_ac__rectifier"),
             "battery": get_capacity("battery", "electricity_dc__battery"),
+            "h2_storage": get_capacity("battery", "hydrogen__h2_storage"),
+            "fuel_cell": get_capacity("battery", "hydrogen__fuel_cell"),
+            "electrolyzer": get_capacity("battery", "electricity_dc__electrolyzer"),
         }
 
     def _calculate_costs(self):
@@ -506,7 +536,15 @@ class SupplyProcessor(OptimizationDataHandler):
             )
 
         self.total_renewable = sum(
-            total_epc_cost(comp) for comp in ["pv", "inverter", "battery"]
+            total_epc_cost(comp)
+            for comp in [
+                "pv",
+                "inverter",
+                "battery",
+                "electrolyzer",
+                "fuel_cell",
+                "h2_storage",
+            ]
         )
         self.total_non_renewable = (
             sum(total_epc_cost(comp) for comp in ["diesel_genset", "rectifier"])
@@ -617,7 +655,7 @@ class SupplyProcessor(OptimizationDataHandler):
         project_setup.email_notification = False
         project_setup.save()
 
-    def _scalar_results_to_db(self):
+    def _scalar_results_to_db(self):  # noqa:PLR0915
         # Annualized cost calculations
         results = self.results_obj
 
@@ -641,6 +679,9 @@ class SupplyProcessor(OptimizationDataHandler):
         results.inverter_capacity = self.capacities["inverter"]
         results.rectifier_capacity = self.capacities["rectifier"]
         results.diesel_genset_capacity = self.capacities["diesel_genset"]
+        results.h2_storage_capacity = self.capacities["h2_storage"]
+        results.fuel_cell_capacity = self.capacities["fuel_cell"]
+        results.electrolyzer_capacity = self.capacities["electrolyzer"]
 
         # --- Sankey energy flows ---
         results.fuel_to_diesel_genset = self.sequences["fuel_consumption_kwh"].sum()
@@ -660,8 +701,19 @@ class SupplyProcessor(OptimizationDataHandler):
             self.sequences["inverter"].sum()
             / self.energy_system_dict["inverter"]["parameters"]["efficiency"]
         )
+        results.dc_bus_to_electrolyzer = (
+            self.sequences["electrolyzer"].sum()
+            / self.energy_system_dict["electrolyzer"]["parameters"]["efficiency"]
+        )
         results.dc_bus_to_surplus = self.sequences["surplus"].sum()
         results.inverter_to_demand = self.sequences["inverter"].sum()
+        results.hydrogen_bus_to_h2_storage = self.sequences["h2_storage_charge"].sum()
+        results.h2_storage_to_hydrogen_bus = self.sequences[
+            "h2_storage_discharge"
+        ].sum()
+        results.hydrogen_bus_to_fuel_cell = self.sequences["h2_storage_discharge"].sum()
+        results.fuel_cell_to_dc_bus = self.sequences["fuel_cell"].sum()
+        results.electrolyzer_to_hydrogen_bus = self.sequences["electrolyzer"].sum()
 
         # --- Demand and shortage statistics ---
         results.total_annual_consumption = self.annualize(
@@ -676,13 +728,31 @@ class SupplyProcessor(OptimizationDataHandler):
         ).max() * 100
 
         # --- Upfront investment ---
-        for key in ["pv", "diesel_genset", "inverter", "rectifier", "battery"]:
+        for key in [
+            "pv",
+            "diesel_genset",
+            "inverter",
+            "rectifier",
+            "battery",
+            "h2_storage",
+            "fuel_cell",
+            "electrolyzer",
+        ]:
             capex = self.energy_system_dict[key]["parameters"]["capex"]
             capacity = self.capacities[key]
             setattr(results, f"upfront_invest_{key}", capex * capacity)
 
         # --- EPC (annualized) ---
-        for key in ["pv", "diesel_genset", "inverter", "rectifier", "battery"]:
+        for key in [
+            "pv",
+            "diesel_genset",
+            "inverter",
+            "rectifier",
+            "battery",
+            "h2_storage",
+            "fuel_cell",
+            "electrolyzer",
+        ]:
             epc = self.energy_system_dict[key]["parameters"]["epc"]
             value = epc * self.capacities[key]
 

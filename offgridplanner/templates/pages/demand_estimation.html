@@ -35,17 +35,14 @@
                   <span style="flex-shrink: 0;  margin-right: 20px;">
                     <strong>{% translate 'Use Custom Demand Time Series:' %}</strong>
                   </span>
-                  <label class="switch" style="margin-right: 20px;">
-                    <input id="customDemand"
-                           type="checkbox"
-                           data-bs-toggle="collapse"
-                           data-bs-target="#consumerProperties, #demandUpload" />
-                    <span class="slider round"></span>
-                  </label>
+                <label class="switch inverted" style="margin-right: 20px;">
+                  {{ opts_form.do_demand_estimation }}
+                  <span class="slider round"></span>
+                </label>
                 </button>
               </h2>
               <div id="consumerProperties"
-                   class="accordion-collapse collapse show"
+                   class="accordion-collapse collapse {% if opts_form.do_demand_estimation.value %} show {% endif %}"
                    aria-labelledby="headingOne"
                    data-bs-parent="#accordionExample">
                 <div class="accordion-body">
@@ -178,7 +175,7 @@
             </div>
             <div class="accordion-item" style="border-top: none; padding: 10px">
               <div id="collapseTwo"
-                   class="accordion-collapse {% if not calibration.active %}collapse{% endif %}"
+                   class="accordion-collapse collapse {% if calibration.active %}show{% endif %}"
                    aria-labelledby="headingTwo">
                 <div class="accordion-body">
                   <p>
@@ -209,7 +206,7 @@
                     </span>
                       <div class="input-group" style="max-width: 200px">
                         {{ form.annual_total_consumption|add_class:"form-control" }}
-                        <span class="input-group-text">{{ form.annual_total_consumption.field.attrs.unit }}</span>
+                        <span class="input-group-text">{{ form.annual_total_consumption.field.widget.attrs.unit }}</span>
                       </div>
                     </div>
                     <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start" for="option7">
@@ -219,7 +216,7 @@
                       </span>
                       <div class="input-group" style="max-width: 200px">
                         {{ form.annual_peak_consumption|add_class:"form-control" }}
-                        <span class="input-group-text">{{ form.annual_peak_consumption.field.attrs.unit }}</span>
+                        <span class="input-group-text">{{ form.annual_peak_consumption.field.widget.attrs.unit }}</span>
                       </div>
                     </div>
                   </div>
@@ -229,7 +226,7 @@
           </div>
           <div class="accordion-item" style="border-top: none; padding: 10px">
             <div id="demandUpload"
-                 class="accordion-collapse collapse"
+                 class="accordion-collapse collapse {% if not opts_form.do_demand_estimation.value %} show {% endif %}"
                  aria-labelledby="headingThree">
               <div class="accordion-body">
                 <p style="display: flex; align-items: center; color: var(--ccb);">
@@ -277,8 +274,8 @@
   const exportDemandUrl = `{% url 'optimization:export_demand' proj_id %}`;
   const importDemandUrl = `{% url 'optimization:import_demand' proj_id %}`;
 </script>
+<script src="https://cdn.plot.ly/plotly-2.0.0.min.js"></script>
 <script src="{% static 'js/pages/demand_estimation.js' %}"></script>
 <script src="{% static 'js/backend_communication.js' %}"></script>
-<script src="https://cdn.plot.ly/plotly-2.0.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
 {% endblock end_body_scripts %}

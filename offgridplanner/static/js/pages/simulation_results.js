@@ -1,6 +1,130 @@
 // Flag to track if a download is in progress
 let isDownloadingCSV = false;
 
+// -----------------------------
+// Plotly UI theme (web-app look)
+// -----------------------------
+// Centralize palette + typography so all figures look consistent.
+// Keep this minimal and override locally when a plot truly needs it.
+const PLOTLY_THEME = {
+    // You can swap this to any CSS-available font (e.g. "Inter", "Roboto", ...)
+    fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+
+    // 5-color palette (primary/secondary/accent/warn/danger)
+    colors: {
+        primary: '#17688E',   // blue
+        secondary: '#47AE9E', // teal
+        accent: '#A1D58F',    // violet
+        warn: '#FF7D00',      // amber
+        danger: '#DC2626',    // red
+        neutral: '#64748B',   // slate
+        grid: '#E5E7EB',
+        axis: '#374151',
+        paper: '#FFFFFF',
+        plot: '#FFFFFF',
+    },
+};
+
+// Common Plotly config: responsive sizing + cleaner modebar.
+const PLOTLY_CONFIG = {
+    responsive: true,
+    displaylogo: false,
+    // Keep the modebar but reduce clutter a bit.
+    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+};
+
+document.addEventListener('shown.bs.tab', (event) => {
+  const targetSelector = event.target?.getAttribute('data-bs-target');
+  if (!targetSelector) return;
+
+  const pane = document.querySelector(targetSelector);
+  if (!pane) return;
+
+  // Let layout finish before resizing (important for smoothness)
+  requestAnimationFrame(() => resizePlotlyIn(pane));
+});
+
+function ensureResponsiveContainer(el) {
+    // Helps Plotly autosize to your wrapper containers.
+    // (You can also do this in CSS, but keeping it here avoids touching other files.)
+    if (!el) return;
+    if (typeof el === 'string') el = document.getElementById(el);
+    if (!el) return;
+    el.style.width = '100%';
+    el.style.height = '100%';
+}
+
+function applyBaseLayout(layout, { legend = true } = {}) {
+    // Mutate-friendly helper: we return a merged layout without big refactors.
+    return {
+        template: 'plotly_white',
+        paper_bgcolor: PLOTLY_THEME.colors.paper,
+        plot_bgcolor: PLOTLY_THEME.colors.plot,
+        ...(layout || {}),
+        font: {
+            family: PLOTLY_THEME.fontFamily,
+            size: (layout && layout.font && layout.font.size) ? layout.font.size : 14,
+            color: PLOTLY_THEME.colors.axis,
+            ...(layout && layout.font ? layout.font : {}),
+        },
+        margin: {
+            l: 56,
+            r: 24,
+            t: 36,
+            b: 48,
+            ...(layout && layout.margin ? layout.margin : {}),
+        },
+        hovermode: 'x unified',
+        hoverlabel: { bgcolor: 'rgba(255,255,255,0.95)' },
+        legend: legend ? {
+            orientation: 'h',
+            x: 0.5,
+            y: 1.15,
+            xanchor: 'center',
+            yanchor: 'bottom',
+            bgcolor: 'rgba(255, 255, 255, 1)',
+            bordercolor: PLOTLY_THEME.colors.grid,
+            borderwidth: 1,
+            ...(layout && layout.legend ? layout.legend : {}),
+        } : (layout && layout.legend ? layout.legend : undefined),
+        xaxis: {
+            showline: true,
+            linewidth: 1,
+            linecolor: PLOTLY_THEME.colors.grid,
+            gridcolor: PLOTLY_THEME.colors.grid,
+            zerolinecolor: PLOTLY_THEME.colors.grid,
+            tickfont: { size: 13, color: PLOTLY_THEME.colors.axis },
+            titlefont: { size: 14, color: PLOTLY_THEME.colors.axis },
+            ...(layout && layout.xaxis ? layout.xaxis : {}),
+        },
+        yaxis: {
+            showline: true,
+            linewidth: 1,
+            linecolor: PLOTLY_THEME.colors.grid,
+            gridcolor: PLOTLY_THEME.colors.grid,
+            zerolinecolor: PLOTLY_THEME.colors.grid,
+            tickfont: { size: 13, color: PLOTLY_THEME.colors.axis },
+            titlefont: { size: 14, color: PLOTLY_THEME.colors.axis },
+            ...(layout && layout.yaxis ? layout.yaxis : {}),
+        },
+        autosize: true,
+    };
+}
+
+function resizePlotlyIn(container) {
+  if (!container) return;
+  // Resize any Plotly graphs inside this container
+  container.querySelectorAll('.js-plotly-plot').forEach((gd) => {
+    try {
+      Plotly.Plots.resize(gd);
+      // Optional: force autosize calculation again
+      // Plotly.relayout(gd, { autosize: true });
+    } catch (e) {
+      // no-op: graph may not be initialized yet
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     load_results(proj_id);
 });
@@ -61,7 +185,7 @@ document.getElementById('downloadCSV').addEventListener('click', function (event
                 // Re-enable the button after a delay (e.g., 2 minutes)
                 setTimeout(() => {
                     // Reset the flag and re-enable the button
-                    isDownloadingPDF = false;
+                    isDownloadingCSV = false;
                     downloadButton.style.pointerEvents = '';
                     downloadButton.style.opacity = '';
                 }, 120000); // Delay of 120,000 milliseconds (2 minutes)
@@ -182,6 +306,13 @@ function generateImages(plotIds) {
             const clonedData = JSON.parse(JSON.stringify(plotElement.data));
             const clonedLayout = JSON.parse(JSON.stringify(plotElement.layout));
 
+            // Ensure exported plots use the same typography/background.
+            clonedLayout.font = clonedLayout.font || {};
+            clonedLayout.font.family = PLOTLY_THEME.fontFamily;
+            clonedLayout.template = clonedLayout.template || 'plotly_white';
+            clonedLayout.paper_bgcolor = PLOTLY_THEME.colors.paper;
+            clonedLayout.plot_bgcolor = PLOTLY_THEME.colors.plot;
+
             // Specific adjustments based on plotId
             if (plotId === 'sankeyDiagram') {
                 // 1. Change margin top and bottom to 30
@@ -273,7 +404,7 @@ function generateImages(plotIds) {
             document.body.appendChild(tempDiv);
 
             // Render the cloned plot into the hidden div
-            return Plotly.newPlot(tempDiv, clonedData, clonedLayout).then(function() {
+            return Plotly.newPlot(tempDiv, clonedData, clonedLayout, PLOTLY_CONFIG).then(function() {
                 // Generate the image
                 return Plotly.toImage(tempDiv, { format: 'svg' })
                     .then(function(imageData) {
@@ -310,10 +441,6 @@ function generateImages(plotIds) {
 
     return Promise.all(imagePromises);
 }
-
-
-
-
 
 
 function generateMapImage(map) {
@@ -427,138 +554,122 @@ document.getElementById("msgBox").style.zIndex = "9999";
 
 
 function plot_bar_chart(data) {
-    let yValue = [0, 0, 0, 0, 0, 0, 0];
-    let yValue2 = [0];
+    kwAssets = {"pv": "PV", "inverter": "Inverter", "rectifier": "Rectifier",
+     "diesel_genset": "Diesel Genset", "fuel_cell": "Fuel Cell", "electrolyzer": "Electrolyzer",
+     "peak_demand": "Peak Demand", "surplus": "Max. Surplus"}
+    kwhAssets = {"battery": "Battery", "h2_storage": "H2 storage"}
+    let yValueKw = [];
+    let yValueKwh = [];
+    let xValueKw = [];
+    let xValueKwh = [];
+    let colors = [];
     let optimal_capacities = data;
-    yValue[0] = Number(optimal_capacities['pv']);
-    yValue[1] = Number(optimal_capacities['inverter']);
-    yValue[2] = Number(optimal_capacities['rectifier']);
-    yValue[3] = Number(optimal_capacities['diesel_genset']);
-    yValue[4] = Number(optimal_capacities['peak_demand']);
-    yValue[5] = Number(optimal_capacities['surplus']);
-    yValue2 = Number(optimal_capacities['battery']);
+
+    for (const [key, label] of Object.entries(kwAssets)) {
+        xValueKw.push(Number(optimal_capacities[key]));
+        yValueKw.push(gettext(label));
+        if (key === "surplus") {
+            colors.push(PLOTLY_THEME.colors.accent);
+        } else {
+            colors.push(PLOTLY_THEME.colors.primary);
+        }
+    }
+
+    for (const [key, label] of Object.entries(kwhAssets)) {
+        xValueKwh.push(Number(optimal_capacities[key]));
+        yValueKwh.push(gettext(label));
+    }
 
     let optimalSizes = document.getElementById('optimalSizes');
-    let xValue = [
-      gettext('PV'),
-      gettext('Inverter'),
-      gettext('Rectifier'),
-      gettext('Diesel Genset'),
-      gettext('Peak Demand'),
-      gettext('Max. Surplus'),
-      gettext('Battery'),
-    ];
 
     // Reverse the arrays
-    xValue = xValue.reverse();
-    yValue = yValue.reverse();
-    let colors = [
-        'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(8,48,107)',
-        'rgb(8,48,107)', 'rgb(8,48,107)', 'rgb(133, 52, 124)'
-    ];
+    xValueKw = xValueKw.reverse();
+    yValueKw = yValueKw.reverse();
     colors = colors.reverse();  // Reverse the color array
 
     var dataTraces = [
         {
-            y: xValue,
-            x: yValue,
+            y: yValueKw,
+            x: xValueKw,
             xaxis: 'x1',
             type: 'bar',
             orientation: 'h',
-            text: yValue.map(String),
+            text: xValueKw.map(String),
             textposition: 'auto',
             hoverinfo: 'none',
             opacity: 0.7,
             marker: {
                 color: colors,
                 line: {
-                    color: 'black',
+                    color: 'rgba(17, 24, 39, 0.55)',
                     width: 1.5
                 }
             },
+            hovertemplate: '%{y}<br>%{x:.2f} kWh<extra></extra>',
             showlegend: false
         },
         {
-            y: ['Battery'],
-            x: [yValue2],
+            y: yValueKwh,
+            x: xValueKwh,
             xaxis: 'x2',
             type: 'bar',
             orientation: 'h',
-            marker: {
-                color: 'rgb(133, 52, 124)'
-            },
+            marker: { color: PLOTLY_THEME.colors.accent },
+            hovertemplate: '%{y}<br>%{x:.2f} kWh<extra></extra>',
             showlegend: false
         }
     ];
 
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        yaxis: {
-            tickfont: {
-                size: 14,
-            },
-            automargin: true, // Enable automatic margin adjustment
-        },
+    ensureResponsiveContainer(optimalSizes);
+
+    const layout = applyBaseLayout({
+        hovermode: false,
+        yaxis: { automargin: true },
         xaxis: {
             title: gettext('Capacity in kW'),
-            titlefont: {
-                color: 'rgb(8,48,107)',
-                size: 16,
-            },
-            tickfont: {
-                color: 'rgb(8,48,107)',
-                size: 14,
-            },
-            side: 'top'
+            side: 'top',
         },
         xaxis2: {
-            title: 'Capacity in kWh',
+            title: gettext('Capacity in kWh'),
             showgrid: false,
             zeroline: false,
-            titlefont: {
-                color: 'rgb(133, 52, 124)',
-                size: 16,
-            },
-            tickfont: {
-                color: 'rgb(133, 52, 124)',
-                size: 14,
-            },
             overlaying: 'x',
-            side: 'bottom'
+            side: 'bottom',
         },
         barmode: 'stack',
         bargap: 0.5,
         showlegend: false,
-        autosize: true,  // Enable automatic sizing
-        margin: {
-            l: 80,  // Reduced left margin
-            r: 50,
-            b: 100,
-            t: 100,
-            pad: 4
-        },
-    };
+        margin: { l: 90, r: 24, b: 56, t: 56 },
+    }, { legend: false });
 
-    Plotly.newPlot(optimalSizes, dataTraces, layout);
+    Plotly.newPlot(optimalSizes, dataTraces, layout, PLOTLY_CONFIG);
 };
 
 
 
 function plot_lcoe_pie(lcoe_breakdown) {
-    cost_renewable_assets = Number(lcoe_breakdown['renewable_assets']);
-    cost_non_renewable_assets = Number(lcoe_breakdown['non_renewable_assets']);
-    cost_grid = Number(lcoe_breakdown['grid']);
-    cost_fuel = Number(lcoe_breakdown['fuel']);
+    const lcoeBreakdownEl = document.getElementById('lcoeBreakdown') || lcoeBreakdown;
+
+    const items = [
+        { key: 'renewable_assets', label: gettext('Renewable Assets'), color: PLOTLY_THEME.colors.primary },
+        { key: 'non_renewable_assets', label: gettext('Non-Renewable Assets'), color: PLOTLY_THEME.colors.neutral },
+        { key: 'grid', label: gettext('Grid'), color: PLOTLY_THEME.colors.accent },
+        { key: 'fuel', label: gettext('Fuel'), color: PLOTLY_THEME.colors.warn },
+    ];
+
+    const values = items.map(({ key }) => Number(lcoe_breakdown[key]));
+    const labels = items.map(({ label }) => label);
+    const colors = items.map(({ color }) => color);
+
     let data = [{
         type: 'pie',
         hole: .6,
-        values: [cost_renewable_assets, cost_non_renewable_assets, cost_grid, cost_fuel],
-        labels: [gettext('Renewable Assets'), gettext('Non-Renewable Assets'), gettext('Grid'), gettext('Fuel')],
+        values: values,
+        labels: labels,
         marker: {
-            colors: ['rgb(9, 188, 138)', 'rgb(73, 89, 101)', 'rgb(236, 154, 41)', 'rgb(154, 3, 30)'],
+            colors: colors,
             line: {
-                color: 'black',
+                color: 'rgba(17, 24, 39, 0.55)',
                 width: 1.5
             }
         },
@@ -566,37 +677,77 @@ function plot_lcoe_pie(lcoe_breakdown) {
         textposition: 'outside',
         automargin: true,
         opacity: 0.9,
-    }]
+    }];
 
-    let layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        // height: 400,
-        // width: 400,
-        margin: {'t': 0, 'b': 0, 'l': 0, 'r': 0},
+    ensureResponsiveContainer(lcoeBreakdownEl);
+
+    let layout = applyBaseLayout({
+        margin: { t: 8, b: 8, l: 8, r: 8 },
         showlegend: false,
-        font: {
-            size: 16,
-            color: 'black'
-        }
-    }
-    Plotly.newPlot(lcoeBreakdown, data, layout)
+        hovermode: false,
+    }, { legend: false });
+
+    Plotly.newPlot(lcoeBreakdownEl, data, layout, PLOTLY_CONFIG);
 }
 
 
 function plot_sankey(data) {
+    const sankey_data = data;
 
-    sankey_data = data;
-    fuel_to_diesel_genset = Number(sankey_data['fuel_to_diesel_genset'])
-    diesel_genset_to_rectifier = Number(sankey_data['diesel_genset_to_rectifier'])
-    diesel_genset_to_demand = Number(sankey_data['diesel_genset_to_demand'])
-    rectifier_to_dc_bus = Number(sankey_data['rectifier_to_dc_bus'])
-    pv_to_dc_bus = Number(sankey_data['pv_to_dc_bus'])
-    battery_to_dc_bus = Number(sankey_data['battery_to_dc_bus'])
-    dc_bus_to_battery = Number(sankey_data['dc_bus_to_battery'])
-    dc_bus_to_inverter = Number(sankey_data['dc_bus_to_inverter'])
-    pv_to_surplus = 0
-    inverter_to_demand = Number(sankey_data['inverter_to_demand'])
+    // Keep identical output: pv_to_surplus is hard-set to 0 in the original
+    const valueByKey = {
+        fuel_to_diesel_genset: Number(sankey_data['fuel_to_diesel_genset']),
+        diesel_genset_to_rectifier: Number(sankey_data['diesel_genset_to_rectifier']),
+        diesel_genset_to_demand: Number(sankey_data['diesel_genset_to_demand']),
+        rectifier_to_dc_bus: Number(sankey_data['rectifier_to_dc_bus']),
+        pv_to_dc_bus: Number(sankey_data['pv_to_dc_bus']),
+        battery_to_dc_bus: Number(sankey_data['battery_to_dc_bus']),
+        dc_bus_to_battery: Number(sankey_data['dc_bus_to_battery']),
+        dc_bus_to_inverter: Number(sankey_data['dc_bus_to_inverter']),
+        pv_to_surplus: 0,
+        inverter_to_demand: Number(sankey_data['inverter_to_demand']),
+        hydrogen_bus_to_h2_storage: Number(sankey_data['hydrogen_bus_to_h2_storage']),
+        h2_storage_to_hydrogen_bus: Number(sankey_data['h2_storage_to_hydrogen_bus']),
+        fuel_cell_to_dc_bus: Number(sankey_data['fuel_cell_to_dc_bus']),
+        electrolyzer_to_hydrogen_bus: Number(sankey_data['electrolyzer_to_hydrogen_bus']),
+        dc_bus_to_electrolyzer: Number(sankey_data['dc_bus_to_electrolyzer']),
+        hydrogen_bus_to_fuel_cell: Number(sankey_data['hydrogen_bus_to_fuel_cell']),
+    };
+
+    const nodes = [
+        gettext('Fuel'),          // 0
+        gettext('Diesel Genset'), // 1
+        gettext('Rectifier'),     // 2
+        gettext('PV'),            // 3
+        gettext('DC Bus'),        // 4
+        gettext('Battery'),       // 5
+        gettext('Inverter'),      // 6
+        gettext('Demand'),        // 7
+        gettext('Surplus'),       // 8
+        gettext('Hydrogen'),       // 9
+        gettext('H2 Storage'),       // 10
+        gettext('Electrolyzer'),       // 11
+        gettext('Fuel Cell'),       // 12
+    ];
+
+    const links = [
+        { source: 0, target: 1, key: 'fuel_to_diesel_genset', label: gettext('Fuel supplied to the diesel genset') },
+        { source: 1, target: 2, key: 'diesel_genset_to_rectifier', label: gettext('Diesel genset output sent to the rectifier') },
+        { source: 1, target: 7, key: 'diesel_genset_to_demand', label: gettext('AC demand covered by the diesel genset') },
+        { source: 2, target: 4, key: 'rectifier_to_dc_bus', label: gettext('Diesel genset electricity converted to DC') },
+        { source: 3, target: 4, key: 'pv_to_dc_bus', label: gettext('PV electricity generation') },
+        { source: 5, target: 4, key: 'battery_to_dc_bus', label: gettext('Battery discharge') },
+        { source: 4, target: 5, key: 'dc_bus_to_battery', label: gettext('Battery charge') },
+        { source: 4, target: 6, key: 'dc_bus_to_inverter', label: gettext('DC electricity sent to the inverter') },
+        { source: 3, target: 8, key: 'pv_to_surplus', label: gettext('Surplus PV electricity') },
+        { source: 6, target: 7, key: 'inverter_to_demand', label: gettext('AC demand covered by the PV system') },
+        { source: 9, target: 10, key: 'hydrogen_bus_to_h2_storage', label: gettext('H2 storage charge') },
+        { source: 10, target: 9, key: 'h2_storage_to_hydrogen_bus', label: gettext('H2 storage discharge') },
+        { source: 12, target: 4, key: 'fuel_cell_to_dc_bus', label: gettext('DC electricity produced by fuel cell') },
+        { source: 11, target: 9, key: 'electrolyzer_to_hydrogen_bus', label: gettext('Hydrogen produced by electrolyzer') },
+        { source: 4, target: 11, key: 'dc_bus_to_electrolyzer', label: gettext('DC electricity going into electrolyzer') },
+        { source: 9, target: 12, key: 'hydrogen_bus_to_fuel_cell', label: gettext('Hydrogen going into fuel cell') },
+    ];
 
     var data = [{
         type: 'sankey',
@@ -610,159 +761,117 @@ function plot_sankey(data) {
                 color: 'black',
                 width: 0.5
             },
-            label: [gettext('Fuel'),
-                gettext('Diesel Genset'),
-                gettext('Rectifier'),
-                gettext('PV'),
-                gettext('DC Bus'),
-                gettext('Battery'),
-                gettext('Inverter'),
-                gettext('Demand'),
-                gettext('Surplus')],
-            color: 'rgb(23, 64, 92)',
+            label: nodes,
+            color: PLOTLY_THEME.colors.primary,
         },
-
         link: {
-            source: [0, 1, 1, 2, 3, 5, 4, 4, 3, 6], // Modified
-            target: [1, 2, 7, 4, 4, 4, 5, 6, 8, 7], // Modified
-            value: [fuel_to_diesel_genset,
-                diesel_genset_to_rectifier,
-                diesel_genset_to_demand,
-                rectifier_to_dc_bus,
-                pv_to_dc_bus,
-                battery_to_dc_bus,
-                dc_bus_to_battery,
-                dc_bus_to_inverter,
-                pv_to_surplus,
-                inverter_to_demand],
-            label: [gettext('Fuel supplied to the diesel genset'),
-                gettext('Diesel genset output sent to the rectifier'),
-                gettext('AC demand covered by the diesel genset'),
-                gettext('Diesel genset electricity converted to DC'),
-                gettext('PV electricity generation'),
-                gettext('Battery discharge'),
-                gettext('Battery charge'),
-                gettext('DC electricity sent to the inverter'),
-                gettext('Surplus PV electricity'),
-                gettext('AC demand covered by the PV system')],
-            color: 'rgb(168, 181, 192)',
+            source: links.map(l => l.source),
+            target: links.map(l => l.target),
+            value: links.map(l => valueByKey[l.key]),
+            label: links.map(l => l.label),
+            color: 'rgba(100, 116, 139, 0.35)',
         }
-    }]
+    }];
 
+    ensureResponsiveContainer(sankeyDiagram);
 
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        font: {size: 16, color: 'black'}
-    };
-    Plotly.react(sankeyDiagram, data, layout)
+    const layout = applyBaseLayout({
+        margin: { l: 8, r: 8, t: 24, b: 8 },
+    });
+
+    Plotly.react(sankeyDiagram, data, layout, PLOTLY_CONFIG);
 }
 
 
 // ENERGY FLOWS PLOT
-function plot_energy_flows(energy_flows) {
+function plot_energy_flows(energy_flows, elementId, filterKeys = null) {
+    const {
+        diesel_genset_production,
+        pv_production,
+        battery,
+        battery_content,
+        h2_storage,
+        h2_storage_content,
+        electrolyzer_production,
+        fuel_cell_production,
+        demand,
+        surplus
+    } = energy_flows;
 
-
-
-    const { diesel_genset_production, pv_production, battery, battery_content, demand, surplus } = energy_flows;
     const time = Array.from({ length: pv_production.length }, (_, i) => i);
 
-    const energyFlows = document.getElementById("energyFlows");
-    const trace1 = {
-        x: time,
-        y: diesel_genset_production,
-        mode: 'lines',
-        name: gettext('Diesel Genset'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace2 = {
-        x: time,
-        y: pv_production,
-        mode: 'lines',
-        name: gettext('PV'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace3 = {
-        x: time,
-        y: battery,
-        mode: 'lines',
-        name: gettext('Battery In-/Output'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace4 = {
-        x: time,
-        y: battery_content,
-        mode: 'lines',
-        name: gettext('Battery Content'),
-        yaxis: 'y2',  //this makes sure that the trace uses the second y-axis.
-        line: {shape: 'hv'},
-        type: 'scatter',
-        visible: 'legendonly',
+    const energyFlows = document.getElementById(elementId);
 
-    };
-    const trace5 = {
-        x: time,
-        y: demand,
-        mode: 'lines',
-        name: gettext('Demand'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
-    const trace6 = {
-        x: time,
-        y: surplus,
-        mode: 'lines',
-        name: gettext('Surplus'),
-        line: {shape: 'hv'},
-        type: 'scatter',
-    };
+    var tracesSpec = [
+        { y: diesel_genset_production, name: gettext('Diesel Genset') },
+        { y: pv_production, name: gettext('PV') },
+        { y: battery, name: gettext('Battery In-/Output') },
+        { y: battery_content, name: gettext('Battery Content'), yaxis: 'y2', visible: 'legendonly' },
+        { y: h2_storage, name: gettext('H2 Storage In-/Output'), yaxis: 'y2'},
+        { y: h2_storage_content, name: gettext('H2 Storage Content'), yaxis: 'y2', visible: 'legendonly' },
+        { y: electrolyzer_production, name: gettext('Electrolyzer')},
+        { y: fuel_cell_production, name: gettext('Fuel cell')},
+        { y: demand, name: gettext('Demand') },
+        { y: surplus, name: gettext('Surplus') },
+    ];
 
-    const data = [trace1, trace2, trace3, trace4, trace5, trace6];
+    if (filterKeys?.length) {
+      tracesSpec = tracesSpec
+        .filter(t => filterKeys.includes(t.name))
+        .map(t => {
+          if (t.visible === 'legendonly') {
+            const { visible, ...rest } = t;
+            return rest;            // equivalent to default visible = true
+          }
+          return t;
+        });
+    }
+    const data = tracesSpec.map(spec => ({
+        x: time,
+        y: spec.y,
+        mode: 'lines',
+        name: spec.name,
+        line: { shape: 'hv', width: 2 },
+        type: 'scatter',
+        ...(spec.yaxis ? { yaxis: spec.yaxis } : {}),
+        ...(spec.visible ? { visible: spec.visible } : {}),
+    }));
 
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        xaxis: {
-            title: 'Time in hours',
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
-        },
-        yaxis: {
-            title: gettext('Energy Flow in kW'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
-        },
-        yaxis2: {   // second y-axis
+    ensureResponsiveContainer(energyFlows);
+
+    const layout = applyBaseLayout({
+        xaxis: { title: gettext('Time in hours') },
+        yaxis: { title: gettext('Energy Flow in kW') },
+        yaxis2: {
             title: gettext('Battery Content in kWh'),
             overlaying: 'y',
             side: 'right',
             showgrid: false,
         },
-        legend: {
-            x: 0.5,           // Positions the legend horizontally at the center (50% of the plot width)
-            y: 1.15,          // Positions the legend vertically above the plot area
-            xanchor: 'center',// Anchors the legend horizontally at its center
-            yanchor: 'bottom',// Anchors the legend vertically at the bottom
-            orientation: 'h', // Sets the legend items to be displayed horizontally
-            bgcolor: 'rgba(255, 255, 255, 1)', // Fully opaque white background
-            bordercolor: '#E2E2E2',
-            borderwidth: 2,
-        },
-        autosize: true,
-        // title: 'Energy flows in different components of the system.',
-    };
-    Plotly.newPlot(energyFlows, data, layout);
+    });
+
+    // Apply a consistent colorway to the figure
+    layout.colorway = [
+        PLOTLY_THEME.colors.danger,
+        PLOTLY_THEME.colors.primary,
+        PLOTLY_THEME.colors.secondary,
+        PLOTLY_THEME.colors.accent,
+        PLOTLY_THEME.colors.warn,
+        PLOTLY_THEME.colors.neutral,
+    ];
+
+    Plotly.newPlot(energyFlows, data, layout, PLOTLY_CONFIG);
+}
+
+// Storage states plot
+function plot_storage_states(data, elementId) {
+  const filteredData = { ...data };
+
+  filteredData.series = data.series.filter(s =>
+    ['H2 Storage', 'Battery Storage'].includes(s.name)
+  );
+
+  plot_energy_flows(filteredData, elementId);
 }
 
 
@@ -772,216 +881,132 @@ function plot_demand_coverage(demand_coverage) {
     const { renewable, non_renewable, demand, surplus } = demand_coverage;
     const time = Array.from({ length: renewable.length }, (_, i) => i);
 
-
     const demandCoverage = document.getElementById("demandCoverage");
-    const trace1 = {
-        x: time,
-        y: non_renewable,
-        // mode: 'none',
-        // fill: 'tozeroy',
-        stackgroup: 'one',
-        name: gettext('Non-Renewable'),
-    };
-    const trace2 = {
-        x: time,
-        y: renewable,
-        // mode: 'none',
-        // fill: 'tonexty',
-        stackgroup: 'one',
-        name: gettext('Renewable')
 
-    };
-    const trace3 = {
+    const tracesSpec = [
+        { y: non_renewable, name: gettext('Non-Renewable'), stackgroup: 'one' },
+        { y: renewable, name: gettext('Renewable'), stackgroup: 'one' },
+        { y: demand, name: gettext('Demand'), mode: 'line', line: { color: 'black', width: 2.5 } },
+        { y: surplus, name: gettext('Surplus'), stackgroup: 'one' },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: time,
-        y: demand,
-        mode: 'line',
-        name: gettext('Demand'),
-        line: {
-            color: 'black',
-            width: 2.5
-        },
-    };
-    const trace4 = {
-        x: time,
-        y: surplus,
-        // mode: 'none',
-        // fill: 'tonexty',
-        stackgroup: 'one',
-        name: gettext('Surplus'),
-    };
+        y: spec.y,
+        name: spec.name,
+        ...(spec.stackgroup ? { stackgroup: spec.stackgroup } : {}),
+        ...(spec.mode ? { mode: spec.mode } : {}),
+        ...(spec.line ? { line: spec.line } : {}),
+    }));
 
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        xaxis: {
-            title: gettext('Time in hours'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
-        },
-        yaxis: {
-            title: gettext('Demand in kW'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
-        },
-        legend: {
-            x: 0.5,           // Positions the legend horizontally at the center (50% of the plot width)
-            y: 1.15,          // Positions the legend vertically above the plot area
-            xanchor: 'center',// Anchors the legend horizontally at its center
-            yanchor: 'bottom',// Anchors the legend vertically at the bottom
-            orientation: 'h', // Sets the legend items to be displayed horizontally
-            bgcolor: 'rgba(255, 255, 255, 1)', // Fully opaque white background
-            bordercolor: '#E2E2E2',
-            borderwidth: 2,
-        },
-    };
+    ensureResponsiveContainer(demandCoverage);
 
-    const data = [trace1, trace2, trace3, trace4];
+    const layout = applyBaseLayout({
+        xaxis: { title: gettext('Time in hours') },
+        yaxis: { title: gettext('Demand in kW') },
+        colorway: [
+            PLOTLY_THEME.colors.neutral,
+            PLOTLY_THEME.colors.secondary,
+            PLOTLY_THEME.colors.primary,
+            PLOTLY_THEME.colors.accent,
+        ],
+    });
 
-    Plotly.newPlot(demandCoverage, data, layout);
+    Plotly.newPlot(demandCoverage, data, layout, PLOTLY_CONFIG);
 }
 
 
 // DURATION CURVES
 function plot_duration_curves(duration_curves) {
-
-    const { diesel_genset_duration, pv_percentage, pv_duration, rectifier_duration, inverter_duration, battery_charge_duration,
-        battery_discharge_duration } = duration_curves;
-
+    const {
+        diesel_genset_duration,
+        pv_duration,
+        rectifier_duration,
+        inverter_duration,
+        battery_charge_duration,
+        battery_discharge_duration,
+        h2_storage_charge_duration,
+        h2_storage_discharge_duration,
+        pv_percentage,
+    } = duration_curves;
 
     const durationCurves = document.getElementById("durationCurves");
-    const trace1 = {
+
+    const tracesSpec = [
+        { y: diesel_genset_duration, name: gettext('Diesel Genset') },
+        { y: pv_duration, name: gettext('PV') },
+        { y: rectifier_duration, name: gettext('Rectifier') },
+        { y: inverter_duration, name: gettext('Inverter') },
+        { y: battery_charge_duration, name: gettext('Battery - Charging') },
+        { y: battery_discharge_duration, name: gettext('Battery - Discharging') },
+        { y: h2_storage_charge_duration, name: gettext('H2 Storage - Charging') },
+        { y: h2_storage_discharge_duration, name: gettext('H2 Storage - Discharging') },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: pv_percentage,
-        y: diesel_genset_duration,
+        y: spec.y,
         mode: 'lines',
-        name: gettext('Diesel Genset')
+        name: spec.name,
+    }));
 
-    };
-    const trace2 = {
-        x: pv_percentage,
-        y: pv_duration,
-        mode: 'lines',
-        name: gettext('PV')
+    ensureResponsiveContainer(durationCurves);
 
-    };
-    const trace3 = {
-        x: pv_percentage,
-        y: rectifier_duration,
-        mode: 'lines',
-        name: gettext('Rectifier')
+    const layout = applyBaseLayout({
+        xaxis: { title: gettext('Percentage of Operation in %') },
+        yaxis: { title: gettext('Load in %') },
+        colorway: [
+            PLOTLY_THEME.colors.danger,
+            PLOTLY_THEME.colors.primary,
+            PLOTLY_THEME.colors.warn,
+            PLOTLY_THEME.colors.secondary,
+            PLOTLY_THEME.colors.accent,
+            PLOTLY_THEME.colors.neutral,
+        ],
+    });
 
-    };
-    const trace4 = {
-        x: pv_percentage,
-        y: inverter_duration,
-        mode: 'lines',
-        name: gettext('Inverter')
-
-    };
-    const trace5 = {
-        x: pv_percentage,
-        y: battery_charge_duration,
-        mode: 'lines',
-        name: gettext('Battery - Charging')
-
-    };
-    const trace6 = {
-        x: pv_percentage,
-        y: battery_discharge_duration,
-        mode: 'lines',
-        name: gettext('Battery - Discharging')
-
-    };
-
-    var data = [trace1, trace2, trace3, trace4, trace5, trace6];
-
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        xaxis: {
-            title: gettext('Percentage of Operation in %'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
-        },
-        yaxis: {
-            title: gettext('Load in %'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
-        },
-    };
-    Plotly.newPlot(durationCurves, data, layout);
+    Plotly.newPlot(durationCurves, data, layout, PLOTLY_CONFIG);
 }
 
-// DEMAND COVERAGE PLOT
+
+// CO2 EMISSIONS PLOT
 function plot_co2_emissions(co2_emissions) {
+    const { non_renewable_electricity_production, hybrid_electricity_production } = co2_emissions;
 
-
-    const { non_renewable_electricity_production, hybrid_electricity_production} = co2_emissions;
     const time = Array.from({ length: non_renewable_electricity_production.length }, (_, i) => i);
     const non_renewable = non_renewable_electricity_production;
     const hybrid = hybrid_electricity_production;
 
-
     const xAxisTitle = time.length > 366 ? 'Time in hours' : 'Time in days';
     const co2Emissions = document.getElementById("co2Emissions");
-    const trace1 = {
+
+    const tracesSpec = [
+        { y: non_renewable, mode: 'lines', name: gettext('Non-Renewable') },
+        { y: hybrid, mode: 'none', fill: 'tonexty', name: gettext('Savings') },
+        { y: hybrid, mode: 'lines', name: gettext('Hybrid') },
+    ];
+
+    const data = tracesSpec.map(spec => ({
         x: time,
-        y: non_renewable,
-        mode: 'lines',
-        name: gettext('Non-Renewable')
-    };
-    const trace2 = {
-        x: time,
-        y: hybrid,
-        mode: 'none',
-        fill: 'tonexty',
-        name: gettext('Savings')
-    };
-    const trace3 = {
-        x: time,
-        y: hybrid,
-        mode: 'lines',
-        name: gettext('Hybrid')
-    };
-    var data = [trace1, trace2, trace3];
-    const layout = {
-        plot_bgcolor: '#FAFAFA',
-        paper_bgcolor: '#FAFAFA',
-        xaxis: {
-            title: xAxisTitle,
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            },
-        },
-        yaxis: {
-            title: gettext('CO<sub>2</sub> Emissions [tons]'),
-            titlefont: {
-                size: 16,
-            },
-            tickfont: {
-                size: 14,
-            }
-        },
-    };
-    Plotly.newPlot(co2Emissions, data, layout);
+        y: spec.y,
+        mode: spec.mode,
+        name: spec.name,
+        ...(spec.fill ? { fill: spec.fill } : {}),
+    }));
+
+    // Apply a more consistent palette for this figure
+    if (data[0] && data[0].line) data[0].line.color = PLOTLY_THEME.colors.danger;
+    if (data[2] && data[2].line) data[2].line.color = PLOTLY_THEME.colors.secondary;
+    if (data[1]) data[1].fillcolor = 'rgba(15, 118, 110, 0.18)';
+
+    ensureResponsiveContainer(co2Emissions);
+
+    const layout = applyBaseLayout({
+        xaxis: { title: xAxisTitle },
+        yaxis: { title: gettext('CO<sub>2</sub> Emissions [tons]') },
+    });
+
+    Plotly.newPlot(co2Emissions, data, layout, PLOTLY_CONFIG);
 }
 
 async function redirect(href) {
@@ -1033,32 +1058,23 @@ function hideElements(elementId) {
 function plot_demand_24h(data) {
     let demandTs = document.getElementById("demandTs");
 
-    var layout = {
-        font: { size: 14 },
-        autosize: true,
+    ensureResponsiveContainer(demandTs);
+
+    var layout = applyBaseLayout({
         xaxis: {
             title: gettext('Hour of the day'),
             hoverformat: '.1f',
-            titlefont: { size: 16 },
-            tickfont: { size: 14 },
         },
         yaxis: {
             title: gettext('Demand (kW)'),
             hoverformat: '.1f',
-            titlefont: { size: 16 },
-            tickfont: { size: 14 },
         },
-        legend: {
-            x: 0.5,
-            y: 1.15,
-            xanchor: 'center',
-            yanchor: 'bottom',
-            orientation: 'h',
-            bgcolor: 'rgba(255, 255, 255, 1)',
-            bordercolor: '#E2E2E2',
-            borderwidth: 2,
-        }
-    };
+        colorway: [
+            PLOTLY_THEME.colors.secondary,
+            PLOTLY_THEME.colors.warn,
+            PLOTLY_THEME.colors.primary,
+        ]
+    });
 
     // Extract data from the passed-in data object
     let {
@@ -1081,9 +1097,9 @@ function plot_demand_24h(data) {
         type: 'scatter',
         mode: 'lines',
         name: gettext('Demand of Households'),
-        line: { shape: 'spline', width: 2, color: 'rgba(31, 119, 180, 1)' },
+        line: { shape: 'spline', width: 2, color: PLOTLY_THEME.colors.primary },
         fill: 'tonexty',
-        fillcolor: 'rgba(31, 119, 180, 0.5)',
+        fillcolor: 'rgba(29, 78, 216, 0.25)',
         stackgroup: 'one' // Group for stacking
     };
 
@@ -1093,9 +1109,9 @@ function plot_demand_24h(data) {
         type: 'scatter',
         mode: 'lines',
         name: gettext('Demand of Enterprises'),
-        line: { shape: 'spline', width: 2, color: 'rgba(255, 127, 14, 1)' },
+        line: { shape: 'spline', width: 2, color: PLOTLY_THEME.colors.warn },
         fill: 'tonexty',
-        fillcolor: 'rgba(255, 127, 14, 0.5)',
+        fillcolor: 'rgba(245, 158, 11, 0.25)',
         stackgroup: 'one' // Same group as above
     };
 
@@ -1105,9 +1121,9 @@ function plot_demand_24h(data) {
         type: 'scatter',
         mode: 'lines',
         name: gettext('Demand of Public Services'),
-        line: { shape: 'spline', width: 2, color: 'rgba(44, 160, 44, 1)' },
+        line: { shape: 'spline', width: 2, color: PLOTLY_THEME.colors.secondary },
         fill: 'tonexty',
-        fillcolor: 'rgba(44, 160, 44, 0.5)',
+        fillcolor: 'rgba(15, 118, 110, 0.25)',
         stackgroup: 'one' // Same group as above
     };
 
@@ -1115,5 +1131,5 @@ function plot_demand_24h(data) {
     var dataTraces = [tracePublicServices, traceEnterprises, traceHouseholds];
 
     // Render plot with the traces
-    Plotly.react(demandTs, dataTraces, layout);
+    Plotly.react(demandTs, dataTraces, layout, PLOTLY_CONFIG);
 }

@@ -1,5 +1,7 @@
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
+from captcha.fields import CaptchaField
+from django import forms
 from django.contrib.auth import forms as admin_forms
 from django.forms import BooleanField
 from django.forms import CharField
@@ -7,6 +9,8 @@ from django.forms import EmailField
 from django.forms import TextInput
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
+from config.settings.base import PRIVACY_URL
 
 from .models import User
 
@@ -48,7 +52,7 @@ class UserSignupForm(SignupForm):
     accept_privacy = BooleanField(required=True)
 
     def __init__(self, *args, **kwargs):
-        privacy_url = kwargs.pop("privacy_url", "")
+        privacy_url = kwargs.pop("privacy_url", PRIVACY_URL)
         super().__init__(*args, **kwargs)
         self.fields["accept_privacy"].label = mark_safe(  # noqa: S308
             _(
@@ -78,3 +82,7 @@ class UserSocialSignupForm(SocialSignupForm):
     Default fields will be added automatically.
     See UserSignupForm otherwise.
     """
+
+
+class CaptchaForm(forms.Form):
+    captcha = CaptchaField(help_text="Please enter the letters shown below")

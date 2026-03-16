@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from config.settings.base import DEFAULT_COUNTRY
 from config.settings.base import PENDING
 from offgridplanner.optimization.helpers import get_country_bounds
+from offgridplanner.optimization.models import Results
 from offgridplanner.optimization.models import Simulation
 from offgridplanner.optimization.supply.demand_estimation import ENTERPRISE_LIST
 from offgridplanner.optimization.supply.demand_estimation import LARGE_LOAD_LIST
@@ -42,12 +43,11 @@ STEPS = {
     "demand_estimation": _("Demand Estimation"),
     "grid_design": _("Grid Design"),
     "energy_system_design": _("Energy System Design"),
-    "calculating": _("Calculating"),
     "simulation_results": _("Simulation Results"),
 }
 
 # Remove the calculating step from the top ribbon
-STEP_LIST_RIBBON = [step for step in STEPS.values() if step != _("Calculating")]
+STEP_LIST_RIBBON = list(STEPS.values())
 
 
 @login_required
@@ -99,6 +99,7 @@ def project_setup(request, proj_id=None):
                 project.user = User.objects.get(email=request.user.email)
                 project.options = opts
             project.save()
+            simulation, _ = Simulation.objects.get_or_create(project=project)
 
         return HttpResponseRedirect(
             reverse("steps:consumer_selection", args=[project.id]),
@@ -162,33 +163,48 @@ def demand_estimation(request, proj_id=None):
     step_id = list(STEPS.keys()).index("demand_estimation") + 1
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
-
+        options = project.options
         custom_demand, _ = CustomDemand.objects.get_or_create(
             project=project, defaults=get_param_from_metadata("default", "CustomDemand")
         )
         calibration_initial = custom_demand.calibration_option
         calibration_active = calibration_initial is not None
+        # Pass the initial values for the customDemand shares to be able to use the dynamic reset button
         household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
 
         if request.method == "POST":
             form = CustomDemandForm(request.POST, instance=custom_demand)
-            if form.is_valid():
+            opts = OptionForm(request.POST, instance=options)
+            display_error = None
+            if form.is_valid() and opts.is_valid():
                 form.save()
-                return redirect("steps:ogp_steps", proj_id, step_id + 1)
+                opts.save()
+                if (
+                    options.do_demand_estimation is False
+                    and custom_demand.uploaded_data is None
+                ):
+                    display_error = "You have selected the option to use a custom demand timeseries, but not provided any data. Please upload a timeseries or unselect the given slider."
             else:
                 errors = form.non_field_errors()
                 display_error = errors[0] if len(errors) == 1 else errors
                 messages.add_message(request, messages.WARNING, display_error)
+
+            if display_error:
+                messages.add_message(request, messages.WARNING, display_error)
+            else:
+                return redirect("steps:ogp_steps", proj_id, step_id + 1)
         else:
             form = CustomDemandForm(instance=custom_demand)
+            opts = OptionForm(instance=options)
 
         context = {
+            "household_initial_shares": household_initial_shares,
             "calibration": {
                 "active": calibration_active,
                 "initial": calibration_initial,
             },
-            "household_initial_shares": household_initial_shares,
             "form": form,
+            "opts_form": opts,
             "proj_id": proj_id,
             "step_id": step_id,
             "step_list": STEP_LIST_RIBBON,
@@ -248,13 +264,13 @@ def energy_system_design(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
 
-    energy_system_design, _ = EnergySystemDesign.objects.get_or_create(
+    esd, _ = EnergySystemDesign.objects.get_or_create(
         project=project,
         defaults=get_param_from_metadata("default", "EnergySystemDesign"),
     )
     if request.method == "GET":
         form = EnergySystemDesignForm(
-            instance=energy_system_design,
+            instance=esd,
             set_db_column_attribute=True,
         )
 
@@ -279,7 +295,7 @@ def energy_system_design(request, proj_id=None):
         return render(request, "pages/energy_system_design.html", context)
     if request.method == "POST":
         form = EnergySystemDesignForm(
-            request.POST, instance=energy_system_design, set_db_column_attribute=True
+            request.POST, instance=esd, set_db_column_attribute=True
         )
         if form.is_valid():
             form.save()
@@ -324,11 +340,17 @@ def calculating(request, proj_id=None):
 @login_required
 @require_http_methods(["GET"])
 def simulation_results(request, proj_id=None):
-    step_id = list(STEPS.keys()).index("calculating") + 1
+    step_id = list(STEPS.keys()).index("simulation_results") + 1
 
     project = get_object_or_404(Project, id=proj_id)
     opts = project.options
-    res = project.simulation.results
+    res_qs = Results.objects.filter(simulation=project.simulation)
+
+    if res_qs.exists():
+        res = res_qs.get()
+    else:
+        return redirect("steps:calculating", proj_id)
+
     df = pd.Series(model_to_dict(res))
 
     df = df.astype(float)
@@ -339,6 +361,91 @@ def simulation_results(request, proj_id=None):
 
     country_bounds = get_country_bounds(proj_id)
 
+    # Summary fields
+    elec_summary_capacity_fields = [
+        "pv_capacity",
+        "battery_capacity",
+        "diesel_genset_capacity",
+    ]
+    h2_summary_capacity_fields = [
+        "h2_storage_capacity",
+        "electrolyzer_capacity",
+        "fuel_cell_capacity",
+    ]
+
+    # Technical tab
+    capacity_row_fields = [
+        "pv_capacity",
+        "battery_capacity",
+        "inverter_capacity",
+        "diesel_genset_capacity",
+        "rectifier_capacity",
+        "h2_storage_capacity",
+        "electrolyzer_capacity",
+        "fuel_cell_capacity",
+    ]
+    grid_row_fields = [
+        "n_consumers",
+        "n_shs_consumers",
+        "n_poles",
+        "length_distribution_cable",
+        "average_length_distribution_cable",
+        "length_connection_cable",
+        "average_length_connection_cable",
+    ]
+
+    # Economic tab
+    upfront_invest_row_fields = [
+        "upfront_invest_total",
+        "upfront_invest_grid",
+        "upfront_invest_pv",
+        "upfront_invest_battery",
+        "upfront_invest_inverter",
+        "upfront_invest_diesel_genset",
+        "upfront_invest_rectifier",
+        "upfront_invest_h2_storage",
+        "upfront_invest_electrolyzer",
+        "upfront_invest_fuel_cell",
+    ]
+    annualized_cost_row_fields = [
+        "epc_total",
+        "cost_grid",
+        "epc_pv",
+        "epc_battery",
+        "epc_inverter",
+        "epc_diesel_genset",
+        "epc_rectifier",
+        "epc_h2_storage",
+        "epc_electrolyzer",
+        "epc_fuel_cell",
+    ]
+
+    # Demand tab
+    demand_kpis_row_fields = [
+        "total_annual_consumption",
+        "peak_demand",
+        "base_load",
+        "average_annual_demand_per_consumer",
+        "surplus_rate",
+    ]
+
+    shortage_fields = [
+        "shortage_total",
+        "max_shortage",
+    ]
+
+    esd = EnergySystemDesign.objects.get(project=project)
+    shortage_is_selected = esd.shortage_settings_is_selected
+
+    # Environmental tab
+    environmental_kpis_row_fields = [
+        "co2_savings",
+        "co2_emissions",
+        "fuel_consumption",
+        "surplus_rate",
+        "shortage_total",
+    ]
+
     return render(
         request,
         "pages/simulation_results.html",
@@ -346,6 +453,16 @@ def simulation_results(request, proj_id=None):
             "proj_id": proj_id,
             "step_id": step_id,
             "results": output_kpis,
+            "h2_summary_capacity_fields": h2_summary_capacity_fields,
+            "elec_summary_capacity_fields": elec_summary_capacity_fields,
+            "capacity_row_fields": capacity_row_fields,
+            "grid_row_fields": grid_row_fields,
+            "upfront_invest_row_fields": upfront_invest_row_fields,
+            "annualized_cost_row_fields": annualized_cost_row_fields,
+            "demand_kpis_row_fields": demand_kpis_row_fields,
+            "shortage_fields": shortage_fields,
+            "shortage_is_selected": shortage_is_selected,
+            "environmental_kpis_row_fields": environmental_kpis_row_fields,
             "do_grid_optimization": opts.do_grid_optimization,
             "do_supply_optimization": opts.do_es_design_optimization,
             "bounds_dict": country_bounds,

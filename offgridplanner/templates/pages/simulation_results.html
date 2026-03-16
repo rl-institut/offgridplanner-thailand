@@ -5,197 +5,370 @@
 {% load statici18n %}
 {% load i18n %}
 {% load humanize %}
+{% load custom_template_tags %}
 
 <!DOCTYPE html>
 <html lang="en-us">
 {% block head_block %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <link href="{% static 'css/pages/simulation_results.css' %}"
-          rel="stylesheet" />
-    <style>
-      .chart {
-        max-height: 9999px;
-      }
-    </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<link href="{% static 'css/pages/simulation_results.css' %}"
+      rel="stylesheet" />
+<style>
+  .chart {
+    max-height: 9999px;
+  }
+</style>
 {% endblock head_block %}
 {% block progression_content %}
-      <main>
-        <section id="dashboard" class="dashboard">
-          <div>
-            <div class="row" id="actionButtonsRow" style="padding: 0 0.75rem">
-              <div style="display: flex; justify-content: flex-end; align-items: center; gap: 2rem; width: 100%; padding: 0; margin: 0;">
-                <a href="/">{% translate 'My Projects' %}</a>
-                <div class="btn-group">
-                  <button 
-                    type="button"
-                    class="btn btn--download dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
-                    </svg>
-                    {% translate 'Download Results' %}
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <a id="downloadCSV"
-                        class="dropdown-item"
-                        href="#">
-                        {% translate 'Download Results (xlsx-format)' %}
-                      </a>
-                    </li>
-                    <li>
-                      <a id="downloadPDF"
-                        class="dropdown-item"
-                        href="#">
-                        {% translate 'Download Results (PDF)' %}
-                      </a>
-                    </li>
-                  </ul>
+<main>
+  {% include 'warning_box.html' %}
+  <section id="dashboard" class="dashboard">
+    <div>
+      <div class="row" id="actionButtonsRow" style="padding: 0 0.75rem">
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 2rem; width: 100%; padding: 0; margin: 0;">
+          <a href="{% url 'projects:projects_list' %}">{% translate 'My Projects' %}</a>
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn btn--download dropdown-toggle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+              </svg>
+              {% translate 'Download Results' %}
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a id="downloadCSV"
+                   class="dropdown-item"
+                   href="#">
+                  {% translate 'Download Results (xlsx-format)' %}
+                </a>
+              </li>
+              <li>
+                <a id="downloadPDF"
+                   class="dropdown-item"
+                   href="#">
+                  {% translate 'Download Results (PDF)' %}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <a id="rerunCalculation"
+             class="btn btn--download"
+             href="{% url 'steps:calculating' proj_id %}">{% translate 'Recalculate' %}</a>
+        </div>
+      </div>
+      <div class="row" id="firstRow">
+        <div class="col col-md-6" style="display: flex; justify-content: center;">
+          <div class="chart" id="summaryResultsChart">
+            <div class="chart__header">
+              <h2 class="title">{% translate 'Summary of Results' %}</h2>
+            </div>
+            <div class="chart__content">
+              <div class="row">
+                <div class="item item--main">
+                  <div class="item__name">{% translate "LCOE" %}</div>
+                  <div class="item__result">
+                    <div class="item__value">{{results.lcoe.value|floatformat:"0g"}}</div>
+                    <div class="item__unit">{{results.lcoe.unit}}</div>
+                  </div>
                 </div>
-                <!-- Can delete if not needed anymore -->
-                <!-- <a id="rerunCalculation"
-                   class="btn btn--medium"
-                   style="height: 32px;
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                          width: 50%;
-                          margin-right: 10px;
-                          margin-left: 10px"
-                   href="javascript:void(0);"
-                   onclick="forward_if_no_task_is_pending({{ proj_id }});">{% translate 'Recalculate' %}</a> -->
+                <div class="item item--main">
+                  <div class="item__name">{% translate "LCOH" %}</div>
+                  <div class="item__result">
+                    <div class="item__value">{{results.lcoe.value|floatformat:"0g"}}</div>
+                    <div class="item__unit">{{results.lcoe.unit}}</div>
+                  </div>
+                </div>
+                <div class="item item--main">
+                  <div class="item__name">{{results.upfront_invest_total.verbose}}</div>
+                  <div class="item__result">
+                    <div class="item__value">{{results.upfront_invest_total.value|floatformat:"0g"}}</div>
+                    <div class="item__unit">{{results.upfront_invest_total.unit}}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="item item--res item--main">
+                  <div class="item__title">{% translate 'Renewable Energy Share' %}</div>
+                  <div class="res-chart-wrapper">
+                    <div id="resChart"
+                      data-res="{{ results.res.value }}">
+                    </div>
+                    <div class="label res-label">
+                      <div>
+                        <span class="label-value" id="res-share-value">{{results.res_share.value|floatformat:"0g"}}</span>
+                        <span class="label-percent">{{results.res.unit}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="item item--share item--main">
+                  <div class="item__title">{% translate 'Share of Costs in LCOE' %}</div>
+                  <div class="lcoe-chart-wrapper">
+                    <div class="label left-label">
+                      <div class="label-title">Generation-Related</div>
+                      <div>
+                        <span class="label-value" id="gen-value">{{results.lcoe_share_supply.value|floatformat:"0g"}}</span>
+                        <span class="label-percent">{{results.lcoe_share_supply.unit}}</span>
+                      </div>
+                    </div>
+                    <div id="lcoeChart"
+                         data-generation="{{ results.lcoe_share_supply.value }}"
+                         data-grid="{{ results.lcoe_share_grid.value }}">
+                    </div>
+                    <div class="label right-label">
+                      <div class="label-title">Grid-Related</div>
+                      <div>
+                        <span class="label-value" id="grid-value">{{results.lcoe_share_grid.value|floatformat:"0g"}}</span>
+                        <span class="label-percent">{{results.lcoe_share_grid.unit}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <h3 class="row__category">{% translate 'Capacity' %}</h3>
+                <div class="row__single">
+                  {% for field in elec_summary_capacity_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                <h3 class="row__category"></h3>
+                <div class="row__single">
+                  {% for field in h2_summary_capacity_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="row">
+                <h3 class="row__category">{% translate 'Consumption' %}</h3>
+                <div class="row__single">
+                  <div class="item">
+                    <div class="item__name">{{results.n_consumers.verbose}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results.n_consumers.value|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results.n_consumers.unit}}</div>
+                    </div>
+                  </div>
+                  <div class="item">
+                    <div class="item__name">{{results.total_annual_consumption.verbose}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results.total_annual_consumption.value|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results.total_annual_consumption.unit}}</div>
+                    </div>
+                  </div>
+                  <div class="item">
+                    <div class="item__name">{{results.average_annual_demand_per_consumer.verbose}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results.average_annual_demand_per_consumer.value|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results.average_annual_demand_per_consumer.unit}}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="row" id="firstRow">
-              <div class="col col-md-6" style="display: flex; justify-content: center;">
-                <div class="chart" id="summaryResultsChart">
-                  <div class="chart__header">
-                    <h2 class="title">{% translate 'Summary of Results' %}</h2>
+          </div>
+        </div>
+        <div class="col col-md-6">
+          <div class="chart map-wrapper">
+            <div class="chart__header">
+              <div>
+                <h2 class="title">{% translate 'Grid Layout' %}</h2>
+              </div>
+              <div class="dropdown">
+                <button class="btn dropdown-toggle btn--transparent"
+                        type="button"
+                        id="dropdownMenuButton0"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                  <span class="icon icon-more"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton0">
+                  <li>
+                    <a class="dropdown-item" href="#">{% translate 'Export as .xls' %}</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#">{% translate 'Export as PDF' %}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="map">
+              <div id="map" style="width: 100%; height: 100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="results-section" id="resultsChart">
+        <ul class="nav nav-pills results-tabs" id="resultsTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="technical-tabs" data-bs-toggle="tab" data-bs-target="#technical-tabs-pane" type="button" role="tab" aria-controls="technical-tabs-pane" aria-selected="true">Technical</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="economic-tabs" data-bs-toggle="tab" data-bs-target="#economic-tabs-pane" type="button" role="tab" aria-controls="economic-tabs-pane" aria-selected="false">Economic</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="demand-tabs" data-bs-toggle="tab" data-bs-target="#demand-tabs-pane" type="button" role="tab" aria-controls="demand-tabs-pane" aria-selected="false">Demand</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="environmental-tabs" data-bs-toggle="tab" data-bs-target="#environmental-tabs-pane" type="button" role="tab" aria-controls="environmental-tabs-pane" aria-selected="false">Environmental</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="resultsTabsContent">
+          <!-- Technical -->
+          <div class="tab-pane fade show active" id="technical-tabs-pane" role="tabpanel" aria-labelledby="technical-tabs" tabindex="0">
+            {% if do_supply_optimization %}
+            <h2 class="subtitle">{% translate 'Capacity' %}</h2>
+            <div class="row">
+              <div class="col">
+                <div class="row__single">
+                  {% for field in capacity_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
                   </div>
-                  <div class="chart__content">
-                    <div class="row">
-                      <div class="item item--main">
-                        <div class="item__name">{{results.lcoe.verbose}}</div>
-                        <div class="item__result">
-                          <div class="item__value">{{results.lcoe.value}}</div>
-                          <div class="item__unit">{{results.lcoe.unit}}</div>
-                        </div>
-                      </div>
-                      <div class="item item--main">
-                        <div class="item__name">{{results.upfront_invest_total.verbose}}</div>
-                        <div class="item__result">
-                          <div class="item__value">{{results.upfront_invest_total.value|intcomma}}</div>
-                          <div class="item__unit">{{results.upfront_invest_total.unit}}</div>
-                        </div>
-                      </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% if do_grid_optimization %}
+            <h2 class="subtitle" id="gridTitle">{% translate 'Grid' %}</h2>
+            <div class="row" id="gridResultsRow">
+              <div class="col">
+                <div class="row__single">
+                  {% for field in grid_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
                     </div>
-                    <div class="row">
-                      <div class="item item--main item--res">
-                        <div class="item__name">{{results.res.verbose}}</div>
-                        <div class="item__result">
-                          <div class="item__value">{{results.res.value}}</div>
-                          <div class="item__unit">{{results.res.unit}}</div>
-                        </div>
-                      </div>
-                      <div class="item item--share">
-                        <div class="item__title">{% translate 'Share of Costs in LCOE' %}</div>
-                        <div class="lcoe-chart-wrapper">
-                          <div class="label left-label">
-                            <div class="label-title">Generation-Related</div>
-                            <div>
-                              <span class="label-value" id="gen-value">{{results.lcoe_share_supply.value}}</span>
-                              <span class="label-percent">{{results.lcoe_share_supply.unit}}</span>
-                            </div>
-                          </div>
-                          <div id="lcoeChart"
-                            data-generation="{{ results.lcoe_share_supply.value }}"
-                            data-grid="{{ results.lcoe_share_grid.value }}">
-                          </div>
-                          <div class="label right-label">
-                            <div class="label-title">Grid-Related</div>
-                            <div>
-                              <span class="label-value" id="grid-value">{{results.lcoe_share_grid.value}}</span>
-                              <span class="label-percent">{{results.lcoe_share_grid.unit}}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <h3 class="row__category">{% translate 'Capacity' %}</h3>
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{% translate 'PV' %}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.pv_capacity.value}}</div>
-                            <div class="item__unit">{{results.pv_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{% translate 'Battery' %}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.battery_capacity.value}}</div>
-                            <div class="item__unit">{{results.battery_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{% translate 'Diesel Generator' %}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.diesel_genset_capacity.value}}</div>
-                            <div class="item__unit">{{results.diesel_genset_capacity.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <h3 class="row__category">{% translate 'Consumption' %}</h3>
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.n_consumers.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.n_consumers.value|intcomma}}</div>
-                            <div class="item__unit">{{results.n_consumers.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.total_annual_consumption.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.total_annual_consumption.value|intcomma}}</div>
-                            <div class="item__unit">{{results.total_annual_consumption.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.average_annual_demand_per_consumer.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.average_annual_demand_per_consumer.value|intcomma}}</div>
-                            <div class="item__unit">{{results.average_annual_demand_per_consumer.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  </div>
+                  {% endfor %}
+
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            <div class="row">
+              <div class="col col-md-6">
+                <h2 class="title">{% translate 'Optimal Capacity of Components' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="optimalSizes"></div>
                   </div>
                 </div>
               </div>
               <div class="col col-md-6">
-                <div class="chart map-wrapper">
-                  <div class="chart__header">
-                    <div>
-                      <h2 class="title">{% translate 'Grid Layout' %}</h2>
+                <h2 class="title">{% translate 'Duration Curves for All Components' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="durationCurves"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h2 class="title">{% translate 'Sankey Diagram Representing the Energy Flow in the System' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="sankeyDiagram"></div>
+                  </div>
+                  <p style="font-size: 12px">{% translate '*electricity surplus is not shown' %}</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h2 class="title">{% translate 'Annual Energy Flows with 1-Hour Resolution' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="energyFlows"></div>
+                  </div>
+                </div>
+                <h2 class="title">{% translate 'H2 and Battery Storage State' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="energyFlowsStorage"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Economic -->
+          <div class="tab-pane fade" id="economic-tabs-pane" role="tabpanel" aria-labelledby="economic-tabs" tabindex="0">
+            <h2 class="subtitle">{% translate 'Economic Data' %}</h2>
+            <div class="row">
+              <h2 class="subtitle">{% translate 'Upfront Investment Cost' %}</h2>
+              <div class="col">
+                <div class="row__single">
+                  {% for field in upfront_invest_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"upfront Investment Cost"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
                     </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <h2 class="subtitle">{% translate 'Annualized Cost (per year)' %}</h2>
+              <div class="col">
+                <div class="row__single">
+                  {% for field in annualized_cost_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"annualized Cost"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"|cut:"/a"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-md-9">
+                <h2 class="title">{% translate 'Breakdown of the LCOE' %}</h2>
+                <div class="chart">
+                  <div class="chart__header">
                     <div class="dropdown">
                       <button class="btn dropdown-toggle btn--transparent"
                               type="button"
-                              id="dropdownMenuButton0"
+                              id="dropdownMenuButton4"
                               data-bs-toggle="dropdown"
                               aria-expanded="false">
                         <span class="icon icon-more"></span>
                       </button>
-                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton0">
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
                         <li>
                           <a class="dropdown-item" href="#">{% translate 'Export as .xls' %}</a>
                         </li>
@@ -205,619 +378,363 @@
                       </ul>
                     </div>
                   </div>
-                  <div class="map">
-                    <div id="map" style="width: 100%; height: 100%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="results-section" id="resultsChart">
-              <ul class="nav nav-pills results-tabs" id="resultsTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="technical-tabs" data-bs-toggle="tab" data-bs-target="#technical-tabs-pane" type="button" role="tab" aria-controls="technical-tabs-pane" aria-selected="true">Technical</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="economic-tabs" data-bs-toggle="tab" data-bs-target="#economic-tabs-pane" type="button" role="tab" aria-controls="economic-tabs-pane" aria-selected="false">Economic</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="demand-tabs" data-bs-toggle="tab" data-bs-target="#demand-tabs-pane" type="button" role="tab" aria-controls="demand-tabs-pane" aria-selected="false">Demand</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="environmental-tabs" data-bs-toggle="tab" data-bs-target="#environmental-tabs-pane" type="button" role="tab" aria-controls="environmental-tabs-pane" aria-selected="false">Environmental</button>
-                </li>
-              </ul>
-
-              <div class="tab-content" id="resultsTabsContent">
-                <!-- Technical -->
-                <div class="tab-pane fade show active" id="technical-tabs-pane" role="tabpanel" aria-labelledby="technical-tabs" tabindex="0">
-                  {% if do_grid_optimization %}
-                  <h2 class="subtitle" id="gridTitle">{% translate 'Grid' %}</h2>
-                  <div class="row" id="gridResultsRow">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.n_consumers.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.n_consumers.value|intcomma}}</div>
-                            <div class="item__unit">{{results.n_consumers.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.n_shs_consumers.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.n_shs_consumers.value|intcomma}}</div>
-                            <div class="item__unit">{{results.n_shs_consumers.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.n_poles.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.n_poles.value|intcomma}}</div>
-                            <div class="item__unit">{{results.n_poles.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.length_distribution_cable.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.length_distribution_cable.value|intcomma}}</div>
-                            <div class="item__unit">{{results.length_distribution_cable.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.average_length_distribution_cable.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.average_length_distribution_cable.value|intcomma}}</div>
-                            <div class="item__unit">{{results.average_length_distribution_cable.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.length_connection_cable.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.length_connection_cable.value|intcomma}}</div>
-                            <div class="item__unit">{{results.length_connection_cable.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.average_length_connection_cable.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.average_length_connection_cable.value|intcomma}}</div>
-                            <div class="item__unit">{{results.average_length_connection_cable.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {% endif %}
-                  {% if do_supply_optimization %}
-                  <h2 class="subtitle">{% translate 'Energy Converters' %}</h2>
-                  <div class="row">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.res.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.res.value}}</div>
-                            <div class="item__unit">{{results.res.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.surplus_rate.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.surplus_rate.value}}</div>
-                            <div class="item__unit">{{results.surplus_rate.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.shortage_total.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.shortage_total.value}}</div>
-                            <div class="item__unit">{{results.shortage_total.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.fuel_consumption.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.fuel_consumption.value|intcomma}}</div>
-                            <div class="item__unit">{{results.fuel_consumption.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.co2_emissions.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.co2_emissions.value|intcomma}}</div>
-                            <div class="item__unit">{{results.co2_emissions.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.co2_savings.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.co2_savings.value|intcomma}}</div>
-                            <div class="item__unit">{{results.co2_savings.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <h2 class="subtitle">{% translate 'Capacity' %}</h2>
-                  <div class="row">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.pv_capacity.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.pv_capacity.value|intcomma}}</div>
-                            <div class="item__unit">{{results.pv_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.battery_capacity.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.battery_capacity.value|intcomma}}</div>
-                            <div class="item__unit">{{results.battery_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.inverter_capacity.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.inverter_capacity.value|intcomma}}</div>
-                            <div class="item__unit">{{results.inverter_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.diesel_genset_capacity.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.diesel_genset_capacity.value|intcomma}}</div>
-                            <div class="item__unit">{{results.diesel_genset_capacity.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.rectifier_capacity.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.rectifier_capacity.value|intcomma}}</div>
-                            <div class="item__unit">{{results.rectifier_capacity.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {% endif %}
-                  <div class="row">
-                    <div class="col col-md-6">
-                      <h2 class="title">{% translate 'Optimal Capacity of Components' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="optimalSizes"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col col-md-6">
-                      <h2 class="title">{% translate 'Duration Curves for All Components' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="durationCurves"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <h2 class="title">{% translate 'Sankey Diagram Representing the Energy Flow in the System' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="sankeyDiagram"></div>
-                        </div>
-                        <p style="font-size: 12px">{% translate '*electricity surplus is not shown' %}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <h2 class="title">{% translate 'Annual Energy Flows with 1-Hour Resolution' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="energyFlows"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Economic -->
-                <div class="tab-pane fade" id="economic-tabs-pane" role="tabpanel" aria-labelledby="economic-tabs" tabindex="0">
-                  <h2 class="subtitle">{% translate 'Economic Data' %}</h2>
-                  <div class="row">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_total.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_total.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_total.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_grid.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_grid.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_grid.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_pv.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_pv.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_pv.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_battery.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_battery.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_battery.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_inverter.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_inverter.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_inverter.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_diesel_genset.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_diesel_genset.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_diesel_genset.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.upfront_invest_rectifier.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.upfront_invest_rectifier.value|intcomma}}</div>
-                            <div class="item__unit">{{results.upfront_invest_rectifier.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.cost_fuel.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.cost_fuel.value|intcomma}}</div>
-                            <div class="item__unit">{{results.cost_fuel.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.epc_total.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_total.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_total.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.cost_grid.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.cost_grid.value|intcomma}}</div>
-                            <div class="item__unit">{{results.cost_grid.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.epc_pv.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_pv.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_pv.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.epc_battery.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_battery.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_battery.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.epc_inverter.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_inverter.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_inverter.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.epc_diesel_genset.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_diesel_genset.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_diesel_genset.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.epc_rectifier.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.epc_rectifier.value|intcomma}}</div>
-                            <div class="item__unit">{{results.epc_rectifier.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.lcoe.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.lcoe.value}}</div>
-                            <div class="item__unit">{{results.lcoe.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <h2 class="title">{% translate 'Breakdown of the LCOE' %}</h2>
-                      <div class="chart">
-                        <div class="chart__header">
-                          <div class="dropdown">
-                            <button class="btn dropdown-toggle btn--transparent"
-                                    type="button"
-                                    id="dropdownMenuButton4"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                              <span class="icon icon-more"></span>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
-                              <li>
-                                <a class="dropdown-item" href="#">{% translate 'Export as .xls' %}</a>
-                              </li>
-                              <li>
-                                <a class="dropdown-item" href="#">{% translate 'Export as PDF' %}</a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="chart__plot">
-                          <div id="lcoeBreakdown"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Demand -->
-                <div class="tab-pane fade" id="demand-tabs-pane" role="tabpanel" aria-labelledby="demand-tabs" tabindex="0">
-                  <h2 class="subtitle">{% translate 'Demand' %}</h2>
-                  <div class="row">
-                    <div class="col">
-                      <div class="row__single">
-                        <div class="item">
-                          <div class="item__name">{{results.total_annual_consumption.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.total_annual_consumption.value|intcomma}}</div>
-                            <div class="item__unit">{{results.total_annual_consumption.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.peak_demand.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.peak_demand.value|intcomma}}</div>
-                            <div class="item__unit">{{results.peak_demand.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.base_load.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.base_load.value|intcomma}}</div>
-                            <div class="item__unit">{{results.base_load.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.average_annual_demand_per_consumer.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.average_annual_demand_per_consumer.value|intcomma}}</div>
-                            <div class="item__unit">{{results.average_annual_demand_per_consumer.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.shortage_total.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.shortage_total.value}}</div>
-                            <div class="item__unit">{{results.shortage_total.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.max_shortage.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.max_shortage.value}}</div>
-                            <div class="item__unit">{{results.max_shortage.unit}}</div>
-                          </div>
-                        </div>
-                        <div class="item">
-                          <div class="item__name">{{results.total_surplus.verbose}}</div>
-                          <div class="item__result">
-                            <div class="item__value">{{results.total_surplus.value}}</div>
-                            <div class="item__unit">{{results.total_surplus.unit}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Environmental -->
-                <div class="tab-pane fade" id="environmental-tabs-pane" role="tabpanel" aria-labelledby="environmental-tabs" tabindex="0">
-                  <div class="row">
-                    <div class="col">
-                      <h2 class="title">{% translate 'Demand Coverage by Renewable and Non-Renewable Resources' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="demandCoverage"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <h2 class="title">{% translate 'Cumulative CO2 Emissions' %}</h2>
-                      <div class="chart">
-                        <div class="chart__plot">
-                          <div id="co2Emissions"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row" id="demandtsChart">
-              <div class="col">
-                <div class="chart">
-                  <div class="chart__header">
-                    <div>
-                      <h2 class="title">{% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}</h2>
-                    </div>
-                  </div>
                   <div class="chart__plot">
-                    <div id="demandTs"></div>
+                    <div id="lcoeBreakdown"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="col col-md-3">
+                <h2 class="title" style="visibility:hidden">LCOE KPIs</h2>
+                <div class="chart">
+                  <div class="item item--main" style="height: 100%; gap: 1rem; justify-content: flex-start;">
+                    <div class="item__name">{{ results.lcoe.verbose }}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{ results.lcoe.value }}</div>
+                      <div class="item__unit">{{ results.lcoe.unit }}</div>
+                    </div>
+                    <div class="item__illustration">
+                      <svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M192 80.91C191.998 79.9819 191.502 79.1246 190.698 78.6626L177.508 71.0872L190.703 63.471C191.507 63.0064 192.002 62.1484 192 61.2202C191.998 60.2921 191.502 59.4356 190.698 58.9736C168.213 46.0657 145.73 33.1526 123.248 20.2361C122.446 19.7749 121.461 19.776 120.659 20.2387L1.29901 89.1525C0.495005 89.616 5.30784e-06 90.4744 0.00188031 91.4017C0.00375531 92.3299 0.49838 93.1864 1.30426 93.6491C5.70001 96.1751 10.0969 98.6981 14.493 101.224L1.29713 108.841C0.49313 109.305 -0.00186969 110.163 5.30787e-06 111.091C0.00188031 112.019 0.49838 112.876 1.30238 113.338L14.4919 120.913L1.29713 128.53C0.49313 128.994 -0.00186969 129.852 5.30787e-06 130.78C0.00188031 131.708 0.49838 132.565 1.30238 133.027L68.7518 171.765C69.1523 171.994 69.5981 172.109 70.044 172.109C70.4918 172.109 70.9391 171.993 71.3411 171.761L190.703 102.848C191.507 102.385 192.001 101.526 192 100.598C191.998 99.6709 191.501 98.8136 190.697 98.3516L177.508 90.777L190.703 83.1592C191.507 82.6954 192.002 81.8374 192 80.91ZM121.959 25.4801C142.706 37.3999 163.454 49.3162 184.204 61.2292L139.278 87.1605C137.849 86.3512 135.227 84.852 131.818 82.8971L157.358 68.16C157.971 67.8052 158.413 67.2157 158.581 66.5272C158.749 65.8399 158.628 65.1124 158.246 64.5154C157.697 63.6555 156.891 61.9451 157.672 60.1537C158.199 58.9417 157.729 57.5269 156.584 56.8691L128.972 40.9999C128.303 40.6162 127.498 40.5487 126.773 40.8191C123.226 42.1436 118.385 41.934 114.444 40.2877C113.7 39.9787 112.847 40.0294 112.146 40.4355L85.1194 56.0419C84.1245 55.4689 83.1694 54.9191 82.2881 54.4117L77.0558 51.3997L121.959 25.4801ZM152.691 64.8611L126.611 79.9099C115.984 73.8082 101.345 65.3831 90.3176 59.0347L113.672 45.5471C118.14 47.1086 123.192 47.3047 127.392 46.0774L152.26 60.3697C152.04 61.8465 152.187 63.3754 152.691 64.8611ZM52.6721 65.4757C55.1786 66.9157 57.6855 68.3542 60.1924 69.7942L34.6958 84.5231C34.0826 84.8771 33.6401 85.4666 33.4729 86.1547C33.3041 86.8432 33.4256 87.5696 33.8074 88.1666C34.3564 89.0265 35.1623 90.7369 34.3834 92.5264C33.8565 93.7384 34.326 95.1532 35.4713 95.811L63.0743 111.655C63.7414 112.04 64.5506 112.107 65.2736 111.836C68.8174 110.513 73.6586 110.721 77.6048 112.365C77.9239 112.499 78.2636 112.565 78.603 112.565C79.0523 112.565 79.5015 112.449 79.9001 112.217L84.1534 109.761C91.7408 105.379 99.327 100.998 106.916 96.621L114.925 101.218L70.0399 127.141C49.29 115.23 28.5383 103.314 7.79325 91.3931L52.6721 65.4757ZM39.363 87.8197L65.3944 72.7815C76.374 79.0871 87.354 85.3927 98.3344 91.6957L101.712 93.6345C94.9931 97.5105 88.2758 101.388 81.5591 105.267L78.375 107.107C73.9039 105.545 68.8549 105.353 64.6538 106.579L39.7958 92.31C40.0136 90.834 39.8666 89.3051 39.363 87.8197ZM19.695 104.211C36.0465 113.605 52.3976 122.998 68.7518 132.385C69.1523 132.615 69.5981 132.73 70.044 132.73C70.4918 132.73 70.941 132.614 71.3411 132.382L117.537 105.702L117.57 119.391L70.0406 146.831L7.79401 111.082L19.695 104.211ZM70.0406 166.521L7.79401 130.771L19.6961 123.902L68.7518 152.076C69.1523 152.305 69.5981 152.42 70.044 152.42C70.4918 152.42 70.9391 152.304 71.3411 152.072L117.585 125.374L117.618 139.053L70.0406 166.521ZM122.8 136.061L122.716 101.204C122.715 100.276 122.218 99.4207 121.414 98.9599C121.414 98.9599 72.2145 70.719 57.8666 62.4757L71.8631 54.3979C71.8631 54.3979 132.392 89.2474 136.713 91.6039L136.785 127.986L122.8 136.061ZM184.206 100.608L141.969 124.994L141.941 111.312L172.312 93.7774L184.206 100.608ZM141.929 105.327L141.901 91.6391L172.311 74.0865L184.206 80.9182L141.929 105.327ZM62.4949 96.4159C61.7786 95.175 62.2028 93.588 63.4444 92.8721L74.811 86.3089C76.0493 85.5911 77.6389 86.0156 78.3548 87.2584C79.071 88.4992 78.6469 90.0862 77.4053 90.8021L66.0386 97.3654C65.6299 97.602 65.184 97.7134 64.743 97.7134C63.8479 97.713 62.9745 97.2487 62.4949 96.4159ZM131.003 56.8582C131.72 58.0991 131.295 59.6861 130.054 60.402L120.057 66.174C119.648 66.4106 119.202 66.522 118.761 66.522C117.866 66.522 116.993 66.0574 116.513 65.2249C115.797 63.984 116.221 62.397 117.463 61.6811L127.459 55.9091C128.699 55.1921 130.287 55.6151 131.003 56.8582Z" fill="#F2F5F7"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
-        <div id="noResults" class="modal" style="padding: 20px;">
-          <span class="close" title="{% translate 'Close Modal' %}">&times;</span>
-          <form class="modal-content" action="/action_page.php">
-            <div class="container">
-              <h1>{% translate 'No results' %}</h1>
-              <p id="pendingTaskMSG"></p>
-              <div style="text-align: center;">
-                <!-- Added text-align here -->
-                <a href="javascript:void(0);"
-                   onclick="forward_if_no_task_is_pending({{ proj_id }});"
-                   class="btn btn--long"
-                   style="display: block;
+          <!-- Demand -->
+          <div class="tab-pane fade" id="demand-tabs-pane" role="tabpanel" aria-labelledby="demand-tabs" tabindex="0">
+            <h2 class="subtitle">{% translate 'Demand' %}</h2>
+            <div class="row">
+              <div class="col">
+                <div class="row__single">
+                  {% for field in demand_kpis_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                  {% if shortage_is_selected %}
+                  {% for field in shortage_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Environmental -->
+          <div class="tab-pane fade" id="environmental-tabs-pane" role="tabpanel" aria-labelledby="environmental-tabs" tabindex="0">
+            <div class="row">
+              <div class="col">
+                <div class="row__single">
+                  {% for field in environmental_kpis_row_fields %}
+                  <div class="item">
+                    <div class="item__name">{{results|getkey:field|getkey:"verbose"|cut:"Capacity"}}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{results|getkey:field|getkey:"value"|floatformat:"0g"}}</div>
+                      <div class="item__unit">{{results|getkey:field|getkey:"unit"}}</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-md-9">
+                <h2 class="title">{% translate 'Demand Coverage by Renewable and Non-Renewable Resources' %}</h2>
+                <div class="chart">
+                  <div class="chart__plot">
+                    <div id="demandCoverage"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="col col-md-3">
+                <h2 class="title" style="visibility:hidden">Env. KPIs</h2>
+                <div class="chart">
+                  <div class="item item--main item--res" style="height: 100%; gap: 1rem; justify-content: flex-start;">
+                    <div class="item__name">{{ results.res.verbose }}</div>
+                    <div class="item__result">
+                      <div class="item__value">{{ results.res.value }}</div>
+                      <div class="item__unit">{{ results.res.unit }}</div>
+                    </div>
+                    <div class="item__illustration">
+                      <svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M159.639 159.639C188.02 131.26 194.155 87.0235 174.56 52.065C173.751 50.6192 171.918 50.1065 170.477 50.9151C169.031 51.7251 168.516 53.5532 169.326 54.9976C187.613 87.624 181.885 128.909 155.396 155.397C139.528 171.267 118.433 180.006 96 180.006C75.7106 180.006 56.5294 172.835 41.3059 159.727L51.7984 158.552C53.4448 158.367 54.6299 156.883 54.4453 155.237C54.2608 153.587 52.7461 152.389 51.1304 152.59L34.1983 154.487C33.9511 154.514 33.7407 154.623 33.5175 154.705C33.442 154.731 33.3671 154.745 33.2935 154.777C33.0496 154.89 32.8436 155.041 32.6419 155.21C32.5523 155.281 32.4441 155.314 32.3613 155.397C32.3258 155.432 32.3148 155.48 32.2815 155.517C32.1837 155.629 32.118 155.757 32.038 155.883C31.8825 156.117 31.7426 156.348 31.6597 156.607C31.6564 156.618 31.6564 156.629 31.6533 156.64C31.5194 157.074 31.5013 157.519 31.5696 157.965L33.4483 174.734C33.6196 176.268 34.919 177.4 36.4248 177.4C36.5376 177.4 36.6504 177.394 36.7632 177.381C38.4097 177.196 39.5947 175.712 39.4102 174.066L38.4117 165.153C54.5559 178.647 74.71 186.006 96 186.006C120.037 186.006 142.636 176.643 159.639 159.639Z" fill="#E6F5EF"/>
+                        <path d="M96 11.9941C116.156 11.9941 135.22 19.0699 150.395 32.0147L140.032 33.1758C138.385 33.3604 137.2 34.8442 137.385 36.4907C137.556 38.0244 138.855 39.1567 140.361 39.1567C140.474 39.1567 140.587 39.1509 140.7 39.1377L156.771 37.3372C157.766 37.595 158.859 37.3832 159.639 36.6035C160.562 35.6801 160.73 34.318 160.198 33.2032L158.382 16.9937C158.197 15.3457 156.677 14.1519 155.067 14.3467C153.42 14.5312 152.235 16.0151 152.42 17.6616L153.434 26.7136C137.316 13.3024 117.221 5.99414 96 5.99414C71.9633 5.99414 49.3637 15.3574 32.3613 32.3613C3.97994 60.7397 -2.15482 104.977 17.4404 139.935C17.9897 140.917 19.0092 141.469 20.0595 141.469C20.5561 141.469 21.06 141.346 21.5229 141.085C22.9687 140.275 23.4843 138.447 22.6743 137.002C4.38717 104.376 10.1147 63.0908 36.6035 36.6035C52.4721 20.7334 73.5673 11.9941 96 11.9941Z" fill="#E6F5EF"/>
+                        <path d="M88.2246 146.084C88.5205 146.178 88.8223 146.222 89.1211 146.222C90.085 146.222 91.0137 145.756 91.585 144.933L128.858 91.2773C129.495 90.3603 129.57 89.165 129.053 88.1763C128.536 87.186 127.51 86.5664 126.394 86.5664H105.879V48.7778C105.879 47.4668 105.028 46.3066 103.775 45.9155C102.527 45.5215 101.164 45.9873 100.415 47.0669L63.1421 100.723C62.5049 101.64 62.4302 102.835 62.9473 103.824C63.4644 104.814 64.4898 105.434 65.606 105.434H86.1211V143.222C86.1211 144.533 86.9722 145.693 88.2246 146.084ZM71.3423 99.4336L99.8789 58.355V89.5664C99.8789 91.2231 101.222 92.5664 102.879 92.5664H120.658L92.1211 133.645V102.434C92.1211 100.777 90.7779 99.4336 89.1211 99.4336H71.3423Z" fill="#E6F5EF"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+          <div class="col col-md-9">
+            <h2 class="title">{% translate 'Cumulative CO2 Emissions' %}</h2>
+            <div class="chart">
+              <div class="chart__plot">
+                <div id="co2Emissions"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col col-md-3">
+            <h2 class="title" style="visibility:hidden">Env. KPIs</h2>
+            <div class="chart">
+              <div class="item item--main" style="height: 100%; gap: 1rem; justify-content: flex-start;">
+                <div class="item__name">{{ results.co2_savings.verbose }}</div>
+                <div class="item__result">
+                  <div class="item__value">{{ results.co2_savings.value }}</div>
+                  <div class="item__unit">{{ results.co2_savings.unit }}</div>
+                </div>
+                <div class="item__illustration">
+                  <svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M162.441 48.48C162.947 46.2216 163.201 43.9143 163.2 41.6C163.209 35.6904 161.579 29.8939 158.491 24.8553C155.403 19.8167 150.978 15.7332 145.708 13.0591C140.438 10.385 134.53 9.22493 128.64 9.70796C122.75 10.191 117.109 12.2982 112.345 15.7952C105.843 8.60449 97.3137 3.55302 87.8825 1.3066C78.4514 -0.939824 68.561 -0.275734 59.5148 3.21133C50.4687 6.6984 42.6915 12.8448 37.2084 20.8402C31.7253 28.8357 28.7936 38.305 28.7999 48C28.7999 48.1984 28.7999 48.3968 28.7999 48.5952C20.1768 50.2014 12.4641 54.9691 7.17245 61.9646C1.88084 68.96 -0.608336 77.6791 0.192504 86.4138C0.993343 95.1486 5.0265 103.27 11.5019 109.186C17.9774 115.103 26.4285 118.389 35.1999 118.4H156.8C165.62 118.362 174.104 115.015 180.573 109.021C187.043 103.027 191.027 94.8224 191.736 86.0313C192.445 77.2401 189.829 68.503 184.404 61.5491C178.979 54.5951 171.141 49.9311 162.441 48.48ZM156.8 112H35.1999C27.8223 111.966 20.7393 109.101 15.4116 103.998C10.084 98.8945 6.91797 91.941 6.56664 84.5718C6.21532 77.2025 8.70544 69.9795 13.5234 64.3923C18.3414 58.8052 25.1199 55.28 32.4607 54.544C33.2817 54.4628 34.0397 54.0676 34.5763 53.4409C35.1129 52.8143 35.3868 52.0045 35.3407 51.1808L35.2863 50.2784C35.2511 49.52 35.1999 48.7584 35.1999 48C35.1924 39.3544 37.8804 30.9215 42.8898 23.8751C47.8991 16.8286 54.9807 11.5192 63.1488 8.68567C71.3169 5.85218 80.1652 5.63564 88.4621 8.06618C96.759 10.4967 104.092 15.4534 109.44 22.2464C109.712 22.5889 110.052 22.8719 110.438 23.078C110.824 23.284 111.248 23.4088 111.684 23.4445C112.12 23.4801 112.559 23.426 112.973 23.2855C113.387 23.1449 113.768 22.9209 114.093 22.6272C117.76 19.3027 122.315 17.1153 127.202 16.3308C132.09 15.5464 137.1 16.1986 141.624 18.2083C146.148 20.218 149.99 23.4986 152.684 27.6513C155.378 31.804 156.808 36.6499 156.8 41.6C156.801 44.5246 156.291 47.427 155.293 50.176C155.122 50.6474 155.065 51.1523 155.125 51.65C155.186 52.1477 155.362 52.6242 155.641 53.0411C155.919 53.4581 156.291 53.8038 156.728 54.0503C157.164 54.2969 157.653 54.4375 158.153 54.4608C165.58 54.9293 172.537 58.2542 177.567 63.7387C182.596 69.2233 185.307 76.4416 185.132 83.881C184.957 91.3204 181.91 98.4032 176.628 103.645C171.346 108.887 164.24 111.881 156.8 112Z" fill="#F2F5F7"/>
+                    <path d="M77.4689 167.162C76.9012 168.347 76.6855 169.671 76.8471 170.975C77.0087 172.28 77.541 173.51 78.3809 174.522L90.7105 189.498C91.3532 190.278 92.1608 190.907 93.0754 191.339C93.99 191.771 94.9887 191.995 96.0001 191.995C97.0114 191.995 98.0102 191.771 98.9248 191.339C99.8393 190.907 100.647 190.278 101.29 189.498L113.616 174.518C114.42 173.54 114.941 172.36 115.121 171.107C115.301 169.853 115.133 168.575 114.636 167.41C114.14 166.245 113.333 165.239 112.304 164.501C111.275 163.763 110.063 163.322 108.8 163.226V134.4C108.8 132.703 108.126 131.075 106.926 129.875C105.725 128.674 104.097 128 102.4 128H89.6001C87.9027 128 86.2748 128.674 85.0746 129.875C83.8744 131.075 83.2001 132.703 83.2001 134.4V163.226C81.9791 163.306 80.8023 163.713 79.7937 164.406C78.7851 165.099 77.9819 166.051 77.4689 167.162ZM83.6833 169.6H86.4001C87.2488 169.6 88.0627 169.263 88.6628 168.663C89.2629 168.063 89.6001 167.249 89.6001 166.4V134.4H102.4V166.4C102.4 167.249 102.737 168.063 103.337 168.663C103.937 169.263 104.751 169.6 105.6 169.6H108.342C108.432 169.597 108.52 169.622 108.594 169.673C108.668 169.724 108.723 169.797 108.752 169.882C108.802 169.969 108.823 170.07 108.813 170.171C108.802 170.271 108.761 170.366 108.694 170.442L96.3649 185.421C96.3228 185.472 96.2701 185.513 96.2103 185.541C96.1506 185.569 96.0853 185.584 96.0193 185.584C95.9532 185.584 95.888 185.569 95.8282 185.541C95.7685 185.513 95.7157 185.472 95.6737 185.421L83.3377 170.438C83.2712 170.363 83.2299 170.268 83.2196 170.168C83.2093 170.067 83.2304 169.966 83.2801 169.878C83.3096 169.796 83.3644 169.724 83.4368 169.674C83.5091 169.624 83.5954 169.598 83.6833 169.6Z" fill="#F2F5F7"/>
+                    <path d="M23.069 163.962C22.5013 165.147 22.2856 166.471 22.4472 167.775C22.6088 169.08 23.1411 170.31 23.981 171.322L36.3106 186.298C36.9533 187.078 37.7609 187.707 38.6755 188.139C39.5901 188.571 40.5888 188.795 41.6002 188.795C42.6115 188.795 43.6103 188.571 44.5248 188.139C45.4394 187.707 46.247 187.078 46.8898 186.298L59.2162 171.318C60.0205 170.34 60.541 169.16 60.7209 167.907C60.9009 166.653 60.7333 165.375 60.2366 164.21C59.7398 163.045 58.9329 162.039 57.9038 161.301C56.8747 160.563 55.6628 160.122 54.4002 160.026V131.2C54.4002 129.503 53.7259 127.875 52.5257 126.674C51.3254 125.474 49.6976 124.8 48.0002 124.8H35.2002C33.5028 124.8 31.8749 125.474 30.6747 126.674C29.4745 127.875 28.8002 129.503 28.8002 131.2V160.026C27.5792 160.106 26.4024 160.513 25.3938 161.206C24.3852 161.899 23.582 162.851 23.069 163.962ZM29.2834 166.4H32.0002C32.8489 166.4 33.6628 166.063 34.2629 165.463C34.863 164.863 35.2002 164.049 35.2002 163.2V131.2H48.0002V163.2C48.0002 164.049 48.3373 164.863 48.9374 165.463C49.5375 166.063 50.3515 166.4 51.2002 166.4H53.9426C54.0321 166.397 54.1203 166.422 54.1941 166.473C54.2679 166.524 54.3233 166.597 54.3522 166.682C54.4018 166.769 54.4229 166.87 54.4126 166.971C54.4023 167.071 54.361 167.166 54.2946 167.242L41.965 182.221C41.9229 182.272 41.8702 182.313 41.8104 182.341C41.7507 182.369 41.6854 182.384 41.6194 182.384C41.5533 182.384 41.4881 182.369 41.4283 182.341C41.3686 182.313 41.3158 182.272 41.2738 182.221L28.9186 167.251C28.8521 167.175 28.8108 167.081 28.8005 166.98C28.7902 166.88 28.8113 166.779 28.861 166.691C28.8892 166.603 28.946 166.526 29.0224 166.473C29.0989 166.421 29.1907 166.395 29.2834 166.4Z" fill="#F2F5F7"/>
+                    <path d="M131.872 163.958C131.305 165.144 131.09 166.467 131.251 167.772C131.413 169.076 131.945 170.307 132.784 171.318L145.114 186.294C145.756 187.075 146.563 187.704 147.478 188.136C148.392 188.567 149.391 188.791 150.402 188.791C151.413 188.791 152.411 188.567 153.326 188.136C154.24 187.704 155.047 187.075 155.69 186.294L168 171.331C168.841 170.321 169.375 169.091 169.538 167.786C169.702 166.482 169.488 165.158 168.922 163.971C168.411 162.86 167.61 161.907 166.603 161.213C165.596 160.518 164.42 160.108 163.2 160.026V131.2C163.2 129.503 162.526 127.875 161.326 126.674C160.125 125.474 158.497 124.8 156.8 124.8H144C142.303 124.8 140.675 125.474 139.475 126.674C138.274 127.875 137.6 129.503 137.6 131.2V160.026C136.38 160.107 135.205 160.514 134.197 161.206C133.189 161.898 132.386 162.849 131.872 163.958ZM137.664 166.688C137.693 166.6 137.75 166.524 137.826 166.472C137.903 166.42 137.994 166.395 138.086 166.4H140.816C141.665 166.4 142.479 166.063 143.079 165.463C143.679 164.863 144.016 164.049 144.016 163.2V131.2H156.816V163.2C156.816 164.049 157.153 164.863 157.753 165.463C158.353 166.063 159.167 166.4 160.016 166.4H162.758C162.848 166.396 162.935 166.421 163.009 166.472C163.083 166.522 163.139 166.594 163.168 166.678C163.217 166.767 163.238 166.869 163.227 166.97C163.216 167.07 163.174 167.165 163.107 167.242L150.778 182.221C150.736 182.272 150.683 182.313 150.624 182.341C150.564 182.369 150.499 182.384 150.434 182.384C150.368 182.384 150.303 182.369 150.243 182.341C150.184 182.313 150.131 182.272 150.09 182.221L137.757 167.242C137.686 167.17 137.64 167.078 137.623 166.979C137.607 166.88 137.621 166.779 137.664 166.688Z" fill="#F2F5F7"/>
+                    <path d="M67.1999 54.4C68.8973 54.4 70.5252 55.0743 71.7254 56.2745C72.9256 57.4748 73.5999 59.1026 73.5999 60.8C73.5999 61.6487 73.937 62.4626 74.5372 63.0627C75.1373 63.6629 75.9512 64 76.7999 64C77.6486 64 78.4625 63.6629 79.0626 63.0627C79.6628 62.4626 79.9999 61.6487 79.9999 60.8C79.9999 57.4052 78.6513 54.1495 76.2509 51.749C73.8504 49.3486 70.5947 48 67.1999 48C63.8051 48 60.5494 49.3486 58.1489 51.749C55.7485 54.1495 54.3999 57.4052 54.3999 60.8V80C54.3999 83.3948 55.7485 86.6505 58.1489 89.051C60.5494 91.4514 63.8051 92.8 67.1999 92.8C70.5947 92.8 73.8504 91.4514 76.2509 89.051C78.6513 86.6505 79.9999 83.3948 79.9999 80C79.9999 79.1513 79.6628 78.3374 79.0626 77.7373C78.4625 77.1371 77.6486 76.8 76.7999 76.8C75.9512 76.8 75.1373 77.1371 74.5372 77.7373C73.937 78.3374 73.5999 79.1513 73.5999 80C73.5999 81.6974 72.9256 83.3252 71.7254 84.5255C70.5252 85.7257 68.8973 86.4 67.1999 86.4C65.5025 86.4 63.8747 85.7257 62.6744 84.5255C61.4742 83.3252 60.7999 81.6974 60.7999 80V60.8C60.7999 59.1026 61.4742 57.4748 62.6744 56.2745C63.8747 55.0743 65.5025 54.4 67.1999 54.4Z" fill="#F2F5F7"/>
+                    <path d="M99.1999 48C95.8051 48 92.5494 49.3486 90.1489 51.749C87.7485 54.1495 86.3999 57.4052 86.3999 60.8V80C86.3999 83.3948 87.7485 86.6505 90.1489 89.051C92.5494 91.4514 95.8051 92.8 99.1999 92.8C102.595 92.8 105.85 91.4514 108.251 89.051C110.651 86.6505 112 83.3948 112 80V60.8C112 57.4052 110.651 54.1495 108.251 51.749C105.85 49.3486 102.595 48 99.1999 48ZM105.6 80C105.6 81.6974 104.926 83.3252 103.725 84.5255C102.525 85.7257 100.897 86.4 99.1999 86.4C97.5025 86.4 95.8747 85.7257 94.6744 84.5255C93.4742 83.3252 92.7999 81.6974 92.7999 80V60.8C92.7999 59.1026 93.4742 57.4748 94.6744 56.2745C95.8747 55.0743 97.5025 54.4 99.1999 54.4C100.897 54.4 102.525 55.0743 103.725 56.2745C104.926 57.4748 105.6 59.1026 105.6 60.8V80Z" fill="#F2F5F7"/>
+                    <path d="M137.6 70.4C137.6 67.8539 136.588 65.4121 134.788 63.6118C132.988 61.8114 130.546 60.8 128 60.8C125.984 60.7957 124.012 61.3951 122.34 62.5208C120.667 63.6466 119.369 65.2473 118.614 67.1168C118.315 67.8971 118.336 68.7638 118.672 69.5288C119.009 70.2938 119.633 70.8954 120.409 71.2032C121.192 71.5142 122.066 71.5065 122.843 71.1818C123.621 70.8571 124.24 70.2411 124.57 69.4656C124.856 68.793 125.334 68.2196 125.944 67.8167C126.554 67.4138 127.269 67.1994 128 67.2C128.849 67.2 129.663 67.5372 130.263 68.1373C130.863 68.7374 131.2 69.5513 131.2 70.4C131.2 74.2176 128.163 76.8384 124.944 79.6128C121.725 82.3872 118.4 85.2576 118.4 89.6C118.4 90.4487 118.737 91.2626 119.337 91.8628C119.937 92.4629 120.751 92.8 121.6 92.8H134.4C135.249 92.8 136.063 92.4629 136.663 91.8628C137.263 91.2626 137.6 90.4487 137.6 89.6C137.6 88.7513 137.263 87.9374 136.663 87.3373C136.063 86.7371 135.249 86.4 134.4 86.4H126.947C127.616 85.76 128.374 85.12 129.123 84.4608C132.899 81.2032 137.6 77.152 137.6 70.4Z" fill="#F2F5F7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="demandtsChart">
+        <div class="col">
+          <div class="chart">
+            <div class="chart__header">
+              <div>
+                <h2 class="title">{% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}</h2>
+              </div>
+            </div>
+            <div class="chart__plot">
+              <div id="demandTs"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div id="noResults" class="modal" style="padding: 20px;">
+    <span class="close" title="{% translate 'Close Modal' %}">&times;</span>
+    <form class="modal-content" action="/action_page.php">
+      <div class="container">
+        <h1>{% translate 'No results' %}</h1>
+        <p id="pendingTaskMSG"></p>
+        <div style="text-align: center;">
+          <!-- Added text-align here -->
+          <a href="javascript:void(0);"
+             onclick="forward_if_no_task_is_pending({{ proj_id }});"
+             class="btn btn--long"
+             style="display: block;
                           margin: 10px auto;
                           max-width: 300px">{% translate 'Yes, start calculation' %}</a>
-                <a href="project_setup?proj_id={{ proj_id }}"
-                   class="btn btn--long"
-                   style="display: block;
+          <a href="project_setup?proj_id={{ proj_id }}"
+             class="btn btn--long"
+             style="display: block;
                           margin: 10px auto;
                           max-width: 300px">{% translate 'No, go to project setup' %}</a>
-                <a href="/"
-                   class="btn btn--long"
-                   style="display: block;
+          <a href="/"
+             class="btn btn--long"
+             style="display: block;
                           margin: 10px auto;
                           max-width: 300px">{% translate 'Cancel' %}</a>
-              </div>
-            </div>
-          </form>
         </div>
-        <div id=pendingTask class="modal">
-          <span class="close" title="{% translate 'Close Modal' %}">&times;</span>
-          <form class="modal-content" action="/action_page.php">
-            <div class="container">
-              <h1>{% translate 'Revoke pending calculation?' %}</h1>
-              <p>
-                {% blocktranslate trimmed %}
-                You have a calculation in progress that has not yet been completed. Therefore, you cannot start
-                another calculation. You can either revoke the pending calculation or wait for it to be finished
-                {% endblocktranslate %}
-              </p>
-              <div class="clearfix">
-                <button onclick="abort_calculation();" type="button" class="deletebtn">{% translate 'Revoke' %}</button>
-                <button onclick="document.getElementById('pendingTask').style.display='none';"
-                        type="button"
-                        class="cancelbtn">{% translate 'Wait' %}</button>
-              </div>
-            </div>
-          </form>
+      </div>
+    </form>
+  </div>
+  <div id=pendingTask class="modal">
+    <span class="close" title="{% translate 'Close Modal' %}">&times;</span>
+    <form class="modal-content" action="/action_page.php">
+      <div class="container">
+        <h1>{% translate 'Revoke pending calculation?' %}</h1>
+        <p>
+          {% blocktranslate trimmed %}
+          You have a calculation in progress that has not yet been completed. Therefore, you cannot start
+          another calculation. You can either revoke the pending calculation or wait for it to be finished
+          {% endblocktranslate %}
+        </p>
+        <div class="clearfix">
+          <button onclick="abort_calculation();" type="button" class="deletebtn">{% translate 'Revoke' %}</button>
+          <button onclick="document.getElementById('pendingTask').style.display='none';"
+                  type="button"
+                  class="cancelbtn">{% translate 'Wait' %}</button>
         </div>
-      </main>
+      </div>
+    </form>
+  </div>
+</main>
 {% endblock progression_content %}
 {% block end_body_scripts %}
-    <script>
-      const proj_id = '{{ proj_id }}';
-      const boundsDict = {{ bounds_dict | safe }};
-      const csrfToken = '{{ csrf_token }}';
-      const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
-      const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
-      const loadPlotDataUrl = `{% url 'optimization:load_plot_data' proj_id %}`;
-      const loadDemandPlotUrl = `{% url 'optimization:load_demand_plot_data' proj_id %}`;
-      const downloadPDFReportUrl = `{% url 'projects:download_pdf_report' proj_id %}`;
-      const downloadExcelResultsUrl = `{% url 'projects:download_excel_results' proj_id %}`;
-    </script>
-  <script src="{% static 'js/integrate_map.js' %}"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="{% static 'js/third_party/plotly.js' %}"></script>
-  <script src="{% statici18n LANGUAGE_CODE %}"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
-  <script src="{% static 'js/pages/simulation_results.js' %}"></script>
-  <script src="{% static 'js/backend_communication.js' %}"></script>
+<script>
+  const proj_id = '{{ proj_id }}';
+  const boundsDict = {{ bounds_dict | safe }};
+  const csrfToken = '{{ csrf_token }}';
+  const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
+  const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
+  const dbRoadsToJsUrl = "{% url 'optimization:db_roads_to_js' proj_id %}";
+  const loadPlotDataUrl = `{% url 'optimization:load_plot_data' proj_id %}`;
+  const loadDemandPlotUrl = `{% url 'optimization:load_demand_plot_data' proj_id %}`;
+  const downloadPDFReportUrl = `{% url 'projects:download_pdf_report' proj_id %}`;
+  const downloadExcelResultsUrl = `{% url 'projects:download_excel_results' proj_id %}`;
+</script>
+<script src="{% static 'js/backend_communication.js' %}"></script>
+<script src="{% static 'js/integrate_map.js' %}"></script>
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static 'js/third_party/plotly.js' %}"></script>
+<script src="{% statici18n LANGUAGE_CODE %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+<script src="{% static 'js/pages/simulation_results.js' %}"></script>
 
-  <script>
-    const chartEl = document.getElementById('lcoeChart');
-    const generationValue = Number(chartEl.dataset.generation);
-    const gridValue       = Number(chartEl.dataset.grid);
+<script>
+  const resChartEl = document.getElementById('resChart');
+  const resValue = Number(resChartEl.dataset.res);
 
-    // Chart dimensions
-    const width = 70;
-    const height = 70;
-    const radius = Math.min(width, height) / 2;
-    const innerRadius = radius * 0.6;
-    
-    // Create SVG
-    const svg = d3.select('#lcoeChart')
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .append('g')
-      .attr('transform', `translate(${width/2},${height/2})`);
-    
-    const colors = ['#1F567D', '#87B2D1'];
-    
-    // Arc generator
-    const arc = d3.arc()
-      .innerRadius(innerRadius)
-      .outerRadius(radius);
-    
-    // Pie generator
-    const pie = d3.pie()
-      .sort(null)
-      .value(d => d.value);
-    
-    // Update chart
-    function updateChart(genValue, gridValue) {
-      const data = [
-        { label: 'Generation', value: genValue },
-        { label: 'Grid', value: gridValue }
-      ];
-        
-      // Update text values
-      document.getElementById('gen-value').textContent = genValue.toFixed(1);
-      document.getElementById('grid-value').textContent = gridValue.toFixed(1);
-      
-      // Bind data
-      const paths = svg.selectAll('path')
-        .data(pie(data));
-      
-      // Enter + Update
-      paths.enter()
-        .append('path')
-        .merge(paths)
-        .transition()
-        .duration(750)
-        .attrTween('d', function(d) {
-          const interpolate = d3.interpolate(this._current || d, d);
-          this._current = interpolate(1);
-          return t => arc(interpolate(t));
-        })
-      .attr('fill', (d, i) => colors[i])
-      .attr('stroke', 'white')
-      .attr('stroke-width', 2);
-      
-      // Exit
-      paths.exit().remove();
-    }
-    
-    // Initial render
-    updateChart(generationValue, gridValue);
-    
-    // Make updateChart function globally accessible
-    window.updateChart = updateChart;
-  </script>
+  // Chart dimensions
+  const resWidth = 70;
+  const resHeight = 70;
+  const resRadius = Math.min(resWidth, resHeight) / 2;
+  const resInnerRadius = resRadius * 0.6;
+
+  // Create SVG
+  const resSvg = d3.select('#resChart')
+    .append('svg')
+    .attr('width', resWidth)
+    .attr('height', resHeight)
+    .append('g')
+    .attr('transform', `translate(${resWidth/2},${resHeight/2})`);
+
+  const resColors = ['#1F7D5C', '#F4F7F9']; // green for RES, grey for remainder
+
+  // Arc generator
+  const resArc = d3.arc()
+    .innerRadius(resInnerRadius)
+    .outerRadius(resRadius);
+
+  // Pie generator
+  const resPie = d3.pie()
+    .sort(null)
+    .value(d => d.value);
+
+  // Update res chart
+  function updateResChart(resVal) {
+    const remainder = Math.max(0, 100 - resVal);
+    const data = [
+      { label: 'Renewable', value: resVal },
+      { label: 'Other',     value: remainder }
+    ];
+
+    document.getElementById('res-share-value').textContent = resVal.toFixed(1);
+
+    const paths = resSvg.selectAll('path')
+      .data(resPie(data));
+
+    paths.enter()
+      .append('path')
+      .merge(paths)
+      .transition()
+      .duration(750)
+      .attrTween('d', function(d) {
+        const interpolate = d3.interpolate(this._current || d, d);
+        this._current = interpolate(1);
+        return t => resArc(interpolate(t));
+      })
+      .attr('fill', (d, i) => resColors[i])
+
+    paths.exit().remove();
+  }
+
+  // Initial render
+  updateResChart(resValue);
+
+  // Expose globally for dynamic updates
+  window.updateResChart = updateResChart;
+</script>
+<script>
+  const chartEl = document.getElementById('lcoeChart');
+  const generationValue = Number(chartEl.dataset.generation);
+  const gridValue       = Number(chartEl.dataset.grid);
+
+  // Chart dimensions
+  const width = 70;
+  const height = 70;
+  const radius = Math.min(width, height) / 2;
+  const innerRadius = radius * 0.6;
+
+  // Create SVG
+  const svg = d3.select('#lcoeChart')
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .append('g')
+    .attr('transform', `translate(${width/2},${height/2})`);
+
+  const colors = ['#1F567D', '#87B2D1'];
+
+  // Arc generator
+  const arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(radius);
+
+  // Pie generator
+  const pie = d3.pie()
+    .sort(null)
+    .value(d => d.value);
+
+  // Update chart
+  function updateChart(genValue, gridValue) {
+    const data = [
+      { label: 'Generation', value: genValue },
+      { label: 'Grid', value: gridValue }
+    ];
+
+    // Update text values
+    document.getElementById('gen-value').textContent = genValue.toFixed(1);
+    document.getElementById('grid-value').textContent = gridValue.toFixed(1);
+
+    // Bind data
+    const paths = svg.selectAll('path')
+      .data(pie(data));
+
+    // Enter + Update
+    paths.enter()
+      .append('path')
+      .merge(paths)
+      .transition()
+      .duration(750)
+      .attrTween('d', function(d) {
+        const interpolate = d3.interpolate(this._current || d, d);
+        this._current = interpolate(1);
+        return t => arc(interpolate(t));
+      })
+    .attr('fill', (d, i) => colors[i])
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2);
+
+    // Exit
+    paths.exit().remove();
+  }
+
+  // Initial render
+  updateChart(generationValue, gridValue);
+
+  // Make updateChart function globally accessible
+  window.updateChart = updateChart;
+</script>
 {% endblock end_body_scripts %}
 </html>

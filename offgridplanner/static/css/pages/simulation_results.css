@@ -19,6 +19,7 @@
 #dashboard .chart {
     background-color: transparent;
     box-shadow: none;
+    height: 32rem;
 }
 
 #dashboard .chart .chart__header {
@@ -26,13 +27,13 @@
 }
 
 #dashboard .chart .chart__header h2 {
-    font-size: var(--font-size--md);
+    font-size: var(--font-size--lg);
     font-weight: 900;
     color: var(--font-color--secondary);
 }
 
 #dashboard .chart.map-wrapper {
-    height: 42rem;
+    height: 50rem;
 }
 
 #dashboard .chart .row {
@@ -41,6 +42,7 @@
 
 #dashboard .chart .row:has(.item--main) {
     gap: 1rem;
+    flex-wrap: nowrap;
 }
 
 #dashboard .chart .item {
@@ -52,7 +54,7 @@
     align-items: flex-start;
     border-radius: 0.5rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .chart .item.item--main {
@@ -111,7 +113,39 @@
     line-height: 130%;
 }
 
+#dashboard .chart .item.item--main .item__illustration {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 #dashboard .chart .item.item--main.item--res .item__unit {
+    color: var(--font-color--success);
+}
+
+#dashboard .chart .item.item--main.item--res .res-chart-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+#dashboard .chart .item.item--main.item--res .item__title {
+    font-size: var(--font-size--lg);
+    color: #5F8B7C;
+    font-weight: 400;
+    line-height: 130%;
+}
+
+#dashboard .chart .item.item--main.item--res .label-value {
+    font-size: var(--font-size--xl);
+    font-weight: 700;
+    color: var(--font-color--success);
+}
+
+.res-chart-wrapper .label-percent {
+    font-size: var(--font-size--sm);
     color: var(--font-color--success);
 }
 
@@ -141,7 +175,7 @@
     border-radius: 0.5rem;
     padding: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .chart .row__single .item {
@@ -180,6 +214,35 @@
     font-weight: 400;
     color: var(--font-color--highlight);
     line-height: 130%;
+}
+
+@media (max-height: 982px) or (max-width: 1308px) {
+    #dashboard .chart.map-wrapper {
+        height: 43rem;
+    }
+
+    #dashboard .chart .row:has(.item--main) {
+        flex-wrap: wrap;
+    }
+
+    #dashboard .chart .item.item--main {
+        height: 8rem;
+        padding: 1rem 1.25rem;
+    }
+
+    #dashboard .chart .item.item--main .item__name,
+    #dashboard .chart .item.item--main.item--res .item__title,
+    #dashboard .chart .item.item--share .item__title {
+        font-size: var(--font-size--md);
+    }
+
+    #dashboard .chart .item.item--main .item__value {
+        font-size: var(--font-size--xl);
+    }
+
+    #dashboard .chart .row__single {
+        height: 5.5rem;
+    }
 }
 
 #dashboard .results-section {
@@ -222,7 +285,7 @@
     padding: 1rem;
     margin-bottom: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 #dashboard .tab-content .row__single .item {
@@ -272,7 +335,7 @@
     border-radius: 0.5rem;
     padding: 1rem;
     background: var(--background-color--main);
-    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 4px 0 rgba(31, 86, 125, 0.15);
 }
 
 /* LCOE Donut Chart */

@@ -49,7 +49,8 @@ class CustomModelForm(ModelForm):
 
 
 class CustomDemandForm(CustomModelForm):
-    percentage_fields = ["very_low", "low", "middle", "high", "very_high"]
+    percentage_fields = ["low", "middle", "high"]
+    w_to_kw_factor = 1000
 
     class Meta:
         model = CustomDemand
@@ -66,6 +67,12 @@ class CustomDemandForm(CustomModelForm):
                     getattr(instance, field),
                     upper_limit=100,
                 )
+
+            calibration_field = instance.calibration_option
+            if calibration_field:
+                initial[calibration_field] = (
+                    getattr(instance, calibration_field) / self.w_to_kw_factor
+                )  # Change units from W to kW for display in form
 
             kwargs["initial"] = initial
 
@@ -88,6 +95,9 @@ class CustomDemandForm(CustomModelForm):
                     value,
                     upper_limit=1,
                 )
+            if field in ["annual_peak_consumption", "annual_total_consumption"]:
+                if self.cleaned_data[field] is not None:
+                    self.cleaned_data[field] *= self.w_to_kw_factor
 
         return cleaned_data
 
@@ -100,6 +110,7 @@ class CustomDemandForm(CustomModelForm):
             value /= 100.0
         elif upper_limit == upper_limit_hundred:
             value *= 100
+            value = round(value, 1)
         else:
             msg = "Upper limit must be either 1 or 100"
             raise ValueError(msg)
@@ -117,3 +128,27 @@ class EnergySystemDesignForm(CustomModelForm):
     class Meta:
         model = EnergySystemDesign
         exclude = ["project"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        def _is_selected_lbl(component):
+            # Return the label for the corresponding "is_selected" form field
+            return f"{component}_settings_is_selected"
+
+        def _switch_related_fields(key_component, component_group):
+            # Switch a group of components to selected if a key component is selected
+            key_component_is_selected = cleaned_data.get(
+                _is_selected_lbl(key_component)
+            )
+            if key_component_is_selected:
+                # Remove the key component as it is already selected
+                component_group.remove(key_component)
+                for component in component_group:
+                    cleaned_data[_is_selected_lbl(component)] = True
+
+        # If h2_storage is selected, select all other hydrogen components (as they do not have a checkbox each)
+        _switch_related_fields(
+            "h2_storage", ["h2_storage", "fuel_cell", "electrolyzer"]
+        )
+        return cleaned_data

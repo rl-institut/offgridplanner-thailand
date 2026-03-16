@@ -151,12 +151,16 @@
                   </div>
 
                   <!-- Hydrogen System Accordion (Parent) -->
-              <div class="accordion-item esd-component" id="selectHydrogenBox">
+              <div class="accordion-item esd-component" id="selectH2_storageBox">
                 <h2 class="accordion-header" id="headingHydrogen">
                   <div class="d-flex align-items-center w-100">
-                    <div class="form-check" style="z-index: 1000; padding-left: 1.5rem;">
-                      <input type="checkbox" class="form-check-input" id="id_hydrogen_settings_is_selected" name="hydrogen_settings_is_selected" checked onchange="check_box_visibility('hydrogen');">
-                    </div>
+                        <div class="form-check" style="z-index: 1000; padding-left: 1.5rem;">
+                            {% for field_name, field in grouped_fields|getkey:"H2 Storage" %}
+                            {% if field_name == "h2_storage_settings_is_selected" %}
+                              {{ field|add_class:"form-check-input" }}
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse"
                             data-bs-target="#collapseHydrogen" aria-expanded="false"
                             aria-controls="collapseHydrogen" style="border: none;">

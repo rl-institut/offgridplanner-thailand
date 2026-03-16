@@ -1,13 +1,24 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import QuerySet
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
+from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
 from django.views.generic import RedirectView
 from django.views.generic import UpdateView
 
+from offgridplanner.users.forms import CaptchaForm
+from offgridplanner.users.forms import UserSignupForm
 from offgridplanner.users.models import User
 
 UserModel = get_user_model()
@@ -47,3 +58,83 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
 
 user_redirect_view = UserRedirectView.as_view()
+
+
+class CustomLoginView(LoginView):
+    template_name = "account/login.html"
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse_lazy("projects:projects_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault("captcha_form", CaptchaForm())
+        context.setdefault("show_modal", False)
+        return context
+
+    def get(self, request, *args, **kwargs):
+        if not request.session.get("wip_info_shown", False):
+            msg = mark_safe(  # noqa: S308 (safe since no content is user-provided)
+                "Dear user, <br> The Offgridplanner Thailand tool is currently under development and will continue to "
+                "be improved throughout the duration of the Green-H2-Islands project. As the tool evolves, certain features or results may change. "
+                "We welcome feedback that can help us further enhance the tool. If you have suggestions, comments, or "
+                "encounter any issues, please contact us at <a href='mailto:offgridplanner@rl-institut.de'>offgridplanner@rl-institut.de</a>."
+            )
+            messages.info(request, msg)
+            request.session["wip_info_shown"] = True
+
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if "guest_submit" in request.POST:
+            captcha_form = CaptchaForm(request.POST)
+
+            if captcha_form.is_valid():
+                return redirect("projects:demo_start")
+
+            return self.render_to_response(
+                self.get_context_data(
+                    form=self.get_form(),
+                    captcha_form=captcha_form,
+                    show_modal=True,
+                )
+            )
+
+        return super().post(request, *args, **kwargs)
+
+
+login_view = CustomLoginView.as_view()
+
+
+@login_required
+@require_http_methods(["POST"])
+def demo_convert_account(request):
+    user = request.user
+
+    form = UserSignupForm(request.POST)
+    if form.is_valid():
+        email = form.cleaned_data["email"].lower()
+        password = form.cleaned_data["password1"]
+
+        user_qs = User.objects.filter(email=email)
+        if not hasattr(user, "demo") or user_qs.exists():
+            # Account is already a real user account
+            msg = "User account already exists"
+            messages.add_message(request, messages.INFO, msg)
+            return redirect("projects:projects_list")
+
+        user.email = email
+        user.set_password(password)
+        user.save()
+
+        # Remove demo marker
+        user.demo.delete()
+
+        # Update hash to keep user logged in
+        update_session_auth_hash(request, user)
+        msg = "User account successfully created"
+        messages.add_message(request, messages.INFO, msg)
+
+        return redirect("projects:projects_list")
+    return render(request, "pages/user_projects.html", {"signup_form": form})

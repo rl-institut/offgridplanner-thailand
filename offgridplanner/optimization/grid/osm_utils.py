@@ -8,13 +8,14 @@ from raw OpenStreetMap data.
 """
 
 import datetime
-import json
 import math
 import time
-import urllib.request
 
+import httpx
 import numpy as np
 from shapely import geometry
+
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 
 def get_consumer_within_boundaries(df):
@@ -26,23 +27,26 @@ def get_consumer_within_boundaries(df):
         df["latitude"].max(),
         df["longitude"].max(),
     )
-    url = (
-        f"https://www.overpass-api.de/api/interpreter?data=[out:json][timeout:2500]"
+
+    query = (
+        f"[out:json][timeout:2500]"
         f"[bbox:{min_latitude},{min_longitude},{max_latitude},{max_longitude}];"
         f'way["building"="yes"];(._;>;);out;'
     )
-    url_formatted = url.replace(" ", "+")
 
-    if not url_formatted.startswith(("http:", "https:")):
-        error = "URL must start with 'http:' or 'https:'"
-        raise ValueError(error)
+    try:
+        resp = httpx.get(OVERPASS_URL, params={"data": query}, timeout=30)
+        resp.raise_for_status()
 
-    with urllib.request.urlopen(url_formatted) as url:  # noqa: S310 (fixed with ValueError call above)
-        res = url.read().decode()
-        if len(res) > 0:
-            data = json.loads(res)
+        if resp.content:
+            data = resp.json()
         else:
             return None, None
+
+    except (httpx.HTTPError, httpx.ReadTimeout) as exc:
+        err = f"Overpass request failed: {exc}"
+        raise RuntimeError(err) from exc
+
     # first converting the json file, which is delivered by overpass to geojson,
     # then obtaining coordinates and surface areas of all buildings inside the
     # 'big' rectangle.
@@ -257,3 +261,45 @@ def xy_coordinates_from_latitude_longitude(
     x = r * (longitude_rad - ref_longitude_rad) * math.cos(ref_latitude)
     y = r * (latitude_rad - ref_latitude_rad)
     return x, y
+
+
+def get_roads_within_boundaries(df):
+    min_latitude, min_longitude, max_latitude, max_longitude = (
+        df["latitude"].min(),
+        df["longitude"].min(),
+        df["latitude"].max(),
+        df["longitude"].max(),
+    )
+
+    query = (
+        f"[out:json][timeout:2500];"
+        f'(way["highway"]({min_latitude},{min_longitude},{max_latitude},{max_longitude}););'
+        f"(._;>;);out;"
+    )
+
+    try:
+        resp = httpx.get(OVERPASS_URL, params={"data": query}, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except (httpx.HTTPError, httpx.ReadTimeout) as exc:
+        err = f"Overpass request failed: {exc}"
+        raise RuntimeError(err) from exc
+
+    road_coords = {}
+    for element in data.get("elements", []):
+        if element["type"] == "way" and "nodes" in element:
+            coords = []
+            for node in element["nodes"]:
+                node_el = next(
+                    (
+                        el
+                        for el in data["elements"]
+                        if el["id"] == node and el["type"] == "node"
+                    ),
+                    None,
+                )
+                if node_el:
+                    coords.append([node_el["lat"], node_el["lon"]])
+            road_coords[element["id"]] = coords
+
+    return data, road_coords

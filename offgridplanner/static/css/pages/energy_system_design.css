@@ -11,7 +11,7 @@
     -webkit-box-pack: center;
     -ms-flex-pack: center;
     justify-content: center;
-    background-color: var(--background-color--secondary);
+    background-color: #F4F7F9;
     color: var(--font-color--main);
     min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
     padding: 3rem 0 4rem;
@@ -24,7 +24,7 @@
     padding-right: var(--padding-normal);
 }
 
-.esd-sidebar, 
+.esd-sidebar,
 .esd-diagram {
     background-color: var(--background-color--main);
     border: 1px solid var(--border-color);
@@ -45,7 +45,7 @@
     margin-bottom: 0;
 }
 
-.esd-sidebar__content, 
+.esd-sidebar__content,
 .esd-diagram__content {
     padding: var(--padding-normal);
 }
