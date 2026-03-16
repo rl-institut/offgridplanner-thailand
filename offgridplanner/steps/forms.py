@@ -110,6 +110,7 @@ class CustomDemandForm(CustomModelForm):
             value /= 100.0
         elif upper_limit == upper_limit_hundred:
             value *= 100
+            value = round(value, 1)
         else:
             msg = "Upper limit must be either 1 or 100"
             raise ValueError(msg)
