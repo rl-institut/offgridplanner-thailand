@@ -84,8 +84,6 @@ const AppState = {
         trace1Y: [], //trace1
         trace2Y: [], //trace2
         trace3Y: [], //trace3
-        trace4Y: [], //trace4
-        trace5Y: [] //trace5
     }
 };
 
@@ -106,11 +104,9 @@ function initDOM() {
     AppState.calibration_option = AppState.option7Radio.checked ? 'kWh' : 'kW';
 
     AppState.customShares = {
-        id_very_low: document.getElementById('id_very_low'),
         id_low: document.getElementById('id_low'),
         id_middle: document.getElementById('id_middle'),
         id_high: document.getElementById('id_high'),
-        id_very_high: document.getElementById('id_very_high')
     };
 }
 
@@ -164,11 +160,9 @@ const colors = {
 
     average: 'black',
 
-    very_high: 'blue',
     high: 'green',
     middle: 'black',
     low: 'orange',
-    very_low: 'red'
 };
 
 var layout = {
@@ -200,11 +194,9 @@ var layout = {
 function buildPlot(data) {
     const {
         x,
-        'Very High Consumption': Very_High,
         'High Consumption': High,
         'Middle Consumption': Middle,
         'Low Consumption': Low,
-        'Very Low Consumption': Very_Low,
         Average,
         households,
         enterprises,
@@ -284,15 +276,6 @@ function buildPlot(data) {
         },
         {
             x: x,
-            y: Very_High,
-            mode: 'lines',
-            name: 'Very High Consumption',
-            line: { color: colors.very_high, width: 1, shape: 'spline' },
-            visible: 'legendonly',
-            legendrank: 5
-        },
-        {
-            x: x,
             y: High,
             mode: 'lines',
             name: 'High Consumption',
@@ -318,23 +301,12 @@ function buildPlot(data) {
             visible: 'legendonly',
             legendrank: 8
         },
-        {
-            x: x,
-            y: Very_Low,
-            mode: 'lines',
-            name: 'Very Low Consumption',
-            line: { color: colors.very_low, width: 1, shape: 'spline' },
-            visible: 'legendonly',
-            legendrank: 9
-        }
     ];
 
     //update y-values, so they can be used globally for average share update
-    AppState.traces.trace1Y = dataTraces[9].y; // trace1: index 9
-    AppState.traces.trace2Y = dataTraces[8].y; // trace2: index 8
-    AppState.traces.trace3Y = dataTraces[7].y; // trace3: index 7
-    AppState.traces.trace4Y = dataTraces[6].y; // trace4: index 6
-    AppState.traces.trace5Y = dataTraces[5].y; // trace5: index 5
+    AppState.traces.trace1Y = dataTraces[7].y;
+    AppState.traces.trace2Y = dataTraces[6].y;
+    AppState.traces.trace3Y = dataTraces[5].y;
 
     Plotly.react(AppState.plotElement, dataTraces, layout);
 }
@@ -377,18 +349,14 @@ function updateAverageArray() {
     const shares = AppState.customShares;
 
     //retrieve input values from AppState and convert percentage to decimals
-    const share1 = (parseFloat(shares.id_very_low.value) || 0) / 100;
-    const share2 = (parseFloat(shares.id_low.value) || 0) / 100;
-    const share3 = (parseFloat(shares.id_middle.value) || 0) / 100;
-    const share4 = (parseFloat(shares.id_high.value) || 0) / 100;
-    const share5 = (parseFloat(shares.id_very_high.value) || 0) / 100;
+    const share1 = (parseFloat(shares.id_low.value) || 0) / 100;
+    const share2 = (parseFloat(shares.id_middle.value) || 0) / 100;
+    const share3 = (parseFloat(shares.id_high.value) || 0) / 100;
 
     AppState.average_raw.forEach((val, idx) => {
         AppState.average_raw[idx] = (share1 * AppState.traces.trace1Y[idx]) +
                                     (share2 * AppState.traces.trace2Y[idx]) +
-                                    (share3 * AppState.traces.trace3Y[idx]) +
-                                    (share4 * AppState.traces.trace4Y[idx]) +
-                                    (share5 * AppState.traces.trace5Y[idx]);
+                                    (share3 * AppState.traces.trace3Y[idx]);
     0});
     AppState.average_shares = AppState.average_raw;
 }
