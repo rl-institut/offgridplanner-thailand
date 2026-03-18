@@ -54,7 +54,7 @@
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
     {% block start_body_scripts %}{% endblock %}
-    {% url 'model_description' as documentation_url %}
+    {% url 'documentation' as documentation_url %}
     {% block navbar %}
       {% include "navbar.html" with user=user documentation_url=documentation_url %}
     {% endblock navbar %}

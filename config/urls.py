@@ -13,6 +13,7 @@ from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
 
+from offgridplanner.projects.helpers import DATA_SOURCES
 from offgridplanner.users.views import CustomLoginView
 
 urlpatterns = (
@@ -28,9 +29,12 @@ urlpatterns = (
             name="training_tasks",
         ),
         path(
-            "model_description/",
-            TemplateView.as_view(template_name="pages/model_description.html"),
-            name="model_description",
+            "documentation/",
+            TemplateView.as_view(
+                template_name="pages/documentation.html",
+                extra_context={"sources_table": DATA_SOURCES},
+            ),
+            name="documentation",
         ),
         path(
             "imprint/",

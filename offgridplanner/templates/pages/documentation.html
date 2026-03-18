@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block head_block %}
+<link rel="stylesheet"
+      href="{% static 'css/pages/documentation.css' %}"
+      type="text/css" />
+{% endblock head_block %}
+
+{% block content %}
+<section id="section" class="mod_descrip_dashboard dashboard">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+              <h1>Documentation</h1>
+                <hr>
+                <h2>About the Project</h2>
+                <p>
+                    Within the Green H2Island research project, the Offgridplanner was adapted to the Thai context and enhanced with hydrogen-related components - including storage, electrolyser, and fuel cell - to integrate green hydrogen as a seasonal storage solution into mini-grid system design and optimisation. The tool was further developed by Reiner Lemoine Institut (RLI) with support from consortium partners H2 Powercell and Recharge, who provided valuable feedback on default parameters for the hydrogen components.
+                </p>
+                <p>
+                    The project explores how the integration of a hydrogen system into the existing community-operated renewable energy infrastructure on the Thai island of Koh Jik can enable a secure and reliable 100% renewable energy supply. The findings aim to serve as a model for implementing similar solutions on other islands across Southeast Asia.
+                </p>
+                <p>
+                    The Green H2Islands project (FKZ: 67EXI7501A) is funded by the Federal Ministry for the Environment, Climate Action, Nature Conservation and Nuclear Safety (BMUKN) as part of the “Export Initiative Environmental Protection” (EXI). As the EXI project management agency, Zukunft - Umwelt - Gesellschaft (ZUG) gGmbH supports the Federal Ministry for the Environment in carrying out its tasks. As a project of the thematic focus “green hydrogen and fuel cell technologies for decentralized energy supply” within the Export Initiative Environmental Protection, NOW GmbH supports the Green H2Islands project in its function as a program company.
+                </p>
+                <p><strong>Project duration:</strong> October 2024 - September 2027</p>
+                <p style="text-align:left">
+                    <strong>Further information:</strong>
+                    <a href="https://reiner-lemoine-institut.de/en/project/green-h2-islands-hydrogen-for-a-100-precent-renewable-energy-supply-for-islands-in-southeast-asia/" target="_blank" rel="noopener noreferrer">https://reiner-lemoine-institut.de/en/project/green-h2-islands-hydrogen-for-a-100-precent-renewable-energy-supply-for-islands-in-southeast-asia/</a>
+                </p>
+                <p>
+                    If you have specific questions regarding the following documentation, please contact:
+                    <a href="mailto:offgridplanner@rl-institut.de">offgridplanner@rl-institut.de</a>
+                </p>
+            </div>
+          <div class="logo-banner">
+            <a href="https://www.bundesumweltministerium.de/" target="_blank">
+              <img src="{% static 'assets/logos/EXI_BMU-Kombi-Logo_gefoerdert_en_RGB_2025.svg' %}" />
+            </a>
+            <a href="https://reiner-lemoine-institut.de/" target="_blank">
+              <img src="{% static 'assets/logos/LogoRLI.svg' %}"/>
+            </a>
+            <a href="https://www.now-gmbh.de" target="_blank">
+              <img src="{% static 'assets/logos/Logo_NOW.jpg' %}"/>
+            </a>
+            <a href="https://www.z-u-g.org/" target="_blank">
+              <img src="{% static 'assets/logos/Logo_ZUG.png' %}"/>
+            </a>
+
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <hr>
+                <h1>Model Description</h1>
+                <p>
+                    This section provides a brief overview of the models used in the backend of the tool. Each model is designed to address specific tasks related to spatial grid planning, and the optimal sizing of energy converters. Together, these models contribute to a comprehensive analysis framework, supporting the planning and optimization of off-grid energy systems. Below is a description of each model and its specific functionality.
+                </p>
+                <ul>
+                  <li><a href="#grid_tool">Description of the Spatial Grid Optimization Tool</a></li>
+                  <li><a href="#es_tool">Description of the Energy System Optimization Tool</a></li>
+                  <li><a href="#sources">Data Sources</a>
+                    <ul>
+                      <li><a href="#techno-economic-sources">Techno-economic default values</a></li>
+                      <li><a href="#demand-data-sources">Demand data</a></li>
+                    </ul>
+                  </li>
+                </ul>
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h4 id="grid_tool">Description of the Spatial Grid Optimization Tool</h4>
+                <img src="{% static 'images/grid_alg_7.png' %}" class="img-fluid" alt="Grid Optimization">
+                <p>The Spatial Grid Optimization model strategically identifies optimal locations for poles, distribution cables, and connection cables to build the distribution grid. It achieves this by first clustering consumers and then connecting these clusters in a way that results in the lowest total distance. This approach minimizes investment and operational costs while ensuring comprehensive coverage and adherence to connection and distance constraints. Additionally, the model calculates annualized costs for assessing the Levelized Cost of Energy (LCOE).</p>
+                <p>The model provides the option to identify consumers with particularly high connection costs and exclude them from being connected to the grid. Instead, these consumers should be equipped with a solar home system. To achieve this, the costs for poles, connection, and distribution cables are distributed among consumers along each branch and its sub-branches, starting from the load center of the grid, which is the pole closest to the median longitude and latitude values. For each branch and its sub-branches, the costs are allocated from the load center, with consumers only responsible for the costs of poles and cables connecting them towards the load center. Costs for poles and cables beyond a consumer are borne by subsequent consumers.</p>
+                <p>The user can set a threshold value called Max Specific Grid Cost. If a consumer exceeds this cost, they are excluded from the grid. Starting from the ends of the branches, consumers with excessive costs are identified, and when consumers are excluded, the cost distribution is recalculated iteratively. The process continues until the consumer at the end of a branch falls below the threshold. Once this happens, the branch is no longer evaluated. The process stops when all consumers at the ends of branches have costs below the threshold.</p>
+            </div>
+            <div class="col-md-6">
+                <ol>
+                    <li>The starting point for the optimization are the respective geolocations of the consumers.
+                        <div class="text-center">
+                            <img src="{% static 'images/grid_alg_1.png' %}" class="img-fluid" alt="Grid Optimization">
+                        </div>
+                    </li>
+                    <li>Clustering of consumers by constrained Kmeans algorithm (size of clusters are limited).
+                        <div class="text-center">
+                            <img src="{% static 'images/grid_alg_2.png' %}" class="img-fluid" alt="Grid Optimization">
+                        </div>
+                    </li>
+                    <li>The centroids of the clusters are taken as the geolocations of the poles.
+                        <div class="text-center">
+                            <img src="{% static 'images/grid_alg_3.png' %}" class="img-fluid" alt="Grid Optimization">
+                        </div>
+                    </li>
+                    <li>Each consumer is connected to its cluster pole.
+                        <div class="text-center">
+                            <img src="{% static 'images/grid_alg_4.png' %}" class="img-fluid" alt="Grid Optimization">
+                        </div>
+                    </li>
+                    <li>A minimum spanning tree (MST) is then constructed from this graph, which connects all the poles with minimum total distance (Kruskal's algorithm).
+                        <div class="text-center">
+                            <img src="{% static 'images/grid_alg_5.png' %}" class="img-fluid" alt="Grid Optimization">
+                        </div>
+                    </li>
+                    <li>Addition of intermediate poles to prevent unacceptable cable spans.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+              <hr>
+                <h4 id="es_tool">Description of the Energy System Optimization Tool</h4>
+                <p>This tool is a comprehensive solution for the design and optimization of off-grid energy systems. It integrates a variety of energy sources, including photovoltaic (PV) systems and diesel generators, and supports key components such as battery systems, inverters, hydrogen components and rectifiers. The tool's core functionality lies in its ability to design and optimize these systems to meet specific energy demands in the most cost-efficient way. It uses advanced data modeling techniques, including ERA5 satellite data and PVLIB, to accurately simulate solar potentials, ensuring that PV systems are optimized for the specific environmental conditions of the installation site.</p>
+                <p>A central aspect of the tool is its focus on minimizing the total annualized costs. Annualized costs account for both the capital expenditures (CapEx) associated with the installation of energy systems and the operational expenditures (OpEx) incurred throughout their lifetime. By optimizing the balance between these costs, the tool generates a configuration that not only meets consumer energy demands but does so in the most financially sustainable manner. This optimization is achieved through mixed-integer linear programming (MILP), a mathematical modeling approach that enables the tool to explore multiple possible configurations and select the one that offers the lowest total annualized cost.</p>
+                <strong>OEMOF-Solph and MILP for Investment Optimization</strong>
+                <p>The tool's optimization relies on the OEMOF (Open Energy Modeling Framework) and its Solph library, which specialize in energy system optimization. OEMOF Solph offers a flexible, open-source platform for modeling various energy converters, storage solutions, and energy flows. Using mixed-integer linear programming (MILP), the tool addresses complex tasks like investment planning and unit commitment.</p>
+                <p>Investment optimization using MILP offers an efficient approach to system design by minimizing total annualized costs, which include both initial capital investments and ongoing operational expenses. MILP enables the tool to handle discrete decisions, such as selecting additional PV arrays or generators, as well as continuous decisions like determining their optimal capacities. By focusing on a minimal formulation and foregoing the global optimality guarantees of nonlinear programming (NLP), MILP can be solved more efficiently. However, this efficiency comes with the trade-off of accepting some inaccuracies due to the linearization of nonlinear relationships. Nonetheless, MILP provides a practical balance between solution quality and computational performance, making it well-suited for optimizing energy technologies.</p>
+                <p>Unit commitment refers to the tool's ability to determine which energy units (such as generators or battery systems) should be activated at any given time to meet energy demands efficiently. By using MILP, the tool ensures that these decisions are made in a way that minimizes operational costs, such as fuel consumption and wear-and-tear on equipment, while adhering to technical constraints such as storage capacity and generation limits.</p>
+                <p><strong>Data-Driven Results for Strategic Decision-Making</strong></p>
+                <p>
+                    The tool generates detailed results regarding the energy system's performance and financial metrics. Key outputs include installed capacities, operational time series, investment costs, CO<sub>2</sub> emissions, and fuel requirements. These results provide stakeholders with a comprehensive overview of the system's operational efficiency and its long-term economic and environmental impacts. This information supports strategic planning for off-grid energy systems across various scales, from small rural electrification projects to larger industrial applications.
+                </p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row" id="sources">
+            <div class="col-12">
+                <h1>Data Sources</h1>
+                <p>
+                    This section summarizes the sources used to define the default values displayed in the tool. We distinguish between techno-economic default values and demand data.
+                </p>
+
+                <h4 id="techno-economic-sources">Techno-economic default values</h4>
+                <p>
+                    The aim of defining techno-economic default values for each parameter in the tool was to use the most recent data available, ideally reflecting Thailand-specific conditions and closely aligned with practitioners&rsquo; experience. The data were compiled from a range of literature sources. In some cases, values were taken from a previous version of the tool developed for the Nigerian context (OGP Nigeria), which can also be accessed via the tool&rsquo;s landing page (offgridplanner.org).
+                </p>
+                <p>
+                    Additional default values are based on the HOMER Energy modelling tool, a proprietary software used to simulate and design renewable energy mini-grids and to provide reference input data for system components. Furthermore, for certain parameters - especially those related to hydrogen components and Thailand-specific assumptions - practitioners in the field, particularly in Thailand, were consulted for their expert insights.
+                </p>
+                <p>
+                    For all remaining techno-economic parameters, the specific sources, including links, are provided in the table below.
+                </p>
+
+                <div class="table-responsive">
+                                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Unit</th>
+                                <th>Step</th>
+                                <th>Component</th>
+                                <th>Value</th>
+                                <th>Source</th>
+                                <th>Source Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for label, parameter in sources_table.items %}
+                            <tr>
+                                <td>{{ parameter.parameter }}</td>
+                                <td>{{ parameter.unit }}</td>
+                                <td>{{ parameter.step }}</td>
+                                <td>{{ parameter.component }}</td>
+                                <td>{{ parameter.value }}</td>
+                                <td>{{ parameter.source }}</td>
+                                <td style="max-width: 300px"><a href="{{ parameter.source_link }}" target="_blank">{{ parameter.source_link }}</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <h4 id="demand-data-sources">Demand data</h4>
+                <p>
+                    The demand profiles used in the tool originate from different sources:
+                </p>
+                <p>
+                    The “Household” load profiles (low, medium, and high demand), as well as the profiles for households combined with restaurants, shops, and motorbike repair services, for a “Health Center”, “School” and “Mosque”, as well as the high load appliances “Laptop”, “Fridge”, “Washing Machine” and “Water Pump” are based on a study conducted in 2017 on Koh Mak Noi (ILF: Hybridization of Islands, Thailand, Feasibility Study, Koh Mak Noi, 2017):
+                    <a href="https://www.thai-german-cooperation.info/userfiles/N048-ILF-AD-0007-Feasbility%20Report_MakNoi_Final_Rev1_old%20demand.pdf" target="_blank" rel="noopener noreferrer">https://www.thai-german-cooperation.info/userfiles/N048-ILF-AD-0007-Feasbility%20Report_MakNoi_Final_Rev1_old%20demand.pdf</a>
+                </p>
+                <p>The demand profiles for temple and homestay are based on measurements conducted on Koh Jik.</p>
+                <p>The resort demand profile is based on measurements conducted on Koh Bulon Lae.</p>
+                <p>The high load appliance “AC” is based on measurements conducted in a private home in Bangkok.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block end_body_scripts %}
+  <script src="{% static 'js/backend_communication.js' %}"></script>
+{% endblock end_body_scripts %}
