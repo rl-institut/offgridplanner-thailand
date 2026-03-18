@@ -1,3 +1,5 @@
+@import url("../variables.css");
+
 /* Section: Dashboard */
 .dashboard {
     min-height: auto;
@@ -7,6 +9,11 @@
 }
 .dashboard .col-12 {
     padding-inline: 6rem;
+}
+
+.training__intro {
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
 /* Section: Tasks */
