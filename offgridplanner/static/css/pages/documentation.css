@@ -1,6 +1,5 @@
 .mod_descrip_dashboard {
     min-height: auto; /* overwrites main.css */
-    margin-top: 5rem;
 }
 .mod_descrip_dashboard .container {
     text-align: justify;
@@ -32,4 +31,13 @@
 .mod_descrip_dashboard .text-center.my-4 {
     margin-top: 20px;
     margin-bottom: 20px;
+}
+
+.logo-banner {
+    display: flex;
+    justify-content: space-evenly; /* Adjusts space between images */
+}
+
+.logo-banner img {
+    height: 80px;
 }

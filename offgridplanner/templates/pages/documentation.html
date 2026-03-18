@@ -11,66 +11,67 @@
 {% block content %}
 <section id="section" class="mod_descrip_dashboard dashboard">
     <div class="container">
-        <!-- Section Header -->
         <div class="row">
             <div class="col-12">
+              <h1>Documentation</h1>
+                <hr>
+                <h2>About the Project</h2>
+                <p>
+                    Within the Green H2Island research project, the Offgridplanner was adapted to the Thai context and enhanced with hydrogen-related components - including storage, electrolyser, and fuel cell - to integrate green hydrogen as a seasonal storage solution into mini-grid system design and optimisation. The tool was further developed by Reiner Lemoine Institut (RLI) with support from consortium partners H2 Powercell and Recharge, who provided valuable feedback on default parameters for the hydrogen components.
+                </p>
+                <p>
+                    The project explores how the integration of a hydrogen system into the existing community-operated renewable energy infrastructure on the Thai island of Koh Jik can enable a secure and reliable 100% renewable energy supply. The findings aim to serve as a model for implementing similar solutions on other islands across Southeast Asia.
+                </p>
+                <p>
+                    The Green H2Islands project (FKZ: 67EXI7501A) is funded by the Federal Ministry for the Environment, Climate Action, Nature Conservation and Nuclear Safety (BMUKN) as part of the “Export Initiative Environmental Protection” (EXI). As the EXI project management agency, Zukunft - Umwelt - Gesellschaft (ZUG) gGmbH supports the Federal Ministry for the Environment in carrying out its tasks. As a project of the thematic focus “green hydrogen and fuel cell technologies for decentralized energy supply” within the Export Initiative Environmental Protection, NOW GmbH supports the Green H2Islands project in its function as a program company.
+                </p>
+                <p><strong>Project duration:</strong> October 2024 - September 2027</p>
+                <p style="text-align:left">
+                    <strong>Further information:</strong>
+                    <a href="https://reiner-lemoine-institut.de/en/project/green-h2-islands-hydrogen-for-a-100-precent-renewable-energy-supply-for-islands-in-southeast-asia/" target="_blank" rel="noopener noreferrer">https://reiner-lemoine-institut.de/en/project/green-h2-islands-hydrogen-for-a-100-precent-renewable-energy-supply-for-islands-in-southeast-asia/</a>
+                </p>
+                <p>
+                    If you have specific questions regarding the following documentation, please contact:
+                    <a href="mailto:offgridplanner@rl-institut.de">offgridplanner@rl-institut.de</a>
+                </p>
+            </div>
+          <div class="logo-banner">
+            <a href="https://www.bundesumweltministerium.de/" target="_blank">
+              <img src="{% static 'assets/logos/EXI_BMU-Kombi-Logo_gefoerdert_en_RGB_2025.svg' %}" />
+            </a>
+            <a href="https://reiner-lemoine-institut.de/" target="_blank">
+              <img src="{% static 'assets/logos/LogoRLI.svg' %}"/>
+            </a>
+            <a href="https://www.now-gmbh.de" target="_blank">
+              <img src="{% static 'assets/logos/Logo_NOW.jpg' %}"/>
+            </a>
+            <a href="https://www.z-u-g.org/" target="_blank">
+              <img src="{% static 'assets/logos/Logo_ZUG.png' %}"/>
+            </a>
+
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <hr>
                 <h1>Model Description</h1>
                 <p>
-                    This section provides a brief overview of the models used in the backend of the tool. Each model is designed to address specific tasks related to demand estimation, spatial grid planning, and the optimal sizing of energy converters. Together, these models contribute to a comprehensive analysis framework, supporting the planning and optimization of off-grid energy systems. Below is a description of each model and its specific functionality.
+                    This section provides a brief overview of the models used in the backend of the tool. Each model is designed to address specific tasks related to spatial grid planning, and the optimal sizing of energy converters. Together, these models contribute to a comprehensive analysis framework, supporting the planning and optimization of off-grid energy systems. Below is a description of each model and its specific functionality.
                 </p>
                 <ul>
-                    <li><a href="#demand_tool">Description of the Demand Estimation Model</a></li>
-                    <li><a href="#grid_tool">Description of the Spatial Grid Optimization Tool</a></li>
-                    <li><a href="#es_tool">Description of the Energy System Optimization Tool</a></li>
+                  <li><a href="#grid_tool">Description of the Spatial Grid Optimization Tool</a></li>
+                  <li><a href="#es_tool">Description of the Energy System Optimization Tool</a></li>
+                  <li><a href="#sources">Data Sources</a>
+                    <ul>
+                      <li><a href="#techno-economic-sources">Techno-economic default values</a></li>
+                      <li><a href="#demand-data-sources">Demand data</a></li>
+                    </ul>
+                  </li>
                 </ul>
                 <hr>
             </div>
         </div>
 
-        <!-- Main Content with Two Columns -->
-        <div class="row">
-            <!-- Left Column: Textual Content -->
-            <div class="col-md-6">
-                <h4 id="demand_tool">Description of the Demand Estimation Model</h4>
-                <p>
-                    The demand modeling tool developed by PeopleSuN aims to predict electricity demand in non-urban Nigerian villages by integrating extensive survey data with the simulation capabilities of the Remote Area Multi-Energy Profiles (RAMP) software. The primary goal of the tool is to model appliance ownership, electricity consumption trends, and the financial capacity of households and enterprises to afford electricity services. By generating detailed consumer profiles based on geographical zones and wealth categories, it provides nuanced predictions of electricity demand to inform off-grid energy planning and implementation.
-                </p>
-
-                <p><strong>Survey Data Collection</strong></p>
-
-                <p>
-                    Quantitative household and enterprise energy surveys (~5,000 total) were conducted, targeting users who already use electricity in some capacity. The survey gathered key data, including:
-                </p>
-                <ul>
-                    <li>Average appliance ownership likelihood (%)</li>
-                    <li>Average daily appliance usage duration (minutes)</li>
-                    <li>Appliance power and time of use assumptions (W)</li>
-                    <li>For enterprises and public services: daily opening and closing times, as well as additional "high power energy-intensive appliances"</li>
-                </ul>
-                <p>
-                    This data forms the foundation for modeling energy consumption profiles, providing insights into appliance usage patterns, energy demand, and operational characteristics across different user types.
-                </p>
-
-                <p><strong>Generating Demand Profiles Using RAMP</strong></p>
-
-                <p>
-                    The Remote Area Multi-Energy Profiles (RAMP) tool is an open-source software for the stochastic simulation of user-driven energy demand time series. By inputting survey data into RAMP, typical energy consumption profiles for non-urban Nigerian households were developed. The process involved:
-                </p>
-                <ol>
-                    <li><strong>Data Analysis and Categorization:</strong> Survey data was analyzed to identify patterns in appliance ownership and usage. Households were categorized into consumption levels: Very Low, Low, Medium, High, and Very High, considering factors like appliance types, usage frequency, and household income.</li>
-                    <li><strong>Creation of a National Consumption Profile:</strong> A national profile was developed to reflect the diversity of households, accounting for regional variations in wealth, access to energy, and cultural practices.</li>
-                    <li><strong>Simulation with RAMP:</strong> The categorized data was used in RAMP to simulate energy consumption patterns, considering hourly, daily, and seasonal variations. Appliance-specific energy use allowed for detailed profiles, including peak demand and load variations.</li>
-                    <li><strong>Stochastic Algorithms:</strong> Stochastic methods were applied to account for variability in electricity demand, generating likely distributions of demand rather than fixed values. This enhances the reliability of predictions by considering factors like random appliance breakdowns or changes in usage behavior.</li>
-                </ol>
-            </div>
-            <div class="col-md-6">
-                <img src="{% static 'images/ramp_profile_generation.png' %}" class="img-fluid" alt="Grid Optimization">
-            </div>
-        </div>
-
-        <hr>
-
-        <!-- Additional Sections Below the Columns -->
         <div class="row">
             <div class="col-md-6">
                 <h4 id="grid_tool">Description of the Spatial Grid Optimization Tool</h4>
@@ -112,9 +113,10 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
+              <hr>
                 <h4 id="es_tool">Description of the Energy System Optimization Tool</h4>
-                <p>This tool is a comprehensive solution for the design and optimization of off-grid energy systems. It integrates a variety of energy sources, including photovoltaic (PV) systems and diesel generators, and supports key components such as battery systems, inverters, and rectifiers. The tool's core functionality lies in its ability to design and optimize these systems to meet specific energy demands in the most cost-efficient way. It uses advanced data modeling techniques, including ERA5 satellite data and PVLIB, to accurately simulate solar potentials, ensuring that PV systems are optimized for the specific environmental conditions of the installation site.</p>
+                <p>This tool is a comprehensive solution for the design and optimization of off-grid energy systems. It integrates a variety of energy sources, including photovoltaic (PV) systems and diesel generators, and supports key components such as battery systems, inverters, hydrogen components and rectifiers. The tool's core functionality lies in its ability to design and optimize these systems to meet specific energy demands in the most cost-efficient way. It uses advanced data modeling techniques, including ERA5 satellite data and PVLIB, to accurately simulate solar potentials, ensuring that PV systems are optimized for the specific environmental conditions of the installation site.</p>
                 <p>A central aspect of the tool is its focus on minimizing the total annualized costs. Annualized costs account for both the capital expenditures (CapEx) associated with the installation of energy systems and the operational expenditures (OpEx) incurred throughout their lifetime. By optimizing the balance between these costs, the tool generates a configuration that not only meets consumer energy demands but does so in the most financially sustainable manner. This optimization is achieved through mixed-integer linear programming (MILP), a mathematical modeling approach that enables the tool to explore multiple possible configurations and select the one that offers the lowest total annualized cost.</p>
                 <strong>OEMOF-Solph and MILP for Investment Optimization</strong>
                 <p>The tool's optimization relies on the OEMOF (Open Energy Modeling Framework) and its Solph library, which specialize in energy system optimization. OEMOF Solph offers a flexible, open-source platform for modeling various energy converters, storage solutions, and energy flows. Using mixed-integer linear programming (MILP), the tool addresses complex tasks like investment planning and unit commitment.</p>
@@ -125,22 +127,69 @@
                     The tool generates detailed results regarding the energy system's performance and financial metrics. Key outputs include installed capacities, operational time series, investment costs, CO<sub>2</sub> emissions, and fuel requirements. These results provide stakeholders with a comprehensive overview of the system's operational efficiency and its long-term economic and environmental impacts. This information supports strategic planning for off-grid energy systems across various scales, from small rural electrification projects to larger industrial applications.
                 </p>
             </div>
-            <div class="col-md-6">
-                <div class="text-center my-4">
-                    <img src="{% static 'images/es_description_slide_1.svg' %}" class="img-fluid full-width-img" alt="Grid Optimization">
+        </div>
+
+        <hr>
+
+        <div class="row" id="sources">
+            <div class="col-12">
+                <h1>Data Sources</h1>
+                <p>
+                    This section summarizes the sources used to define the default values displayed in the tool. We distinguish between techno-economic default values and demand data.
+                </p>
+
+                <h4 id="techno-economic-sources">Techno-economic default values</h4>
+                <p>
+                    The aim of defining techno-economic default values for each parameter in the tool was to use the most recent data available, ideally reflecting Thailand-specific conditions and closely aligned with practitioners&rsquo; experience. The data were compiled from a range of literature sources. In some cases, values were taken from a previous version of the tool developed for the Nigerian context (OGP Nigeria), which can also be accessed via the tool&rsquo;s landing page (offgridplanner.org).
+                </p>
+                <p>
+                    Additional default values are based on the HOMER Energy modelling tool, a proprietary software used to simulate and design renewable energy mini-grids and to provide reference input data for system components. Furthermore, for certain parameters - especially those related to hydrogen components and Thailand-specific assumptions - practitioners in the field, particularly in Thailand, were consulted for their expert insights.
+                </p>
+                <p>
+                    For all remaining techno-economic parameters, the specific sources, including links, are provided in the table below.
+                </p>
+
+                <div class="table-responsive">
+                                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Unit</th>
+                                <th>Step</th>
+                                <th>Component</th>
+                                <th>Value</th>
+                                <th>Source</th>
+                                <th>Source Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for label, parameter in sources_table.items %}
+                            <tr>
+                                <td>{{ parameter.parameter }}</td>
+                                <td>{{ parameter.unit }}</td>
+                                <td>{{ parameter.step }}</td>
+                                <td>{{ parameter.component }}</td>
+                                <td>{{ parameter.value }}</td>
+                                <td>{{ parameter.source }}</td>
+                                <td style="max-width: 300px"><a href="{{ parameter.source_link }}" target="_blank">{{ parameter.source_link }}</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
                 </div>
-                <div class="text-center my-4">
-                    <img src="{% static 'images/es_description_slide_2.svg' %}" class="img-fluid full-width-img" alt="Grid Optimization">
-                </div>
-                <div class="text-center my-4">
-                    <img src="{% static 'images/es_description_slide_5.svg' %}" class="img-fluid full-width-img" alt="Grid Optimization">
-                </div>
-                <div class="text-center my-4">
-                    <img src="{% static 'images/es_description_slide_3.svg' %}" class="img-fluid full-width-img" alt="Grid Optimization">
-                </div>
-                <div class="text-center my-4">
-                    <img src="{% static 'images/es_description_slide_4.svg' %}" class="img-fluid full-width-img" alt="Grid Optimization">
-                </div>
+
+                <h4 id="demand-data-sources">Demand data</h4>
+                <p>
+                    The demand profiles used in the tool originate from different sources:
+                </p>
+                <p>
+                    The “Household” load profiles (low, medium, and high demand), as well as the profiles for households combined with restaurants, shops, and motorbike repair services, for a “Health Center”, “School” and “Mosque”, as well as the high load appliances “Laptop”, “Fridge”, “Washing Machine” and “Water Pump” are based on a study conducted in 2017 on Koh Mak Noi (ILF: Hybridization of Islands, Thailand, Feasibility Study, Koh Mak Noi, 2017):
+                    <a href="https://www.thai-german-cooperation.info/userfiles/N048-ILF-AD-0007-Feasbility%20Report_MakNoi_Final_Rev1_old%20demand.pdf" target="_blank" rel="noopener noreferrer">https://www.thai-german-cooperation.info/userfiles/N048-ILF-AD-0007-Feasbility%20Report_MakNoi_Final_Rev1_old%20demand.pdf</a>
+                </p>
+                <p>The demand profiles for temple and homestay are based on measurements conducted on Koh Jik.</p>
+                <p>The resort demand profile is based on measurements conducted on Koh Bulon Lae.</p>
+                <p>The high load appliance “AC” is based on measurements conducted in a private home in Bangkok.</p>
             </div>
         </div>
     </div>
