@@ -161,6 +161,8 @@ class CustomDemandForm(CustomModelForm):
 
     @staticmethod
     def change_percentage_format(value, upper_limit=1):
+        if value is None:
+            return None
         # Changes the value from a percentage range 0-1 to 0-100 and viceversa
         upper_limit_one = 1
         upper_limit_hundred = 100
