@@ -1,0 +1,57 @@
+label,parameter,unit,step,component,value,source,source_link
+interest_rate,Interest rate,%,Project Setup,,4.2,World Bank: Lending interest rate (%). 2024,https://data.worldbank.org/indicator/FR.INR.LEND
+connection_cost,Connection cost,EUR/con,Grid Design,,3.0,Provincial Electricity Authority Thailand,
+distribution_cable_lifetime,Lifetime,a,Grid Design,Distribution Cable,25.0,ELEK: Estimating Cable Life Expectancy.,https://elek.com/articles/estimating-cable-life-expectancy/
+distribution_cable_capex,CapEx,EUR/m,Grid Design,Distribution Cable,13.0,Rocky Mountain Institute: Minigrids in the Money: Six Ways to Reduce Minigrid Costs by 60% for Rural Electrification: 2018,https://rmi.org/wp-content/uploads/2018/12/rmi-seeds-minigrid-report.pdf
+distribution_cable_max_length,Max. length,m,Grid Design,Distribution Cable,50.0,OGP Nigeria,
+connection_cable_lifetime,Lifetime,a,Grid Design,Connection Cable,25.0,ELEK: Estimating Cable Life Expectancy.,https://elek.com/articles/estimating-cable-life-expectancy/
+connection_cable_capex,CapEx,EUR/m,Grid Design,Connection Cable,3.5,OGP Nigeria,
+connection_cable_max_length,Max. length,m,Grid Design,Connection Cable,20.0,OGP Nigeria,
+pole_lifetime,Lifetime,a,Grid Design,Pole,25.0,OGP Nigeria,
+pole_capex,CapEx,EUR/m,Grid Design,Pole,676.0,OGP Nigeria,
+pole_max_number_of_connections,Max. number of connections,-,Grid Design,Pole,5.0,OGP Nigeria,
+diesel_genset_lifetime,Lifetime,a,Energy System Design,Diesel Genset,8.0,Rocky Mountain Institute: Minigrids in the Money: Six Ways to Reduce Minigrid Costs by 60% for Rural Electrification: 2018,https://rmi.org/wp-content/uploads/2018/12/rmi-seeds-minigrid-report.pdf
+diesel_genset_capex,CapEx,EUR/kW,Energy System Design,Diesel Genset,500.0,Gabriel Veilleux et al.: Techno-economic analysis of microgrid projects for rural electrification: A systematic approach to the redesign of Koh Jik off-grid case study. 2020,https://linkinghub.elsevier.com/retrieve/pii/S0973082619309160
+diesel_genset_opex_variable,OpEx variable,EUR/kWh,Energy System Design,Diesel Genset,0.02,NREL: Tariff Considerations for Micro-Grids in Sub-Saharan Africa. 2018,https://docs.nrel.gov/docs/fy18osti/69044.pdf
+diesel_genset_opex_fixed,OpEx fixed,EUR/kW*a,Energy System Design,Diesel Genset,21.0,NREL: Tariff Considerations for Micro-Grids in Sub-Saharan Africa. 2018,https://docs.nrel.gov/docs/fy18osti/69044.pdf
+diesel_genset_fuel_cost,Fuel cost,EUR/l,Energy System Design,Diesel Genset,0.81,Global Petrol Prices: Thailand Diesel Prices. 2026,https://www.globalpetrolprices.com/Thailand/diesel_prices/
+diesel_genset_fuel_lhv,Fuel LHV,kWh/kg,Energy System Design,Diesel Genset,11.8,Gammel: Heating value - Calorific value. 2026,https://gammel.de/en/energy-glossary/heating-value-calorific-value-4838
+diesel_genset_minimum_efficiency,Minimum efficiency,%,Energy System Design,Diesel Genset,22.0,OGP Nigeria,
+diesel_genset_maximum_efficiency,Maximum efficiency,%,Energy System Design,Diesel Genset,30.0,OGP Nigeria,
+diesel_genset_minimum_load,Minimum load,%,Energy System Design,Diesel Genset,25.0,HOMER Energy,
+diesel_genset_maximum_load,Maximum load,%,Energy System Design,Diesel Genset,100.0,,
+battery_lifetime,Lifetime,a,Energy System Design,Battery,10.0,ENTEC: Study on Energy Storage. 2022,https://www.google.com/url?sa=i&source=web&rct=j&url=https://refman.energytransitionmodel.com/publications/2162&ved=2ahUKEwjpzfCG7uKSAxX4BNsEHcv2NK4Qy_kOegQIARAB&opi=89978449&cd&psig=AOvVaw3UaIXvQkUhvb-BL4KH7bxu&ust=1771497894152000
+battery_capex,CapEx,EUR/kWh,Energy System Design,Battery,540.0,Gabriel Veilleux et al.: Techno-economic analysis of microgrid projects for rural electrification: A systematic approach to the redesign of Koh Jik off-grid case study. 2020,https://linkinghub.elsevier.com/retrieve/pii/S0973082619309160
+battery_opex,OpEx,EUR/kWh*a,Energy System Design,Battery,5.0,Chakphed Madtharad et al.: Microgrid Design for Rural Island in PEA Area. 2018,https://ieeexplore.ieee.org/document/8541848
+battery_minimum_soc,Minimum SOC,%,Energy System Design,Battery,15.0,Gabriel Veilleux et al.: Techno-economic analysis of microgrid projects for rural electrification: A systematic approach to the redesign of Koh Jik off-grid case study. 2020,https://linkinghub.elsevier.com/retrieve/pii/S0973082619309160
+battery_maximum_soc,Maximum SOC,%,Energy System Design,Battery,100.0,ESMAP: Mini Grids for Half a Billion People. 2022,https://openknowledge.worldbank.org/server/api/core/bitstreams/32287154-1ccb-46ce-83af-08facf7a3b49/content
+battery_c_rate_in,C-rate in,-,Energy System Design,Battery,1.0,,
+battery_c_rate_out,C-rate out,-,Energy System Design,Battery,1.0,,
+battery_roundtrip_efficiency,Roundtrip efficiency,%,Energy System Design,Battery,90.0,ESMAP: Mini Grids for Half a Billion People. 2022,https://openknowledge.worldbank.org/server/api/core/bitstreams/32287154-1ccb-46ce-83af-08facf7a3b49/content
+inverter_lifetime,Lifetime,a,Energy System Design,Inverter,25.0,Rocky Mountain Institute: Minigrids in the Money: Six Ways to Reduce Minigrid Costs by 60% for Rural Electrification: 2018,https://rmi.org/wp-content/uploads/2018/12/rmi-seeds-minigrid-report.pdf
+inverter_capex,CapEx,EUR/kW,Energy System Design,Inverter,350.0,ESMAP: Mini Grids for Half a Billion People. 2022,https://openknowledge.worldbank.org/server/api/core/bitstreams/32287154-1ccb-46ce-83af-08facf7a3b49/content
+inverter_opex,OpEx,EUR/kW*a,Energy System Design,Inverter,7.0,NREL: Tariff Considerations for Micro-Grids in Sub-Saharan Africa. 2018,https://www.nrel.gov/docs/fy18osti/69044.pdf
+inverter_efficiency,Efficiency,%,Energy System Design,Inverter,95.0,HOMER Energy,
+pv_lifetime,Lifetime,a,Energy System Design,PV,25.0,Gabriel Veilleux et al.: Techno-economic analysis of microgrid projects for rural electrification: A systematic approach to the redesign of Koh Jik off-grid case study. 2020,https://linkinghub.elsevier.com/retrieve/pii/S0973082619309160
+pv_capex,CapEx,EUR/kW,Energy System Design,PV,845.0,Leontina Walldén et al.: Analysis of Microgrid Electrification on Phaluai Island. 2023,https://www.diva-portal.org/smash/get/diva2:1776786/FULLTEXT01.pdf
+pv_opex,OpEx,EUR/kW*a,Energy System Design,PV,8.45,ESMAP: Mini Grids for Half a Billion People. 2022,https://openknowledge.worldbank.org/server/api/core/bitstreams/32287154-1ccb-46ce-83af-08facf7a3b49/content
+h2_storage_lifetime,Lifetime,a,Energy System Design,H2 Storage,30.0,Practitioner's value,
+h2_storage_capex,CapEx,EUR/kg,Energy System Design,H2 Storage,4000.0,Practitioner's value,
+h2_storage_opex_variable,OpEx variable,EUR/kg,Energy System Design,H2 Storage,0.0,NOW: H2 in der dezentralen Energieversorgung. 2023,https://www.now-gmbh.de/wp-content/uploads/2023/05/H2-in-der-dezentralen-Energieversorgung_Ergebnisbericht_E4tech.pdf
+h2_storage_opex_fixed,OpEx fixed,EUR/kg*a,Energy System Design,H2 Storage,40.0,Practitioner's value,
+h2_storage_minumum_soc,Minumum SOC,%,Energy System Design,H2 Storage,5.0,Practitioner's value,
+h2_storage_maximum_soc,Maximum SOC,%,Energy System Design,H2 Storage,100.0,Practitioner's value,
+h2_storage_efficiency,Efficiency,%,Energy System Design,H2 Storage,100.0,Practitioner's value,
+h2_electrolyzer_lifetime_system,Lifetime (system),a,Energy System Design,H2 Electrolyzer,10.0,Practitioner's value,
+h2_electrolyzer_lifetime_stack,Lifetime (stack),h,Energy System Design,H2 Electrolyzer,35000.0,Practitioner's value,
+h2_electrolyzer_capex,CapEx,EUR/kW,Energy System Design,H2 Electrolyzer,5000.0,Practitioner's value,
+h2_electrolyzer_opex_variable,OpEx variable,EUR/kg,Energy System Design,H2 Electrolyzer,0.02,NOW: H2 in der dezentralen Energieversorgung. 2023,https://www.now-gmbh.de/wp-content/uploads/2023/05/H2-in-der-dezentralen-Energieversorgung_Ergebnisbericht_E4tech.pdf
+h2_electrolyzer_opex_fixed,OpEx fixed,EUR/kW*a,Energy System Design,H2 Electrolyzer,50.0,Practitioner's value,
+h2_electrolyzer_efficiency,Efficiency,%,Energy System Design,H2 Electrolyzer,65.0,Practitioner's value,
+h2_fuel_cell_lifetime_years,Lifetime,a,Energy System Design,H2 Fuel Cell,10.0,Practitioner's value,
+h2_fuel_cell_lifetime_hours,Lifetime,h,Energy System Design,H2 Fuel Cell,40000.0,Practitioner's value,
+h2_fuel_cell_capex,CapEx,EUR/kW,Energy System Design,H2 Fuel Cell,5250.0,Practitioner's value,
+h2_fuel_cell_opex_variable,OpEx variable,EUR/kg,Energy System Design,H2 Fuel Cell,0.006,NOW: H2 in der dezentralen Energieversorgung. 2023,https://www.now-gmbh.de/wp-content/uploads/2023/05/H2-in-der-dezentralen-Energieversorgung_Ergebnisbericht_E4tech.pdf
+h2_fuel_cell_opex_fixed,OpEx fixed,EUR/kW*a,Energy System Design,H2 Fuel Cell,52.5,Practitioner's value,
+h2_fuel_cell_efficiency,Efficiency,%,Energy System Design,H2 Fuel Cell,45.0,Practitioner's value,
+h2_fuel_cell_lhv,LHV,kWh/kg,Energy System Design,H2 Fuel Cell,33.3,"National Academies of Sciences, Engineering, and Medicine: The Hydrogen Economy: Opportunities, Costs, Barriers, and R&D Needs.  2004, Washington, The National Academies Press. https://doi.org/10.17226/6496.",https://www.nationalacademies.org/read/10922/chapter/21
