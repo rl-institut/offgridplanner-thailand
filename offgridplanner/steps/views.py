@@ -204,6 +204,9 @@ def demand_estimation(request, proj_id=None):
                 "active": calibration_active,
                 "initial": calibration_initial,
             },
+            "demand_increase": {
+                "active": custom_demand.annual_demand_increase,
+            },
             "form": form,
             "opts_form": opts,
             "proj_id": proj_id,

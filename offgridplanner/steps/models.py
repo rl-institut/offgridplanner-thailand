@@ -45,6 +45,7 @@ class CustomDemand(models.Model):
     high = models.FloatField(blank=True, null=True)
     annual_total_consumption = models.FloatField(blank=True, null=True)
     annual_peak_consumption = models.FloatField(blank=True, null=True)
+    annual_demand_increase = models.FloatField(blank=True, null=True)
     uploaded_data = models.JSONField(null=True)
 
     def __str__(self):
