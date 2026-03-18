@@ -206,7 +206,31 @@
               </div>
             </div>
           </div>
-          <div class="accordion-item" style="border-top: none;">
+          <div class="accordion-item" style="border-top: none; padding: 10px">
+            <div id="collapseDemandIncrease"
+                 class="accordion-collapse collapse {% if demand_increase.active %}show{% endif %}"
+                 aria-labelledby="headingDemandIncrease">
+              <div class="accordion-body">
+                <p>
+                  <a>
+                    <br>
+                    {% translate 'Set Annual Demand Increase' %}</a>
+                </p>
+                <p>
+                  {% blocktranslate trimmed %}
+                   Specify the expected annual increase in demand as a percentage.
+                  <br>
+                  This will be applied to the projected demand calculations.
+                  {% endblocktranslate %}
+                </p>
+                <div class="input-group" style="max-width: 200px">
+                  {{ form.annual_demand_increase|add_class:"form-control" }}
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item" style="border-top: none; padding: 10px">
             <div id="demandUpload"
                  class="accordion-collapse collapse {% if not opts_form.do_demand_estimation.value %} show {% endif %}"
                  aria-labelledby="headingThree">
