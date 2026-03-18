@@ -123,7 +123,10 @@ class CustomDemandForm(CustomModelForm):
                 initial[calibration_field] = (
                     getattr(instance, calibration_field) / self.w_to_kw_factor
                 )  # Change units from W to kW for display in form
-
+            initial["annual_demand_increase"] = self.change_percentage_format(
+                instance.annual_demand_increase,
+                upper_limit=100
+            )
             kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
@@ -149,6 +152,11 @@ class CustomDemandForm(CustomModelForm):
                 if self.cleaned_data[field] is not None:
                     self.cleaned_data[field] *= self.w_to_kw_factor
 
+        if cleaned_data.get("annual_demand_increase") is not None:
+            cleaned_data["annual_demand_increase"] = self.change_percentage_format(
+                cleaned_data["annual_demand_increase"],
+                upper_limit=1,
+            )
         return cleaned_data
 
     @staticmethod
