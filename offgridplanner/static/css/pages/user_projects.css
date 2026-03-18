@@ -1,3 +1,9 @@
+  @import "../variables.css";
+  
+  #projectTable tbody {
+    color: var(--font-color--secondary);
+  }
+  
   table.sortable {
     width: 100%;
     overflow-x: auto;
@@ -64,4 +70,12 @@
     box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
     color: currentcolor;
     background-color: transparent!important;
+  }
+
+  .project-table__actions div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    height: 100%;
   }

@@ -2921,13 +2921,16 @@ td, th {
     letter-spacing: 0.03rem;
     font-weight: 700;
     padding: 0.25rem;
-    width: 100px;
 }
 
 .grey_button.disabled {
     cursor: not-allowed;
     opacity: 0.5;
     pointer-events: none;
+}
+
+.grey_button a {
+    padding: 0.25rem 1rem;
 }
 
 * {
