@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v1.1.5-thai.4.1] – 2026-03-18
+- Merge changes and bug fixes made in upstream repository ([#41](https://github.com/rl-institut/offgridplanner-thailand/pull/41))
+
 ## [v1.1.4-thai.4.1] – 2026-03-18
 ### Changed
 - Update documentation page ([#38](https://github.com/rl-institut/offgridplanner-thailand/pull/38))
