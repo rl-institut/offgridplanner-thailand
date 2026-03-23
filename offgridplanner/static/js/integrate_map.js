@@ -125,7 +125,8 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 
         // Define the OSM layer
         let osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            referrerPolicy: 'origin-when-cross-origin'
         });
 
         // Define the Esri satellite layer
