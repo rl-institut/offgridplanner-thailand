@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- There is now a demand increase option ([#31](https://github.com/rl-institut/offgridplanner-thailand/pull/31))
+
 ## [v1.1.6-thai.4.1] – 2026-03-23
 - Merge changes and bug fixes made in upstream repository ([#44](https://github.com/rl-institut/offgridplanner-thailand/pull/44))
 
