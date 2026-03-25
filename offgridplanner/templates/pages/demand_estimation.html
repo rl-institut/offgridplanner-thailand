@@ -83,7 +83,7 @@
                       <!-- Input Fields Container -->
                       <div class="shares-container">
                         {% for field in form %}
-                        {% if field.name != 'annual_total_consumption' and field.name != 'annual_peak_consumption' and field.name != 'annual_demand_increase'%}
+                        {% if field.name in shares_tiers %}
                         <label class="form-label">{{ field.label | safe }}</label>
                         <div class="input-group">
                           {{ field|add_class:"form-control" }}

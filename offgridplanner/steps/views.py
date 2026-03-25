@@ -208,6 +208,7 @@ def demand_estimation(request, proj_id=None):
                 "active": custom_demand.annual_demand_increase,
             },
             "form": form,
+            "shares_tiers": CustomDemand().shares_tiers,
             "opts_form": opts,
             "proj_id": proj_id,
             "step_id": step_id,
