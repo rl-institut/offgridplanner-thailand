@@ -25,7 +25,7 @@
 
     <section id="section" class="dashboard" style="height: auto">
       <div class="row" style="height: auto">
-        <div class="chart" style="height: auto; padding: 0">
+        <div class="chart" style="height: fit-content; padding: 0">
           <div class="accordion" id="accordionDemandEstimation">
             <div class="accordion-item">
               <h2 class="accordion-header demand-header" id="headingOne">
@@ -36,10 +36,10 @@
                   <span style="flex-shrink: 0;  margin-right: 20px;">
                     <strong>{% translate 'Use Custom Demand Time Series:' %}</strong>
                   </span>
-                <label class="switch inverted">
-                  {{ opts_form.do_demand_estimation }}
-                  <span class="slider round"></span>
-                </label>
+                  <label class="switch inverted">
+                    {{ opts_form.do_demand_estimation }}
+                    <span class="slider round"></span>
+                  </label>
                 </button>
               </h2>
               <div id="consumerProperties"
@@ -80,7 +80,7 @@
                       </p>
                       <p>{% translate "You have entered" %}
                         <strong id="demand-check">0%</strong>
-                      {% translate "out of 100%." %}</p>
+                        {% translate "out of 100%." %}</p>
                       <!-- Input Fields Container -->
                       <div class="shares-container">
                         {% for field in form %}
@@ -143,18 +143,6 @@
                     <span class="slider round"></span>
                   </label>
                 </span>
-
-                </span>
-                  <span style="display: flex; align-items: center; ; margin-right: 10px">
-                  <a style="margin-right: 10px;">{% translate 'Annual Demand Increase' %}</a>
-                  <label class="switch">
-                    <input type="checkbox"
-                           id="demandIncreaseToggle"
-                           data-bs-toggle="collapse"
-                           data-bs-target="#collapseDemandIncrease" {% if demand_increase.active %}checked{% endif %}>
-                    <span class="slider round"></span>
-                  </label>
-                </span>
               </div>
             </div>
             <div class="accordion-item" style="border-top: none;">
@@ -206,31 +194,7 @@
               </div>
             </div>
           </div>
-          <div class="accordion-item" style="border-top: none; padding: 10px">
-            <div id="collapseDemandIncrease"
-                 class="accordion-collapse collapse {% if demand_increase.active %}show{% endif %}"
-                 aria-labelledby="headingDemandIncrease">
-              <div class="accordion-body">
-                <p>
-                  <a>
-                    <br>
-                    {% translate 'Set Annual Demand Increase' %}</a>
-                </p>
-                <p>
-                  {% blocktranslate trimmed %}
-                   Specify the expected annual increase in demand as a percentage.
-                  <br>
-                  This will be applied to the projected demand calculations.
-                  {% endblocktranslate %}
-                </p>
-                <div class="input-group" style="max-width: 200px">
-                  {{ form.annual_demand_increase|add_class:"form-control" }}
-                  <span class="input-group-text">%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item" style="border-top: none; padding: 10px">
+          <div class="accordion-item" style="border-top: none;">
             <div id="demandUpload"
                  class="accordion-collapse collapse {% if not opts_form.do_demand_estimation.value %} show {% endif %}"
                  aria-labelledby="headingThree">
@@ -258,6 +222,46 @@
               <div id="demand_upload_plot"></div>
             </div>
           </div>
+                    <div class="accordion-item" style="border-top: none;">
+            <p style="display: flex;
+                        justify-content: end;
+                        align-items: center;
+                        color: var(--ccb);
+                        padding-top:10px">
+              <span style="display: flex; margin-right: 10px">
+                  <a style="margin-right: 10px;">{% translate 'Set Annual Demand Increase' %}</a>
+                  <label class="switch">
+                    <input type="checkbox"
+                           id="demandIncreaseToggle"
+                           data-bs-toggle="collapse"
+                           data-bs-target="#collapseDemandIncrease" {% if demand_increase.active %}checked{% endif %}>
+                    <span class="slider round"></span>
+                  </label>
+                </span>
+            </p>
+            <div id="collapseDemandIncrease"
+                 class="accordion-collapse collapse {% if demand_increase.active %}show{% endif %}"
+                 aria-labelledby="headingDemandIncrease">
+              <div class="accordion-body">
+                <p>
+                  <a>
+                    {% translate 'Set Annual Demand Increase' %}</a>
+                </p>
+                <p>
+                  {% blocktranslate trimmed %}
+                  Specify the expected annual increase in demand as a percentage.
+                  <br>
+                  This will be applied to the projected demand calculations.
+                  {% endblocktranslate %}
+                </p>
+                <div class="input-group" style="max-width: 200px">
+                  {{ form.annual_demand_increase|add_class:"form-control" }}
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
