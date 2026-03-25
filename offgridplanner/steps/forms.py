@@ -102,6 +102,12 @@ class CustomDemandForm(CustomModelForm):
 
         return cleaned_data
 
+    def clean_annual_demand_increase(self):
+        value = self.cleaned_data.get("annual_demand_increase")
+        if value == 0:
+            return None
+        return value
+
     @staticmethod
     def change_percentage_format(value, upper_limit=1):
         if value is None:
