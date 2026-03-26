@@ -149,11 +149,11 @@
               <div id="collapseTwo"
                    class="accordion-collapse collapse {% if calibration.active %}show{% endif %}"
                    aria-labelledby="headingTwo">
-                <div class="accordion-body">
+                <div class="accordion-body demand-content">
                   <p class="demand-title">
                     {% translate 'Set Custom Total Profile Calibration Values (Optional)' %}
                   </p>
-                  <p>
+                  <p class="demand-hint">
                     {% blocktranslate trimmed %}
                     These options will calibrate the total community demand profile to set value below <b>(including
                     enterprises and any other non-household demands chosen previously)</b>.
@@ -169,7 +169,7 @@
                   </p>
                   <div class="btn-group-vertical">
                     <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start">
-                    <span id="option7" style="width: 450px; text-align: left;">
+                    <span id="option7" style="width: 350px; text-align: left;">
                     <input type="radio" id="option7radio" name="options2"
                            autocomplete="off" {% if calibration.initial == "annual_total_consumption" %}checked{% endif %}>
                       <label for="option7radio">{{ form.annual_total_consumption.label | safe }}</label>
@@ -180,7 +180,7 @@
                       </div>
                     </div>
                     <div class="btn btn-custom active d-inline-flex align-items-center justify-content-start" for="option7">
-                    <span id="option8" style="width: 450px; text-align: left;">
+                    <span id="option8" style="width: 350px; text-align: left;">
                     <input type="radio" id="option8radio" name="options2" autocomplete="off"{% if calibration.initial == "annual_peak_consumption" %}checked{% endif %}>
                       <label for="option8radio">{{ form.annual_peak_consumption.label | safe }}</label>
                       </span>
