@@ -25,17 +25,17 @@
     <section id="section" class="dashboard" style="height: auto">
       <div class="row" style="height: auto">
         <div class="chart" style="height: auto; padding: 0">
-          <div class="accordion" id="accordionExample">
-            <div class="accordion-item" style="padding: 10px">
-              <h2 class="accordion-header" id="headingOne">
+          <div class="accordion" id="accordionDemandEstimation">
+            <div class="accordion-item">
+              <h2 class="accordion-header demand-header" id="headingOne">
                 <button class="accordion-button no-arrow"
                         type="button"
                         data-bs-toggle="collapse">
-                  <span style="flex-grow: 1;">{% translate 'Set Consumer Properties' %}</span>
+                  <div class="demand-header-title">{% translate 'Set Consumer Properties' %}</div>
                   <span style="flex-shrink: 0;  margin-right: 20px;">
                     <strong>{% translate 'Use Custom Demand Time Series:' %}</strong>
                   </span>
-                <label class="switch inverted" style="margin-right: 20px;">
+                <label class="switch inverted">
                   {{ opts_form.do_demand_estimation }}
                   <span class="slider round"></span>
                 </label>
@@ -44,13 +44,13 @@
               <div id="consumerProperties"
                    class="accordion-collapse collapse {% if opts_form.do_demand_estimation.value %} show {% endif %}"
                    aria-labelledby="headingOne"
-                   data-bs-parent="#accordionExample">
+                   data-bs-parent="#accordionDemandEstimation">
                 <div class="accordion-body">
                   <div class="row">
                     <!-- Plot Column -->
-                    <div class="col-md-8">
-                      <p>
-                        <a>{% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}</a>
+                    <div class="demand-plot col-md-8">
+                      <p class="demand-title">
+                        {% translate 'Electricity Demand Profile Illustration: First Monday of Simulation Period' %}
                       </p>
                       <div id="radioButtons" style="margin-bottom: 10px;">
                         <input type="radio"
@@ -70,12 +70,12 @@
                       </div>
                     </div>
                     <!-- Texts and Input Labels Column -->
-                    <div class="col-md-4">
-                      <p>
-                        <a>{% translate 'Set Own Custom Shares of Households Allocated per Consumption Category' %}</a>
+                    <div class="demand-plot col-md-4">
+                      <p class="demand-title">
+                        {% translate 'Set Own Custom Shares of Households Allocated per Consumption Category' %}
                       </p>
-                      <p>
-                        <em>{% translate 'The default values correspond to the national average of rural areas' %}</em>
+                      <p class="demand-hint">
+                        {% translate 'The default values correspond to the national average of rural areas' %}
                       </p>
                       <p>{% translate "You have entered" %}
                         <strong id="demand-check">0%</strong>
@@ -109,10 +109,7 @@
                     </div>
                   </div>
                 </div>
-                <p style="display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        color: var(--ccb)">
+                <p class="demand-cat-header">
                 <span style="display: flex; align-items: center; margin-left: 10px">
                   <a id="downloadDemand"
                      class="btn btn--medium"
@@ -148,15 +145,13 @@
                 </p>
               </div>
             </div>
-            <div class="accordion-item" style="border-top: none; padding: 10px">
+            <div class="accordion-item" style="border-top: none;">
               <div id="collapseTwo"
                    class="accordion-collapse collapse {% if calibration.active %}show{% endif %}"
                    aria-labelledby="headingTwo">
                 <div class="accordion-body">
-                  <p>
-                    <a>
-                      <br>
-                      {% translate 'Set Custom Total Profile Calibration Values (Optional)' %}</a>
+                  <p class="demand-title">
+                    {% translate 'Set Custom Total Profile Calibration Values (Optional)' %}
                   </p>
                   <p>
                     {% blocktranslate trimmed %}
@@ -199,7 +194,7 @@
               </div>
             </div>
           </div>
-          <div class="accordion-item" style="border-top: none; padding: 10px">
+          <div class="accordion-item" style="border-top: none;">
             <div id="demandUpload"
                  class="accordion-collapse collapse {% if not opts_form.do_demand_estimation.value %} show {% endif %}"
                  aria-labelledby="headingThree">
