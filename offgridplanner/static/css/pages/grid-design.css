@@ -59,6 +59,10 @@ input.gd-search {
     background-color: var(--background-color--main);
 }
 
+.gd-component {
+    box-shadow: var(--box-shadow);
+}
+
 .gd-component:last-of-type {
     margin-bottom: 0;
 }

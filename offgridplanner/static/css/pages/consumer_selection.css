@@ -53,3 +53,9 @@
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
 }
+
+.consumer-title {
+    color: var(--font-color--main);
+    font-weight: 700;
+    font-size: var(--font-size--md);
+}
