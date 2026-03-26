@@ -23,7 +23,7 @@
               <div class="gd-sidebar__header">
                 <h2>Grid Properties</h2>
               </div>
-              <div class="gd-sidebar__content">
+              <div class="gd-sidebar__content" id="gd-accordion">
                 {% for component, fields in grouped_fields.items %}
                 {% if component != 'Shs' %}
                 <div class="accordion" id="accordion-{{ component|slugify }}">
@@ -43,6 +43,7 @@
                       id="collapse-{{ component|slugify }}"
                       class="accordion-collapse collapse"
                       aria-labelledby="heading-{{ component|slugify }}"
+                      data-bs-parent="#gd-accordion"
                     >
                       <div class="accordion-body">
                         {% for field_name, field in fields %}
@@ -72,7 +73,9 @@
                     </h2>
                     <div id="collapse-{{ component|slugify }}"
                         class="accordion-collapse collapse"
-                        aria-labelledby="heading-{{ component|slugify }}">
+                        aria-labelledby="heading-{{ component|slugify }}"
+                        data-bs-parent="#gd-accordion"
+                      >
                       <div class="accordion-body">
                         {% for field_name, field in fields %}
                           {% if field_name == 'include_shs' %}
