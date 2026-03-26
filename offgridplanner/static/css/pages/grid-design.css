@@ -140,6 +140,23 @@ input.gd-search {
     margin-left: -1rem;
 }
 
+.gd-watch-video {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #EBF3F8;
+}
+
+.gd-watch-video-text {
+    color: var(--font-color--link);
+    font-size: var(--font-size--sm);
+    line-height: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
 .gd-sources {
     font-size: 12px;
     color: var(--font-color--secondary);
