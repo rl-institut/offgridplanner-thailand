@@ -167,10 +167,6 @@ input.gd-search {
     margin-top: 2rem !important;
 }
 
-main:has(.gd) + .step-footer {
-    background-color: var(--background-color--secondary);
-}
-
 .gd-sources {
     padding-top: 2rem;
 }
