@@ -1,4 +1,4 @@
-const shsDiv = document.getElementById("selectShsBox")
+const shsDiv = document.getElementById("accordion-shs")
 const shsDivTitle = document.getElementById("selectShsBoxTitle")
 const shsCheckbox = document.getElementById("id_include_shs")
 const maxGridCostInput = document.getElementById('id_shs_max_grid_cost')
