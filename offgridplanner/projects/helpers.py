@@ -1,4 +1,5 @@
 import csv
+import httpx
 from collections import defaultdict
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
-from config.settings.base import DATA_DIR
+from config.settings.base import DATA_DIR, DEFAULT_CURRENCY
 from offgridplanner.projects.models import Project
 
 
@@ -198,6 +199,16 @@ def reorder_dict(d, old_index, new_index):
     items.insert(new_index, item)  # Insert it at the new index
     return dict(items)
 
+
+def get_exchange_rate(target_currency):
+    if target_currency == BASE_CURRENCY:
+        return 1.0
+
+    url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/{BASE_CURRENCY}"
+    response = httpx.get(url, timeout=5)
+    data = response.json()
+
+    return data["conversion_rates"].get(target_currency, 1.0)
 
 FORM_FIELD_METADATA = csv_to_dict(DATA_DIR / "form_parameters.csv")
 OUTPUT_KPIS = csv_to_dict(DATA_DIR / "output_kpis.csv")
