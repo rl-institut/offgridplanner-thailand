@@ -164,7 +164,6 @@ function markerOnClick(e) {
         document.getElementById('longitude').disabled = false;
         document.getElementById('latitude').disabled = false;
     }
-    expandAccordionItem2();
 
     // unselect marker if it was already selected before
     const selectedIndex = selectedMarkers.findIndex(
@@ -234,10 +233,10 @@ function markerOnClick(e) {
         if (clickedMarker.custom_specification.length > 5) {
             activate_large_loads(false);
             document.getElementById('toggleswitch2').checked = true;
-            const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
+            const largeLoadsAccordion = new bootstrap.Collapse(document.getElementById('largeLoadsCollapse'), {
                 toggle: false
             });
-            accordionItem3.show();
+            largeLoadsAccordion.show();
         }
     } else {
         deactivate_large_loads();
@@ -669,45 +668,19 @@ function saveNewLoadItemToList() {
     });
 }
 
-// TODO just use boostraps action attributes for this
-function expandAccordionItem2() {
-    const accordion = new bootstrap.Collapse(document.getElementById('collapseTwo'), {
-        toggle: false
-    });
-    accordion.show();
-}
-
 
 document.getElementById('toggleswitch2').addEventListener('change', function (event) {
-    const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
+    const largeLoadsAccordion = new bootstrap.Collapse(document.getElementById('largeLoadsCollapse'), {
         toggle: false
     });
 
     if (event.target.checked) {
-        accordionItem3.show();
+        largeLoadsAccordion.show();
     } else {
-        accordionItem3.hide();
+        largeLoadsAccordion.hide();
     }
 });
 
-$('#collapseTwo').on('hidden.bs.collapse', function () {
-    document.getElementById('toggleswitch2').checked = false;
-});
-
-document.querySelector('#headingTwo .accordion-button').addEventListener('click', function () {
-    const accordionItem2 = document.getElementById('collapseTwo');
-    const accordionItem3 = new bootstrap.Collapse(document.getElementById('collapseThree'), {
-        toggle: false
-    });
-    const toggleSwitch2 = document.getElementById('toggleswitch2');
-
-    // Check if the accordion item 2 is currently collapsed
-    if (!accordionItem2.classList.contains('show')) {
-        accordionItem3.hide();
-    } else if (toggleSwitch2.checked) {
-        accordionItem3.show();
-    }
-});
 
 function delete_consumer() {
     let lat = parseFloat(document.getElementById('latitude').value);
