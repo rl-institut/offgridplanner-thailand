@@ -2929,8 +2929,14 @@ td, th {
     pointer-events: none;
 }
 
+.grey_button {
+    padding: 0.25rem 0;
+    width: 7rem;
+}
+
 .grey_button a {
-    padding: 0.25rem 1rem;
+    display: inline-block;
+    width: 100%;
 }
 
 * {
