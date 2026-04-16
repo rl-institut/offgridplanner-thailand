@@ -225,7 +225,7 @@ function markerOnClick(e) {
         }
     });
     // handle large loads section for selected markers
-    if (clickedMarker.consumer_type === 'enterprise') {
+    if (['household', 'enterprise', 'public_service'].includes(clickedMarker.consumer_type)) {
         activate_large_loads(true);
         const commonLoads = getCommonLoads(selectedMarkers);
         commonLoads.forEach(load => {
