@@ -170,10 +170,6 @@
     margin-top: 2rem !important;
 }
 
-main:has(.esd) + .step-footer {
-    background-color: var(--background-color--secondary);
-}
-
 /* Energy System Diagram */
 #esd-diagram {
     padding: 2rem 3rem;

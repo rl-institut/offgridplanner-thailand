@@ -238,8 +238,8 @@ def grid_design(request, proj_id=None):
                 )
                 grouped_fields[clean_name] = grouped_fields.pop(component)
 
-            # Reorder dictionary for easier rendering in the correct order in the template (move SHS fields to #3)
-            grouped_fields = reorder_dict(grouped_fields, 4, 2)
+            # Reorder dictionary for easier rendering in the correct order in the template (move SHS fields to beginning)
+            grouped_fields = reorder_dict(grouped_fields, 4, 0)
 
             context = {
                 "grouped_fields": grouped_fields,

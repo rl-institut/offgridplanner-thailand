@@ -1296,13 +1296,17 @@ a.dropdown-item:active {
     align-items: center;
 }
 
+.input-group>.form-control {
+    padding: 0.75rem 1rem;
+}
+
 .form-control:disabled,
 .form-control:disabled::file-selector-button {
     color: #ccc;
 }
 
 .form-control:valid {
-    background-color: var(--bcc) !important;
+    background-color: #fff !important;
 }
 
 form .form-control:focus {
@@ -2003,7 +2007,7 @@ content: "7"; }
     -ms-flex-pack: center;
     justify-content: center;
     background-color: var(--bcc);
-    min-height: calc(100vh - 7rem - 4rem - 1rem - 4.5rem);
+    min-height: auto;
     padding: 3rem 0 4rem;
 }
 
@@ -2063,7 +2067,8 @@ content: "7"; }
     border-radius: 8px;
     -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
     box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
-    height: 40rem;
+    height: auto;
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
 
@@ -2135,6 +2140,44 @@ content: "7"; }
     padding-bottom: 0.5rem;
     color: #515559;
     border-top: 2px solid #c3c8cd;
+}
+
+.dashboard .chart__cards {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.dashboard .chart__cards .chart__card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    border: 1px solid #e6edf3;
+    -webkit-box-shadow: 0px 0px 16px rgba(31, 86, 125, 0.08);
+}
+
+.dashboard .chart__cards .chart__card-label {
+    font-size: 0.875rem;
+    color: #495965;
+}
+
+.dashboard .chart__cards .chart__card a {
+    font-size: 1.5rem;
+}
+
+.dashboard .chart__info-box {
+    background-color: #eff7f4;
+    border: 1px solid #c5e9dc;
+    color: #134b37;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
 }
 
 .dashboard .chart__header .view .icon {
@@ -2878,13 +2921,22 @@ td, th {
     letter-spacing: 0.03rem;
     font-weight: 700;
     padding: 0.25rem;
-    width: 100px;
 }
 
 .grey_button.disabled {
     cursor: not-allowed;
     opacity: 0.5;
     pointer-events: none;
+}
+
+.grey_button {
+    padding: 0.25rem 0;
+    width: 7rem;
+}
+
+.grey_button a {
+    display: inline-block;
+    width: 100%;
 }
 
 * {
@@ -3010,12 +3062,6 @@ hr {
         width: 100%;
     }
 }
-
-
-body {
-    text-align: justify;
-}
-
 
 .row {
     animation: loadingEffect 1s;

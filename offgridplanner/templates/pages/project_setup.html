@@ -16,10 +16,7 @@
   <section class="dashboard" style="height: auto">
     <div class="chart"
          style="height: auto;
-                      padding-bottom: 10px">
-      <div class="chart__header">
-        <a class="title"></a>
-      </div>
+                      padding-bottom: 1.5rem">
       <form action="{% if proj_id %}{% url 'steps:project_setup' proj_id %}{% else %}{% url 'steps:project_setup' %}{% endif %}" method="POST">
 
         {% csrf_token %}

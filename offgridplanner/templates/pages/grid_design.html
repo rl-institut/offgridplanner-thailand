@@ -7,68 +7,128 @@
 {% load widget_tweaks %}
 
 {% block head_block %}
+<link href="{% static 'css/pages/grid-design.css' %}" rel="stylesheet">
 <link href="{% static 'css/main.css' %}" rel="stylesheet">
 {% endblock head_block %}
 
 {% block progression_content %}
 <main>
-  <section class="dashboard">
+  <section class="gd">
     <div>
       <form method="post">
         {% csrf_token %}
-        <div class="row">
-          {% for component, fields in grouped_fields.items %}
-          {% if component != 'Shs' %}
+        <div class="row" style="justify-content: center;">
           <div class="col-md-4">
-            <div class="box box--tiny">
-              <div class="box__header">
-                <span class="grid-title">{{ component }}</span>
+            <div class="gd-sidebar">
+              <div class="gd-sidebar__header">
+                <h2>Grid Properties</h2>
               </div>
-              {% for field_name, field in fields %}
-              <div class="row">
-                <div class="input-group">
-                  <span class="input-group-text">{{ field.label | safe }}</span>
-                  {{ field|add_class:"form-control" }}
-                  <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-          {% else %}
-          <div class="col-md-4">
-            <div class="box box--tiny" id="selectShsBox">
-              {% for field_name, field in fields %}
-                {% if field_name == 'include_shs' %}
-                <div class="box__header">
-                  {{ field|add_class:"form-check-input" }}
-                  <span id="selectShsBoxTitle" class="grid-title">{{ field.label | safe }}</span>
+              <div class="gd-sidebar__content" id="gd-accordion">
+                {% for component, fields in grouped_fields.items %}
+                {% if component != 'Shs' %}
+                <div class="accordion" id="accordion-{{ component|slugify }}">
+                  <div class="accordion-item gd-component">
+                    <h2 class="accordion-header" id="heading-{{ component|slugify }}">
+                      <button
+                        class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapse-{{ component|slugify }}"
+                        aria-expanded="false"
+                        aria-controls="collapse-{{ component|slugify }}">
+                        {{ component }}
+                      </button>
+                    </h2>
+                    <div
+                      id="collapse-{{ component|slugify }}"
+                      class="accordion-collapse collapse"
+                      aria-labelledby="heading-{{ component|slugify }}"
+                      data-bs-parent="#gd-accordion"
+                    >
+                      <div class="accordion-body">
+                        {% for field_name, field in fields %}
+                        <div class="mb-3">
+                          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label|safe }}</label>
+                          <div class="input-group">
+                            {{ field|add_class:"form-control" }}
+                            <span class="input-group-text">{{ field.field.widget.attrs.unit }}</span>
+                          </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 {% else %}
-                <div class="row">
-                  <div class="input-group" id="shsLifetimeLabel">
-                    <span class="input-group-text">{{ field.label | safe }}</span>
-                    {{ field|add_class:"form-control" }}
-                    <span class="input-group-text" id="shsLifetimeUnit">{{ field.field.widget.attrs.unit }}</span>
-                  </div>
-                  <img
-                    src="{% static 'assets/icons/qm.svg' %}"
-                    alt="Icon"
-                    style="width: 100px; cursor: pointer; padding-top: 0.5rem; padding-bottom: 0.5rem"
-                    onclick="document.getElementById('videoTutorial').style.display='block'"
-                  />
-                  <p style="margin-bottom: 5px; color: #8B0000;">
-                    <i>
-                      Watch video tutorial for further explanation of this parameter
-                    </i>
+                <div class="accordion" id="accordion-{{ component|slugify }}">
+                  <div class="accordion-item gd-component">
+                    <h2 class="accordion-header" id="heading-{{ component|slugify }}">
+                      <div class="d-flex align-items-center">
+                        {% for field_name, field in fields %}
+                        {% if field_name == 'include_shs' %}
+                        <div class="form-check mb-2 ps-4">
+                          {{ field|add_class:"form-check-input" }}
+                        </div>
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapse-{{ component|slugify }}"
+                                aria-expanded="false"
+                                aria-controls="collapse-{{ component|slugify }}" id="selectShsBoxTitle">
+                          {{ field.label|safe }}
+                        </button>
 
+                        {% endif %}
+                        {% endfor %}
+                      </div>
+                    </h2>
+                    <div id="collapse-{{ component|slugify }}"
+                         class="accordion-collapse collapse"
+                         aria-labelledby="heading-{{ component|slugify }}"
+                         data-bs-parent="#gd-accordion"
+                    >
+                      <div class="accordion-body">
+                        {% for field_name, field in fields %}
+                        {% if field_name != 'include_shs' %}
+                        <div class="mb-3" id="shsLifetimeLabel">
+                          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label|safe }}</label>
+                          <div class="input-group">
+                            {{ field|add_class:"form-control" }}
+                            <span class="input-group-text" id="shsLifetimeUnit">{{ field.field.widget.attrs.unit }}</span>
+                          </div>
+                        </div>
+                          <div class="gd-watch-video">
+                            <img
+                              src="{% static 'assets/icons/i_video.svg' %}"
+                              alt="Icon"
+                              style="width: 2rem; cursor: pointer;"
+                              onclick="document.getElementById('videoTutorial').style.display='block'"
+                            />
+                            <p class="gd-watch-video-text">
+                              Watch video tutorial for further explanation of this parameter
+                            </p>
+                          </div>
+                        {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 {% endif %}
-              {% endfor %}
+                {% endfor %}
+              </div>
             </div>
           </div>
-          {% endif %}
-          {% endfor %}
+<!--          <div class="col-md-8">-->
+<!--            <div class="gd-map">-->
+<!--              <div class="gd-map__header">-->
+<!--                <h2>Grid Layout</h2>-->
+<!--              </div>-->
+<!--              <div class="gd-map__content">-->
+<!--                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">-->
+<!--                <div id="gridDesignMap" style="min-height: 650px; width: 100%;"></div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
         <input type="submit" id="submitFormBtn" hidden>
       </form>

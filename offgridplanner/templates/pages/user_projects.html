@@ -79,108 +79,120 @@
     {% endfor %}
     {% endif %}
   <section class="dashboard">
-    <section class="dashboard">
+    <div class="chart" style="height: auto; padding-bottom: 10px">
 
-      <div class="chart" style="height: auto; padding-bottom: 10px">
+      <div class="chart__header">
 
-
-        <div class="chart__header">
-
-          <a class="title">Projects</a>
-          {% if request.user.demo %}
-          <!-- Save Account Button -->
-          <span><button id="save-account-btn" class="btn btn--small" style="align:center">
-              {% translate "Save my account" %}
-              </button></span>
-          {% endif %}
-          <span><a href="{% url 'steps:project_setup' %}"
-                   class="btn btn--small">{% translate "New Project" %}
-              </a></span>
-        </div>
-        <span class="title"></span>
-        <table id="projectTable" class="sortable">
-          <thead>
-          <tr style="border-bottom:1px solid black">
-            <th><button class="btn btn--action">{% translate "Project Name" %}<span aria-hidden="true"></span></button></th>
-            <th aria-sort="descending" class="date"><button class="btn btn--action">{% translate "Creation Date" %}<span aria-hidden="true"></span></button></th>
-            <th class="date"><button class="btn btn--action">{% translate "Last Update" %}<span aria-hidden="true"></span></button></th>
-            <th><button class="btn btn--action">{% translate "Model Status" %}<span aria-hidden="true"></span></button></th>
-            <th></th>
-            <!-- Added an empty header for the new column -->
-            <th></th>
-            <th></th>
-            <th></th>
-          </tr>
-          </thead>
-          <tbody>
-          {% if projects %}
-          {% for project in projects %}
-          <tr>
-            <td>{{ project.name }}</td>
-            <td class="date" data-timestamp="{{ project.date_created|date:'U' }}">
-              {{ project.date_created }}
-            </td>
-            <td class="date" data-timestamp="{{ project.date_updated|date:'U' }}">
-              {{ project.date_updated }}
-            </td>
-            <td>{{ project.status }}</td>
-            <td>
-                          <span style="float:none;">
-                            <form action="{% url 'projects:project_duplicate' project.id %}"
-                                  method="POST">
-                              {% csrf_token %}
-                              <button style="color:#1F567D;
-                                             padding:4px"
-                                      class="grey_button"
-                                      type="submit"
-                                      value="Duplicate">{% translate "Duplicate" %}</button>
-                            </form>
-                          </span>
-            </td>
-            <td>
-              </span>
-            </td>
-            <td>
-                        <span style="float:none;">
-                          <button class="grey_button">
-                          <a onclick="document.getElementById('projectID{{ project.id }}').style.display='block'"
-                             style="color:white">{% translate "Delete" %}</a>
-                          </button>
-                        </span>
-            </td>
-            <td>
-                        <span style="float:none;">
-                          <button class="grey_button">
-                          <a href="{% url 'steps:project_setup' project.id %}">{% translate "Edit" %}</a>
-                          </button>
-                        </span>
-            </td>
-            <td>
-                        <span style="float:none;">
-                          <button class="grey_button {% if not project.has_simulation %} disabled {% endif %}" >
-                            {% if project.has_simulation %}
-                              <a href="{% url 'steps:simulation_results' project.id %}" >{% endif %}
-                              {% translate "Results" %}</a>
-                          </button>
-                        </span>
-            </td>
-          </tr>
-          {% endfor %}
-          {% else %}
-          <tr>
-            <td>{% translate "You do not yet have any saved projects" %}</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <!-- Added an empty cell for the new column -->
-          </tr>
-          {% endif %}
-          </tbody>
-        </table>
-        <span class="subtitle"></span>
+        <a class="title">Projects</a>
+        {% if request.user.demo %}
+        <!-- Save Account Button -->
+        <span><button id="save-account-btn" class="btn btn--small" style="align:center">
+            {% translate "Save my account" %}
+            </button></span>
+        {% endif %}
+        <span><a href="{% url 'steps:project_setup' %}"
+                  class="btn btn--small">{% translate "New Project" %}
+            </a></span>
       </div>
+      <span class="title"></span>
+      <table id="projectTable" class="sortable">
+        <thead>
+        <tr style="border-bottom:1px solid #93AAB6">
+          <th><button class="btn btn--action">{% translate "Project Name" %}<span aria-hidden="true"></span></button></th>
+          <th aria-sort="descending" class="date"><button class="btn btn--action">{% translate "Creation Date" %}<span aria-hidden="true"></span></button></th>
+          <th class="date"><button class="btn btn--action">{% translate "Last Update" %}<span aria-hidden="true"></span></button></th>
+          <th><button class="btn btn--action">{% translate "Model Status" %}<span aria-hidden="true"></span></button></th>
+          <th></th>
+          <!-- Added an empty header for the new column -->
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if projects %}
+        {% for project in projects %}
+        <tr>
+          <td>{{ project.name }}</td>
+          <td class="date" data-timestamp="{{ project.date_created|date:'U' }}">
+            {{ project.date_created }}
+          </td>
+          <td class="date" data-timestamp="{{ project.date_updated|date:'U' }}">
+            {{ project.date_updated }}
+          </td>
+          <td>{{ project.status }}</td>
+          <td class="project-table__actions">
+            <div>
+              <span style="float:none;">
+                <form action="{% url 'projects:project_duplicate' project.id %}"
+                      method="POST">
+                  {% csrf_token %}
+                  <button style="color:#1F567D;
+                                  padding-left: 1rem;
+                                  padding-right: 1rem;"
+                          class="grey_button"
+                          type="submit"
+                          value="Duplicate">{% translate "Duplicate" %}</button>
+                </form>
+              </span>
+              <span style="float:none;">
+                <button class="grey_button">
+                <a onclick="document.getElementById('projectID{{ project.id }}').style.display='block'"
+                    style="color:white">{% translate "Delete" %}</a>
+                </button>
+              </span>
+              <span style="float:none;">
+                <button class="grey_button">
+                <a href="{% url 'steps:project_setup' project.id %}">{% translate "Edit" %}</a>
+                </button>
+              </span>
+              <span style="float:none;">
+                <button class="grey_button {% if not project.has_simulation %} disabled {% endif %}" >
+                  {% if project.has_simulation %}
+                    <a href="{% url 'steps:simulation_results' project.id %}" >{% endif %}
+                    {% translate "Results" %}</a>
+                </button>
+              </span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td>{% translate "You do not yet have any saved projects" %}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <!-- Added an empty cell for the new column -->
+        </tr>
+        {% endif %}
+        </tbody>
+      </table>
+      <span class="subtitle"></span>
+    </div>
     </section>
+    {% if projects %}
+    {% for project in projects %}
+    <div id=projectID{{ project.id }} class="modal">
+      <form class="modal-content"
+            action="{% url 'projects:project_delete' project.id %}"
+            method="POST">
+        {% csrf_token %}
+        <div class="container">
+          <h1>{% translate "Delete Project" %}</h1>
+          <p>{% translate "Are you sure you want to delete the project?" %}</p>
+          <div class="clearfix">
+            <button style="margin-top:0.25rem;" class="deletebtn" type="submit">{% translate "Delete" %}</button>
+            <button onclick="document.getElementById('projectID{{ project.id }}').style.display='none'"
+                    type="button"
+                    class="cancelbtn">{% translate "Cancel" %}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+    {% endif %}
   </section>
 </main>
 </body>

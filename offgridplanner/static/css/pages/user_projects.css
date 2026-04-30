@@ -1,67 +1,81 @@
-  table.sortable {
-    width: 100%;
-    overflow-x: auto;
-    display: block;
-  }
+@import "../variables.css";
 
-  table.sortable td,
-  table.sortable th {
-    padding: 0.6em 0.25em;
-  }
+#projectTable tbody {
+  color: var(--font-color--secondary);
+}
 
-  table.sortable th {
-    font-weight: bold;
-    position: relative;
-  }
+table.sortable {
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+}
 
-  table.sortable th.date {
-    width: 15%;
-  }
+table.sortable td,
+table.sortable th {
+  padding: 0.6em 0.25em;
+}
 
-  table.sortable th button {
-    padding: 4px;
-    font-weight: bold;
-  }
+table.sortable th {
+  font-weight: bold;
+  position: relative;
+}
 
-  table.sortable th button span {
-    position: relative;
-  }
+table.sortable th.date {
+  width: 15%;
+}
 
-  table.sortable th[aria-sort="descending"] span::after {
-    content: "▼";
-    color: currentcolor;
-    font-size: 100%;
-    top: 0;
-  }
+table.sortable th button {
+  padding: 4px;
+  font-weight: bold;
+}
 
-  table.sortable th[aria-sort="ascending"] span::after {
-    content: "▲";
-    color: currentcolor;
-    font-size: 100%;
-    top: 0;
-  }
+table.sortable th button span {
+  position: relative;
+}
 
-  table.show-unsorted-icon th:not([aria-sort]) button span::after {
-    content: "♢";
-    color: currentcolor;
-    font-size: 100%;
-    position: relative;
-    top: -3px;
-    left: -4px;
-  }
+table.sortable th[aria-sort="descending"] span::after {
+  content: "▼";
+  color: currentcolor;
+  font-size: 100%;
+  top: 0;
+}
+
+table.sortable th[aria-sort="ascending"] span::after {
+  content: "▲";
+  color: currentcolor;
+  font-size: 100%;
+  top: 0;
+}
+
+table.show-unsorted-icon th:not([aria-sort]) button span::after {
+  content: "♢";
+  color: currentcolor;
+  font-size: 100%;
+  position: relative;
+  top: -3px;
+  left: -4px;
+}
 
 
-  /* Focus and hover styling */
-  table.sortable th:not([aria-sort]) button:focus span::after,
-  table.sortable th:not([aria-sort]) button:hover span::after {
-    content: "▼";
-    font-size: 100%;
-    top: 0;
-  }
+/* Focus and hover styling */
+table.sortable th:not([aria-sort]) button:focus span::after,
+table.sortable th:not([aria-sort]) button:hover span::after {
+  content: "▼";
+  font-size: 100%;
+  top: 0;
+}
 
-  table.sortable .btn--action:hover,
-  table.sortable .btn--action:focus {
-    box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
-    color: currentcolor;
-    background-color: transparent!important;
-  }
+table.sortable .btn--action:hover,
+table.sortable .btn--action:focus {
+  box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+  color: currentcolor;
+  background-color: transparent!important;
+}
+
+.project-table__actions div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  height: 100%;
+}

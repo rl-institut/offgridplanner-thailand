@@ -1,6 +1,6 @@
 label {
     font-weight: bold; /* Makes the font bold */
-    color: var(--ccb); /* Uses the color defined in the --ccb variable */
+    color: #5f7489;
 }
 
 /* Container for label and toggle switch */
