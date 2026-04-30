@@ -183,6 +183,37 @@ const CustomMarkerControl = L.Control.extend({
     }
 });
 
+const zoomAllControl = L.Control.extend({
+    options: {
+        position: 'topleft'
+    },
+
+    onAdd: function (map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        L.DomEvent.disableClickPropagation(container);
+        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
+        link.href = '#';
+        link.title = 'zoom out';
+
+        // add an image inside the link
+        const image = L.DomUtil.create('img', 'my-zoom-icon', link);
+        image.src = '/static/images/imgZoomToAll.png';
+        image.alt = 'Zoom';
+        image.style.width = '30px';
+        image.style.height = '30px';
+
+        container.onclick = function (e) {
+            L.DomEvent.preventDefault(e);
+            L.DomEvent.stopPropagation(e);
+            zoomAll(map);
+        };
+
+        return container;
+    },
+});
+
+map.addControl(new zoomAllControl());
+
 
 
 function add_single_consumer_to_array(latitude, longitude, how_added, node_type) {

@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Improve overall design ([#36](https://github.com/rl-institut/offgridplanner-thailand/pull/36))
+
+### Fixed
+- Fix zoom out util not displaying on map ([#49](https://github.com/rl-institut/offgridplanner-thailand/pull/49))
+- Improve map handling for border communities ([#49](https://github.com/rl-institut/offgridplanner-thailand/pull/49))
 
 ## [v1.2.0-thai.4.1] – 2026-04-16
 - Merge changes and bug fixes made in upstream repository ([#46](https://github.com/rl-institut/offgridplanner-thailand/pull/46))
