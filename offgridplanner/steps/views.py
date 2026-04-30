@@ -222,7 +222,7 @@ def grid_design(request, proj_id=None):
     if proj_id is not None:
         project = get_object_or_404(Project, id=proj_id)
 
-        grid_design, _ = GridDesign.objects.get_or_create(
+        grid_design, created = GridDesign.objects.get_or_create(
             project=project, defaults=get_param_from_metadata("default", "GridDesign")
         )
         if request.method == "GET":
@@ -231,7 +231,7 @@ def grid_design(request, proj_id=None):
             grouped_fields = group_form_by_component(form)
 
             for component in list(grouped_fields):
-                clean_name = (
+                clean_name = _(
                     component.title().replace("_", " ")
                     if component != "mg"
                     else "Connection Costs"
