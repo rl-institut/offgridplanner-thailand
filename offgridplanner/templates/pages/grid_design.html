@@ -17,7 +17,7 @@
     <div>
       <form method="post">
         {% csrf_token %}
-        <div class="row">
+        <div class="row" style="justify-content: center;">
           <div class="col-md-4">
             <div class="gd-sidebar">
               <div class="gd-sidebar__header">
@@ -118,17 +118,17 @@
               </div>
             </div>
           </div>
-          <div class="col-md-8">
-            <div class="gd-map">
-              <div class="gd-map__header">
-                <h2>Grid Layout</h2>
-              </div>
-              <div class="gd-map__content">
-                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">
-                <div id="gridDesignMap" style="min-height: 650px; width: 100%;"></div>
-              </div>
-            </div>
-          </div>
+<!--          <div class="col-md-8">-->
+<!--            <div class="gd-map">-->
+<!--              <div class="gd-map__header">-->
+<!--                <h2>Grid Layout</h2>-->
+<!--              </div>-->
+<!--              <div class="gd-map__content">-->
+<!--                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">-->
+<!--                <div id="gridDesignMap" style="min-height: 650px; width: 100%;"></div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
         </div>
         <input type="submit" id="submitFormBtn" hidden>
       </form>
