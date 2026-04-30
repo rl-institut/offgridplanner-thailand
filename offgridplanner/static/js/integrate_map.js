@@ -96,17 +96,22 @@ let countryBounds = [
     [boundsDict.latitude_min, boundsDict.longitude_min],
     [boundsDict.latitude_max, boundsDict.longitude_max]
   ];
+
+let paddedCountryBounds = L.latLngBounds(countryBounds).pad(0.3);
+
 let countryCentroid = [
-    (boundsDict.longitude_min + boundsDict.longitude_max) / 2,
     (boundsDict.latitude_min + boundsDict.latitude_max) / 2,
-  ]
+    (boundsDict.longitude_min + boundsDict.longitude_max) / 2,
+];
 
 function initializeMap(center = null, zoom = null, bounds = null) {
     if (!map) {
         // Only initialize the map if it hasn't been initialized yet
         map = L.map('map', {
             preferCanvas: true, // This ensures Leaflet renders vectors and geometries on a Canvas.
-            maxBounds: countryBounds,
+            center: countryCentroid,
+            zoom: 6,
+            maxBounds: paddedCountryBounds,
             maxBoundsViscosity: 1.0,
         });
 
@@ -114,7 +119,7 @@ function initializeMap(center = null, zoom = null, bounds = null) {
         if (center && zoom) {
             // Set the view using center and zoom if provided
             map.setView(center, zoom);
-        } else if  (typeof bounds === 'object' && bounds !== null && Object.keys(bounds).length >= 4) {
+        } else if  (typeof bounds === 'object' && bounds !== null && Object.keys(bounds).length >= 2) {
             // Fit map to the given bounds if bounds are provided
             map.fitBounds(bounds);
         } else {
