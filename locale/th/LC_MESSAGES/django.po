@@ -574,17 +574,19 @@ msgid "About"
 msgstr "เกี่ยวกับ"
 
 msgid ""
-"PeopleSuN is a project funded by the German Federal Ministry of Education "
-"and Research (BMBF) within the funding initiative 'Client II - International "
-"Partnerships for Sustainable Innovations'. The off-grid tool was developed "
-"by the Department of Energy Engineering and Environmental Protection at the "
-"Technische Universität Berlin in cooperation with the Reiner-Lemoine-Institute."
+"The Green H2Islands project (FKZ: 67EXI7501A) is funded by the Federal Ministry for the Environment, Climate Action, "
+"Nature Conservation and Nuclear Safety (BMUKN) as part of the “Export Initiative Environmental Protection” (EXI). As "
+"the EXI project management agency, Zukunft – Umwelt – Gesellschaft (ZUG) gGmbH supports the Federal Ministry for the "
+"Environment in carrying out its tasks. As a project of the thematic focus 'green hydrogen and fuel cell technologies "
+"for decentralized energy supply' within the Export Initiative Environmental Protection, NOW GmbH supports the Green "
+"H2Islands project in its function as a program company."
 msgstr ""
-"PeopleSuN เป็นโครงการที่ได้รับทุนสนับสนุนจากกระทรวงศึกษาธิการและการวิจัยแห่งสหพันธ์สาธารณรัฐเยอรมนี (BMBF) "
-"ภายใต้โครงการสนับสนุน 'Client II - International Partnerships for Sustainable Innovations' "
-"เครื่องมือออกแบบเครือข่ายออฟกริดนี้ได้รับการพัฒนาโดยภาควิชาวิศวกรรมพลังงานและการคุ้มครองสิ่งแวดล้อม "
-"มหาวิทยาลัยเทคนิคแห่งเบอร์ลิน (Technische Universität Berlin) "
-"ร่วมกับสถาบัน Reiner-Lemoine-Institute"
+"โครงการ Green H2Islands (FKZ: 67EXI7501A) ได้รับทุนสนับสนุนจากกระทรวงสิ่งแวดล้อม การดำเนินการด้านสภาพภูมิอากาศ การอนุรักษ์ธรรมชาติ "
+"และความปลอดภัยทางนิวเคลียร์แห่งสหพันธ์สาธารณรัฐเยอรมนี (Bundesministerium für Umwelt, Klimaschutz, Naturschutz und nukleare "
+"Sicherheit: BMUKN) ภายใต้โครงการ “Export Initiative Environmental Protection” (EXI) โดยมี Zukunft – Umwelt – Gesellschaft"
+"(ZUG) gGmbH ทำหน้าที่เป็นหน่วยบริหารโครงการเพื่อสนับสนุนการดำเนินงานของกระทรวงสิ่งแวดล้อมฯ นอกจากนี้ ภายในกรอบหัวข้อ "
+"'เทคโนโลยีไฮโดรเจนสีเขียวและเซลล์เชื้อเพลิงสำหรับการจัดหาไฟฟ้าแบบกระจายศูนย์' ของ EXI บริษัท NOW GmbH ทำหน้าที่สนับสนุนโครงการ Green H2Islands "
+"ในฐานะหน่วยงานกำกับดูแลโครงการ"
 
 msgid "Using the planing tool without registration"
 msgstr "การใช้งานเครื่องมือวางแผนโดยไม่ลงทะเบียน"
@@ -722,6 +724,9 @@ msgstr "ดาวน์โหลดผลลัพธ์ (ในรูปแบ�
 msgid "Download Results (PDF)"
 msgstr "ดาวน์โหลดผลลัพธ์ (PDF)"
 
+msgid "Download Results"
+msgstr "ดาวน์โหลดผลลัพธ์"
+
 msgid "Recalculate"
 msgstr "คำนวณใหม่"
 
@@ -743,13 +748,13 @@ msgstr "จำนวนเสาไฟฟ้า"
 msgid "Distribution Cable Length"
 msgstr "ความยาวของสายจำหน่าย"
 
-msgid "Average Length Distribution"
+msgid "Average Length Distribution Cable"
 msgstr "ความยาวเฉลี่ยของสายจำหน่าย"
 
 msgid "Connection Cable Length"
 msgstr "ความยาวของสายเชื่อมต่อ"
 
-msgid "Average Length Connection"
+msgid "Average Length Connection Cable"
 msgstr "ความยาวเฉลี่ยของสายเชื่อมต่อ"
 
 msgid "ENERGY CONVERTERS"
@@ -924,7 +929,7 @@ msgstr "การปรับปรุงล่าสุด"
 msgid "Model Status"
 msgstr "สถานะแบบจำลอง"
 
-msgid "Duplicate Project"
+msgid "Duplicate"
 msgstr "ทำซ้ำโปรเจค"
 
 msgid "Delete Project"
@@ -1166,3 +1171,132 @@ msgstr "การขาดแคลนสูงสุดในแต่ละช
 
 msgid "Shortage Penalty Cost"
 msgstr "ค่าปรับจากการขาดแคลน"
+
+msgid "Connection Cable"
+msgstr "สายเชื่อมต่อ"
+
+msgid "Distribution Cable"
+msgstr "สายจำหน่าย"
+
+msgid "Pole"
+msgstr "เสาไฟฟ้า"
+
+msgid "Connection Costs"
+msgstr "ต้นทุนการเชื่อมต่อ"
+
+msgid "Selected Loads"
+msgstr "โหลดที่เลือกไว้"
+
+msgid "Add Load"
+msgstr "เพิ่มโหลด"
+
+msgid "Very Low"
+msgstr "ต่ำมาก"
+
+msgid "Low"
+msgstr "ต่ำ"
+
+msgid "Middle"
+msgstr "ปานกลาง"
+
+msgid "High"
+msgstr "สูง"
+
+msgid "Very High"
+msgstr "สูงมาก"
+
+msgid "Activate Custom Calibration"
+msgstr "เปิดใช้งานการปรับเทียบแบบกำหนดเอง"
+
+msgid "Export Demand"
+msgstr "ส่งออกข้อมูลความต้องการไฟฟ้า"
+
+msgid "Years"
+msgstr "ปี"
+
+msgid "Connection"
+msgstr "การเชื่อมต่อ"
+
+msgid "Optimized Capacity"
+msgstr "กำลังที่เหมาะสมที่สุด"
+
+msgid "Fixed Capacity"
+msgstr "กำลังคงที่"
+
+msgid "Starting optimization..."
+msgstr "เริ่มกระบวนการปรับให้เหมาะสม..."
+
+msgid "Abort Calculation"
+msgstr "ยกเลิกการคำนวณ"
+
+msgid "You will be forwarded after the model calculation is completed."
+msgstr "คุณจะถูกนำไปยังหน้าถัดไปหลังจากการคำนวณแบบจำลองเสร็จสิ้น"
+
+msgid "Annual CO2 Savings"
+msgstr "การลดการปล่อย CO2 ต่อปี"
+
+msgid "Capacity in kW"
+msgstr "กำลังการผลิต (กิโลวัตต์)"
+
+msgid "Capacity in kWh"
+msgstr "ความจุพลังงาน (กิโลวัตต์ชั่วโมง)"
+
+msgid "Interest Rate"
+msgstr "อัตราดอกเบี้ย"
+
+msgid "Project Country"
+msgstr "ประเทศที่ดำเนินโปรเจค"
+
+msgid "School"
+msgstr "โรงเรียน"
+
+msgid "Health Centre"
+msgstr "ศูนย์สุขภาพ"
+
+msgid "Mosque"
+msgstr "มัสยิด"
+
+msgid "Temple"
+msgstr "วัด"
+
+msgid "Household plus shop"
+msgstr "ครัวเรือนพร้อมร้านค้า"
+
+msgid "Household plus shop & restaurant"
+msgstr "ครัวเรือนพร้อมร้านค้าและร้านอาหาร"
+
+msgid "Household plus shop & motorbike repair"
+msgstr "ครัวเรือนพร้อมร้านค้าและร้านซ่อมมอเตอร์ไซค์"
+
+msgid "Water pump"
+msgstr "เครื่องสูบน้ำ"
+
+msgid "AC"
+msgstr "เครื่องปรับอากาศ"
+
+msgid "Computer/laptop"
+msgstr "คอมพิวเตอร์/โน๊ตบุ๊ค"
+
+msgid "Fridge"
+msgstr "ตู้เย็น"
+
+msgid "Washing Machine"
+msgstr "เครื่องซักผ้า"
+
+msgid "Export demand"
+msgstr "ส่งออกข้อมูลความต้องการไฟฟ้า"
+
+msgid "Optimized capacity"
+msgstr "กำลังที่เหมาะสมที่สุด"
+
+msgid "Fixed capacity"
+msgstr "กำลังคงที่"
+
+msgid "H2 Storage"
+msgstr "ระบบกักเก็บไฮโดรเจน"
+
+msgid "Electrolyzer"
+msgstr "อิเล็กโทรไลเซอร์"
+
+msgid "Fuel Cell"
+msgstr "เซลล์เชื้อเพลิง"
