@@ -1,0 +1,71 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-31 15:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Schematic of the Selected Off-Grid System"
+msgstr "แผนภาพเชิงโครงสร้างของระบบออฟกริดที่เลือก"
+
+msgid "Demand"
+msgstr "ความต้องการใช้ไฟฟ้า"
+
+msgid "Shortage"
+msgstr "การขาดแคลน"
+
+msgid "Surplus"
+msgstr "ไฟฟ้าส่วนเกิน"
+
+msgid "PV"
+msgstr "PV"
+
+msgid "design"
+msgstr "แบบ"
+
+msgid "Battery"
+msgstr "แบตเตอรี่"
+
+msgid "Diesel Genset"
+msgstr "เครื่องกำเนิดไฟฟ้าดีเซล"
+
+msgid "Inverter"
+msgstr "อินเวอร์เตอร์"
+
+msgid "Rectifier"
+msgstr "เรคติไฟเออร์"
+
+msgid "AC Bus"
+msgstr "บัสไฟฟ้ากระแสสลับ"
+
+msgid "DC Bus"
+msgstr "บัสไฟฟ้ากระแสตรง"
+
+
+msgid "H2 Storage"
+msgstr "ระบบกักเก็บไฮโดรเจน"
+
+msgid "Electrolyzer"
+msgstr "อิเล็กโทรไลเซอร์"
+
+msgid "Fuel Cell"
+msgstr "เซลล์เชื้อเพลิง"
+
+msgid "Annual CO2 Savings"
+msgstr "การลดการปล่อย CO2 ต่อปี"
+
+msgid "Capacity in kW"
+msgstr "กำลังการผลิต (กิโลวัตต์)"
+
+msgid "Capacity in kWh"
+msgstr "ความจุพลังงาน (กิโลวัตต์ชั่วโมง)"
+
+msgid "Peak Demand"
+msgstr "ความต้องการไฟฟ้าสูงสุด"
