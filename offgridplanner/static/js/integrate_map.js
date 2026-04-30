@@ -150,30 +150,6 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 
         map.addLayer(drawnItems);
 
-        var zoomAllControl = L.Control.extend({
-            options: {
-                position: 'topleft'
-            },
-
-            onAdd: function (map) {
-                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                let baseUrl = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-                let address = "url(" + baseUrl + "//static/images/imgZoomToAll.png)"
-                container.style.backgroundColor = 'white';
-                container.style.backgroundImage = address;
-                container.style.backgroundSize = "28px 28px";
-                container.style.width = '32px';
-                container.style.height = '32px';
-
-                container.onclick = function () {
-                    zoomAll(map);
-                };
-
-                return container;
-            },
-        });
-
-        map.addControl(new zoomAllControl());
         load_legend();
         // TODO this is replaced by end_body script
 //        if (typeof loadDrawingToolsJS === 'function') {
