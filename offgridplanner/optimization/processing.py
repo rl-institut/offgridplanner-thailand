@@ -497,7 +497,7 @@ class SupplyProcessor(OptimizationDataHandler):
         self.duration_curve_df = (
             self.duration_curve_df.resample("D").min().reset_index(drop=True)
         )
-        self.duration_curve_df["pv_percentage"] = (
+        self.duration_curve_df["operation_percentage"] = 100 * (
             self.duration_curve_df.index.copy() / self.duration_curve_df.shape[0]
         )
 

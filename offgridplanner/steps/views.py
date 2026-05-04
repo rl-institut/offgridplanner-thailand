@@ -352,13 +352,23 @@ def simulation_results(request, proj_id=None):
     else:
         return redirect("steps:calculating", proj_id)
 
-    df = pd.Series(model_to_dict(res))
+    results_df = pd.Series(model_to_dict(res))
 
-    df = df.astype(float)
+    # Calculate results not saved directly to db
+    energy_flows = project.energyflow.df
+    lhv = project.energysystemdesign.fuel_cell_parameters_fuel_lhv
+    h2_production_kwh = energy_flows.h2_storage_charge.sum()
+    h2_production_kg = h2_production_kwh / lhv
+    # TODO decide where/if they should all be shown
+    operation_hours = energy_flows.round(2).astype(bool).sum()
+    # Add misc KPIs to output
+    results_df.loc["surplus_total_kwh"] = energy_flows.surplus.sum()
+    results_df.loc["h2_production_kg"] = h2_production_kg
+    results_df = results_df.astype(float)
     output_kpis = OUTPUT_KPIS.copy()
 
     for kpi in output_kpis:
-        output_kpis[kpi]["value"] = df[kpi].round(1)
+        output_kpis[kpi]["value"] = results_df[kpi].round(1)
         output_kpis[kpi]["unit"] = output_kpis[kpi]["unit"].replace(
             "currency", DEFAULT_CURRENCY
         )
@@ -387,6 +397,7 @@ def simulation_results(request, proj_id=None):
         "h2_storage_capacity",
         "electrolyzer_capacity",
         "fuel_cell_capacity",
+        "h2_production_kg",
     ]
     grid_row_fields = [
         "n_consumers",
@@ -430,7 +441,7 @@ def simulation_results(request, proj_id=None):
         "peak_demand",
         "base_load",
         "average_annual_demand_per_consumer",
-        "surplus_rate",
+        "surplus_total_kwh",
     ]
 
     shortage_fields = [
