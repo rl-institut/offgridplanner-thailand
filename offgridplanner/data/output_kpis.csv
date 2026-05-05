@@ -8,12 +8,14 @@ length_connection_cable,Connection Cable Length,m
 average_length_connection_cable,Average Length Connection Cable,m
 cost_grid,Grid annualized Cost,currency/a
 lcoe,Levelized Cost of Electricity (w/o SHS),cent/kWh
+lcoh,Levelized Cost of Hydrogen,cent/kWh
 lcoe_share_grid,Share of Grid-Related Costs in the LCOE,%
 lcoe_share_supply,Share of Generation-Related Costs in LCOE,%
 res,Renewable Energy Share,%
 max_voltage_drop,Max. Voltage drop,%
 shortage_total,Total annual Shortage,%
 surplus_rate,Total annual Surplus,%
+surplus_total_kwh,Total annual Surplus,kWh
 time,Total simulation time,s
 co2_savings,Annual CO2 savings,t/a
 total_annual_consumption,Total annual Consumption,kWh/a
@@ -51,3 +53,7 @@ epc_h2_storage,H2 Storage annualized Cost,currency/a
 epc_electrolyzer,Electrolyzer annualized Cost,currency/a
 epc_fuel_cell,Fuel cell annualized Cost,currency/a
 epc_total,Total annualized Cost,currency/a
+h2_production_kg,Total hydrogen produced,kg
+operation_hours_battery,Battery operation hours,h
+operation_hours_electrolyzer,Electrolyzer operation hours,h
+operation_hours_fuel_cell,Fuel cell operation hours,h

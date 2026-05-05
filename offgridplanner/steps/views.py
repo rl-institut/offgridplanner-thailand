@@ -352,13 +352,41 @@ def simulation_results(request, proj_id=None):
     else:
         return redirect("steps:calculating", proj_id)
 
-    df = pd.Series(model_to_dict(res))
+    results_df = pd.Series(model_to_dict(res))
 
-    df = df.astype(float)
+    # Calculate results not saved directly to db
+    energy_flows = project.energyflow.df
+    lhv = project.energysystemdesign.fuel_cell_parameters_fuel_lhv
+    h2_production_kwh = energy_flows.hydrogen_bus_to_h2_storage.sum()
+    h2_production_kg = h2_production_kwh / lhv
+    operation_hours = pd.Series(
+        {
+            "battery": (
+                (
+                    energy_flows["dc_bus_to_battery"].abs()
+                    + energy_flows["battery_to_dc_bus"].abs()
+                )
+                .round(2)
+                .astype(bool)
+                .sum()
+            ),
+            "electrolyzer": (
+                energy_flows["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
+            ),
+            "fuel_cell": (
+                energy_flows["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
+            ),
+        }
+    )
+    # Add misc KPIs to output
+    for comp in operation_hours.index:
+        results_df.loc[f"operation_hours_{comp}"] = operation_hours.loc[comp]
+    results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
+    results_df.loc["h2_production_kg"] = h2_production_kg
+    results_df = results_df.astype(float)
     output_kpis = OUTPUT_KPIS.copy()
-
     for kpi in output_kpis:
-        output_kpis[kpi]["value"] = df[kpi].round(1)
+        output_kpis[kpi]["value"] = results_df[kpi].round(1)
         output_kpis[kpi]["unit"] = output_kpis[kpi]["unit"].replace(
             "currency", DEFAULT_CURRENCY
         )
@@ -387,6 +415,7 @@ def simulation_results(request, proj_id=None):
         "h2_storage_capacity",
         "electrolyzer_capacity",
         "fuel_cell_capacity",
+        "h2_production_kg",
     ]
     grid_row_fields = [
         "n_consumers",
@@ -424,13 +453,19 @@ def simulation_results(request, proj_id=None):
         "epc_fuel_cell",
     ]
 
+    operation_hour_fields = [
+        "operation_hours_battery",
+        "operation_hours_electrolyzer",
+        "operation_hours_fuel_cell",
+    ]
+
     # Demand tab
     demand_kpis_row_fields = [
         "total_annual_consumption",
         "peak_demand",
         "base_load",
         "average_annual_demand_per_consumer",
-        "surplus_rate",
+        "surplus_total_kwh",
     ]
 
     shortage_fields = [
@@ -464,6 +499,7 @@ def simulation_results(request, proj_id=None):
             "upfront_invest_row_fields": upfront_invest_row_fields,
             "annualized_cost_row_fields": annualized_cost_row_fields,
             "demand_kpis_row_fields": demand_kpis_row_fields,
+            "operation_hour_fields": operation_hour_fields,
             "shortage_fields": shortage_fields,
             "shortage_is_selected": shortage_is_selected,
             "environmental_kpis_row_fields": environmental_kpis_row_fields,
@@ -471,6 +507,15 @@ def simulation_results(request, proj_id=None):
             "do_supply_optimization": opts.do_es_design_optimization,
             "bounds_dict": country_bounds,
             "step_list": STEP_LIST_RIBBON,
+            "timestamps": pd.Series(
+                pd.date_range(
+                    pd.to_datetime("2026").to_pydatetime(),
+                    pd.to_datetime("2026").to_pydatetime()
+                    + pd.to_timedelta(365, unit="D"),
+                    freq="h",
+                    inclusive="left",
+                )
+            ),
         },
     )
 

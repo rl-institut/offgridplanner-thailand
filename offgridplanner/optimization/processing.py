@@ -382,6 +382,10 @@ class SupplyProcessor(OptimizationDataHandler):
             ]
         )
 
+    @property
+    def h2_components(self):
+        return ["h2_storage", "fuel_cell", "electrolyzer"]
+
     @staticmethod
     def to_kwh(value):
         """Adapt the order of magnitude (normally from W or Wh oemof results to kWh)"""
@@ -436,23 +440,50 @@ class SupplyProcessor(OptimizationDataHandler):
         )
 
         # Generate energy flow df from extracted sequences
-        self.energy_flow_df = pd.DataFrame(
-            {
-                "diesel_genset_production": self.sequences["genset"],
-                "pv_production": self.sequences["pv"],
-                "battery_charge": self.sequences["battery_charge"],
-                "battery_discharge": self.sequences["battery_discharge"],
-                "battery_content": self.sequences["battery_content"],
-                "h2_storage_charge": self.sequences["h2_storage_charge"],
-                "h2_storage_discharge": self.sequences["h2_storage_discharge"],
-                "h2_storage_content": self.sequences["h2_storage_content"],
-                "electrolyzer_production": self.sequences["electrolyzer"],
-                "fuel_cell_production": self.sequences["fuel_cell"],
-                "demand": self.sequences["demand"],
-                "surplus": self.sequences["surplus"],
-            },
-        ).round(3)
+        rectifier_efficiency = self.energy_system_dict["rectifier"]["parameters"][
+            "efficiency"
+        ]
+        inverter_efficiency = self.energy_system_dict["inverter"]["parameters"][
+            "efficiency"
+        ]
+        electrolyzer_efficiency = self.energy_system_dict["electrolyzer"]["parameters"][
+            "efficiency"
+        ]
 
+        flow_df = pd.DataFrame(
+            {
+                "fuel_to_diesel_genset": self.sequences["fuel_consumption_kwh"],
+                "diesel_genset_to_rectifier": (
+                    self.sequences["rectifier"] / rectifier_efficiency
+                ),
+                "rectifier_to_dc_bus": self.sequences["rectifier"],
+                "pv_to_dc_bus": self.sequences["pv"],
+                "battery_to_dc_bus": self.sequences["battery_discharge"],
+                "dc_bus_to_battery": self.sequences["battery_charge"],
+                "dc_bus_to_inverter": (
+                    self.sequences["inverter"] / inverter_efficiency
+                ),
+                "inverter_to_demand": self.sequences["inverter"],
+                "dc_bus_to_electrolyzer": (
+                    self.sequences["electrolyzer"] / electrolyzer_efficiency
+                ),
+                "electrolyzer_to_hydrogen_bus": self.sequences["electrolyzer"],
+                "hydrogen_bus_to_h2_storage": self.sequences["h2_storage_charge"],
+                "h2_storage_to_hydrogen_bus": self.sequences["h2_storage_discharge"],
+                "hydrogen_bus_to_fuel_cell": self.sequences["h2_storage_discharge"],
+                "fuel_cell_to_dc_bus": self.sequences["fuel_cell"],
+                "dc_bus_to_surplus": self.sequences["surplus"],
+                # Storage states
+                "battery_content": self.sequences["battery_content"],
+                "h2_storage_content": self.sequences["h2_storage_content"],
+            }
+        )
+
+        flow_df["diesel_genset_to_demand"] = (
+            self.sequences["genset"] - flow_df["diesel_genset_to_rectifier"]
+        )
+
+        self.energy_flow_df = flow_df.round(3)
         # Generate demand coverage df from extracted sequences
         self.demand_coverage_df = (
             pd.DataFrame(
@@ -497,7 +528,7 @@ class SupplyProcessor(OptimizationDataHandler):
         self.duration_curve_df = (
             self.duration_curve_df.resample("D").min().reset_index(drop=True)
         )
-        self.duration_curve_df["pv_percentage"] = (
+        self.duration_curve_df["operation_percentage"] = 100 * (
             self.duration_curve_df.index.copy() / self.duration_curve_df.shape[0]
         )
 
@@ -551,7 +582,9 @@ class SupplyProcessor(OptimizationDataHandler):
             + self.energy_system_dict["diesel_genset"]["parameters"]["variable_cost"]
             * self.sequences["genset"].sum()
         )
-
+        self.total_cost_hydrogen = sum(
+            total_epc_cost(comp) for comp in self.h2_components
+        )
         self.total_component = self.total_renewable + self.total_non_renewable
         self.total_fuel = self.annualize(
             self.energy_system_dict["diesel_genset"]["parameters"]["fuel_cost"]
@@ -562,6 +595,11 @@ class SupplyProcessor(OptimizationDataHandler):
 
     def _calculate_kpis(self):
         self.lcoe = 100 * self.total_revenue / self.total_demand
+        self.lcoh = (
+            100 * self.total_cost_hydrogen / sum(self.sequences["h2_storage_charge"])
+            if sum(self.sequences["h2_storage_charge"]) != 0
+            else 0
+        )
         self.res = (
             100
             * (self.total_demand - self.sequences["genset"].sum())
@@ -655,7 +693,7 @@ class SupplyProcessor(OptimizationDataHandler):
         project_setup.email_notification = False
         project_setup.save()
 
-    def _scalar_results_to_db(self):  # noqa:PLR0915
+    def _scalar_results_to_db(self):
         # Annualized cost calculations
         results = self.results_obj
 
@@ -665,6 +703,7 @@ class SupplyProcessor(OptimizationDataHandler):
         results.cost_fuel = self.total_fuel
         results.epc_total = self.total_revenue + (results.cost_grid or 0)
         results.lcoe = 100 * results.epc_total / self.total_demand
+        results.lcoh = self.lcoh
 
         # --- Key performance indicators ---
         results.res = self.res
@@ -684,37 +723,29 @@ class SupplyProcessor(OptimizationDataHandler):
         results.electrolyzer_capacity = self.capacities["electrolyzer"]
 
         # --- Sankey energy flows ---
-        results.fuel_to_diesel_genset = self.sequences["fuel_consumption_kwh"].sum()
-        results.fuel_consumption = self.sequences["fuel_consumption_l"].sum()
-        results.diesel_genset_to_rectifier = (
-            self.sequences["rectifier"].sum()
-            / self.energy_system_dict["rectifier"]["parameters"]["efficiency"]
-        )
-        results.diesel_genset_to_demand = (
-            self.sequences["genset"].sum() - results.diesel_genset_to_rectifier
-        )
-        results.rectifier_to_dc_bus = self.sequences["rectifier"].sum()
-        results.pv_to_dc_bus = self.sequences["pv"].sum()
-        results.battery_to_dc_bus = self.sequences["battery_discharge"].sum()
-        results.dc_bus_to_battery = self.sequences["battery_charge"].sum()
-        results.dc_bus_to_inverter = (
-            self.sequences["inverter"].sum()
-            / self.energy_system_dict["inverter"]["parameters"]["efficiency"]
-        )
-        results.dc_bus_to_electrolyzer = (
-            self.sequences["electrolyzer"].sum()
-            / self.energy_system_dict["electrolyzer"]["parameters"]["efficiency"]
-        )
-        results.dc_bus_to_surplus = self.sequences["surplus"].sum()
-        results.inverter_to_demand = self.sequences["inverter"].sum()
-        results.hydrogen_bus_to_h2_storage = self.sequences["h2_storage_charge"].sum()
-        results.h2_storage_to_hydrogen_bus = self.sequences[
-            "h2_storage_discharge"
-        ].sum()
-        results.hydrogen_bus_to_fuel_cell = self.sequences["h2_storage_discharge"].sum()
-        results.fuel_cell_to_dc_bus = self.sequences["fuel_cell"].sum()
-        results.electrolyzer_to_hydrogen_bus = self.sequences["electrolyzer"].sum()
+        sankey_flow_keys = [
+            "fuel_to_diesel_genset",
+            "diesel_genset_to_rectifier",
+            "diesel_genset_to_demand",
+            "rectifier_to_dc_bus",
+            "pv_to_dc_bus",
+            "battery_to_dc_bus",
+            "dc_bus_to_battery",
+            "dc_bus_to_inverter",
+            "dc_bus_to_surplus",
+            "inverter_to_demand",
+            "hydrogen_bus_to_h2_storage",
+            "h2_storage_to_hydrogen_bus",
+            "fuel_cell_to_dc_bus",
+            "electrolyzer_to_hydrogen_bus",
+            "dc_bus_to_electrolyzer",
+            "hydrogen_bus_to_fuel_cell",
+        ]
 
+        for column in sankey_flow_keys:
+            setattr(results, column, self.energy_flow_df[column].sum())
+
+        results.fuel_consumption = self.sequences["fuel_consumption_l"].sum()
         # --- Demand and shortage statistics ---
         results.total_annual_consumption = self.annualize(
             self.sequences["demand"].sum() * (100 - self.shortage) / 100

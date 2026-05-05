@@ -69,7 +69,7 @@ function applyBaseLayout(layout, { legend = true } = {}) {
         },
         margin: {
             l: 56,
-            r: 24,
+            r: 56,
             t: 36,
             b: 48,
             ...(layout && layout.margin ? layout.margin : {}),
@@ -927,7 +927,7 @@ function plot_duration_curves(duration_curves) {
         battery_discharge_duration,
         h2_storage_charge_duration,
         h2_storage_discharge_duration,
-        pv_percentage,
+        operation_percentage,
     } = duration_curves;
 
     const durationCurves = document.getElementById("durationCurves");
@@ -944,7 +944,7 @@ function plot_duration_curves(duration_curves) {
     ];
 
     const data = tracesSpec.map(spec => ({
-        x: pv_percentage,
+        x: operation_percentage,
         y: spec.y,
         mode: 'lines',
         name: spec.name,
