@@ -359,8 +359,27 @@ def simulation_results(request, proj_id=None):
     lhv = project.energysystemdesign.fuel_cell_parameters_fuel_lhv
     h2_production_kwh = energy_flows.hydrogen_bus_to_h2_storage.sum()
     h2_production_kg = h2_production_kwh / lhv
-    # TODO decide where/if they should all be shown
-    operation_hours = energy_flows.round(2).astype(bool).sum()
+    operation_hours = pd.Series(
+        {
+            "battery": (
+                (
+                    energy_flows["dc_bus_to_battery"].abs()
+                    + energy_flows["battery_to_dc_bus"].abs()
+                )
+                .round(2)
+                .astype(bool)
+                .sum()
+            ),
+            "electrolyzer": (
+                energy_flows["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
+            ),
+            "fuel_cell": (
+                energy_flows["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
+            ),
+        }
+    )
+    for comp in operation_hours.index:
+        results_df.loc[f"operation_hours_{comp}"] = operation_hours.loc[comp]
     # Add misc KPIs to output
     results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
     results_df.loc["h2_production_kg"] = h2_production_kg
@@ -435,6 +454,12 @@ def simulation_results(request, proj_id=None):
         "epc_fuel_cell",
     ]
 
+    operation_hour_fields = [
+        "operation_hours_battery",
+        "operation_hours_electrolyzer",
+        "operation_hours_fuel_cell",
+    ]
+
     # Demand tab
     demand_kpis_row_fields = [
         "total_annual_consumption",
@@ -475,6 +500,7 @@ def simulation_results(request, proj_id=None):
             "upfront_invest_row_fields": upfront_invest_row_fields,
             "annualized_cost_row_fields": annualized_cost_row_fields,
             "demand_kpis_row_fields": demand_kpis_row_fields,
+            "operation_hour_fields": operation_hour_fields,
             "shortage_fields": shortage_fields,
             "shortage_is_selected": shortage_is_selected,
             "environmental_kpis_row_fields": environmental_kpis_row_fields,

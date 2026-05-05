@@ -53,3 +53,6 @@ epc_electrolyzer,Electrolyzer annualized Cost,currency/a
 epc_fuel_cell,Fuel cell annualized Cost,currency/a
 epc_total,Total annualized Cost,currency/a
 h2_production_kg,Total hydrogen produced,kg
+operation_hours_battery,Battery operation hours,h
+operation_hours_electrolyzer,Electrolyzer operation hours,h
+operation_hours_fuel_cell,Fuel cell operation hours,h
