@@ -357,12 +357,12 @@ def simulation_results(request, proj_id=None):
     # Calculate results not saved directly to db
     energy_flows = project.energyflow.df
     lhv = project.energysystemdesign.fuel_cell_parameters_fuel_lhv
-    h2_production_kwh = energy_flows.h2_storage_charge.sum()
+    h2_production_kwh = energy_flows.hydrogen_bus_to_h2_storage.sum()
     h2_production_kg = h2_production_kwh / lhv
     # TODO decide where/if they should all be shown
     operation_hours = energy_flows.round(2).astype(bool).sum()
     # Add misc KPIs to output
-    results_df.loc["surplus_total_kwh"] = energy_flows.surplus.sum()
+    results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
     results_df.loc["h2_production_kg"] = h2_production_kg
     results_df = results_df.astype(float)
     output_kpis = OUTPUT_KPIS.copy()
@@ -482,6 +482,15 @@ def simulation_results(request, proj_id=None):
             "do_supply_optimization": opts.do_es_design_optimization,
             "bounds_dict": country_bounds,
             "step_list": STEP_LIST_RIBBON,
+            "timestamps": pd.Series(
+                pd.date_range(
+                    pd.to_datetime("2026").to_pydatetime(),
+                    pd.to_datetime("2026").to_pydatetime()
+                    + pd.to_timedelta(365, unit="D"),
+                    freq="h",
+                    inclusive="left",
+                )
+            ),
         },
     )
 

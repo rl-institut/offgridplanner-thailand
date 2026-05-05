@@ -564,20 +564,33 @@ def import_demand(request, proj_id):
 def load_plot_data(request, proj_id, plot_type=None):
     project = Project.objects.get(id=proj_id)
     if plot_type == "energy_flow":
-        energy_flow = project.energyflow.df
-        energy_flow["battery"] = (
-            energy_flow["battery_discharge"] - energy_flow["battery_charge"]
+        flow_df = project.energyflow.df
+
+        energy_flow_plot_df = pd.DataFrame(
+            {
+                "diesel_genset_production": (
+                    flow_df["diesel_genset_to_rectifier"]
+                    + flow_df["diesel_genset_to_demand"]
+                ),
+                "pv_production": flow_df["pv_to_dc_bus"],
+                "battery": (
+                    flow_df["battery_to_dc_bus"] - flow_df["dc_bus_to_battery"]
+                ),
+                "h2_storage": (
+                    flow_df["h2_storage_to_hydrogen_bus"]
+                    - flow_df["hydrogen_bus_to_h2_storage"]
+                ),
+                "electrolyzer_production": flow_df["electrolyzer_to_hydrogen_bus"],
+                "fuel_cell_production": flow_df["fuel_cell_to_dc_bus"],
+                "demand": (
+                    flow_df["diesel_genset_to_demand"] + flow_df["inverter_to_demand"]
+                ),
+                "surplus": flow_df["dc_bus_to_surplus"],
+                "battery_content": flow_df["battery_content"],
+                "h2_storage_content": flow_df["h2_storage_content"],
+            }
         )
-        energy_flow = energy_flow.drop(columns=["battery_charge", "battery_discharge"])
-        energy_flow["h2_storage"] = (
-            energy_flow["h2_storage_discharge"] - energy_flow["h2_storage_charge"]
-        )
-        energy_flow = energy_flow.drop(
-            columns=["h2_storage_charge", "h2_storage_discharge"]
-        )
-        energy_flow = energy_flow.reset_index(drop=True)
-        energy_flow = energy_flow.dropna(how="all", axis=0).fillna(0).to_dict("list")
-        return JsonResponse({"energy_flow": energy_flow})
+        return JsonResponse({"energy_flow": energy_flow_plot_df.to_dict("list")})
     elif plot_type == "duration_curve":
         duration_curve = project.durationcurve.df
         duration_curve = (
@@ -594,9 +607,38 @@ def load_plot_data(request, proj_id, plot_type=None):
             demand_coverage.dropna(how="all", axis=0).fillna(0).to_dict("list")
         )
         return JsonResponse({"demand_coverage": demand_coverage})
-    elif plot_type == "other":
+    elif plot_type == "sankey":
+        flow_df = project.energyflow.df
+        timestep = request.GET.get("ts", None)
+        if not timestep:
+            sankey_series = flow_df.sum()
+        else:
+            timestep = int(timestep)
+            sankey_series = flow_df.iloc[timestep]
+
+        sankey_keys = [
+            "fuel_to_diesel_genset",
+            "diesel_genset_to_rectifier",
+            "diesel_genset_to_demand",
+            "rectifier_to_dc_bus",
+            "pv_to_dc_bus",
+            "battery_to_dc_bus",
+            "dc_bus_to_battery",
+            "dc_bus_to_inverter",
+            "dc_bus_to_surplus",
+            "inverter_to_demand",
+            "hydrogen_bus_to_h2_storage",
+            "h2_storage_to_hydrogen_bus",
+            "fuel_cell_to_dc_bus",
+            "electrolyzer_to_hydrogen_bus",
+            "dc_bus_to_electrolyzer",
+            "hydrogen_bus_to_fuel_cell",
+        ]
+
+        sankey_data = {key: str(sankey_series.get(key, 0)) for key in sankey_keys}
         res = project.simulation.results
         df = pd.Series(model_to_dict(res)).astype(str)
+
         optimal_capacity_keys = [
             "pv",
             "battery",
@@ -619,27 +661,9 @@ def load_plot_data(request, proj_id, plot_type=None):
             "grid",
             "fuel",
         ]
+
         lcoe_breakdown = {key: df[f"cost_{key}"] for key in lcoe_breakdown_keys}
 
-        sankey_keys = [
-            "fuel_to_diesel_genset",
-            "diesel_genset_to_rectifier",
-            "diesel_genset_to_demand",
-            "rectifier_to_dc_bus",
-            "pv_to_dc_bus",
-            "battery_to_dc_bus",
-            "dc_bus_to_battery",
-            "dc_bus_to_inverter",
-            "dc_bus_to_surplus",
-            "inverter_to_demand",
-            "hydrogen_bus_to_h2_storage",
-            "h2_storage_to_hydrogen_bus",
-            "fuel_cell_to_dc_bus",
-            "electrolyzer_to_hydrogen_bus",
-            "dc_bus_to_electrolyzer",
-            "hydrogen_bus_to_fuel_cell",
-        ]
-        sankey_data = {key: df[key] for key in sankey_keys}
         return JsonResponse(
             {
                 "optimal_capacities": optimal_capacities,
