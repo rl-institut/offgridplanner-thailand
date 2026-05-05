@@ -117,6 +117,7 @@ class Results(models.Model):
     cost_grid = models.FloatField(null=True, blank=True)
     cost_shs = models.FloatField(null=True, blank=True)
     lcoe = models.FloatField(null=True, blank=True)
+    lcoh = models.FloatField(null=True, blank=True)
     lcoe_share_grid = models.FloatField(null=True, blank=True)
     lcoe_share_supply = models.FloatField(null=True, blank=True)
     res = models.FloatField(null=True, blank=True)

@@ -8,6 +8,7 @@ length_connection_cable,Connection Cable Length,m
 average_length_connection_cable,Average Length Connection Cable,m
 cost_grid,Grid annualized Cost,currency/a
 lcoe,Levelized Cost of Electricity (w/o SHS),cent/kWh
+lcoh,Levelized Cost of Hydrogen,cent/kWh
 lcoe_share_grid,Share of Grid-Related Costs in the LCOE,%
 lcoe_share_supply,Share of Generation-Related Costs in LCOE,%
 res,Renewable Energy Share,%

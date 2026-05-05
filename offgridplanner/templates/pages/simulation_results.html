@@ -82,8 +82,8 @@
                 <div class="item item--main">
                   <div class="item__name">{% translate "LCOH" %}</div>
                   <div class="item__result">
-                    <div class="item__value">{{results.lcoe.value|floatformat:"0g"}}</div>
-                    <div class="item__unit">{{results.lcoe.unit}}</div>
+                    <div class="item__value">{{results.lcoh.value|floatformat:"0g"}}</div>
+                    <div class="item__unit">{{results.lcoh.unit}}</div>
                   </div>
                 </div>
                 <div class="item item--main">
@@ -332,7 +332,7 @@
                 <div class="chart">
                   <div class="chart__plot">
                     <select onchange="javascript:update_sankey(ts=this.value)">
-                      <option value="">Aggregated</option>
+                      <option selected value="">Aggregated</option>
                       {% for ts in timestamps %}
                       <option value="{{ forloop.counter0 }}">{{ ts }}</option>
                       {% endfor %}

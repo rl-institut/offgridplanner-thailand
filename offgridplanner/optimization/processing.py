@@ -382,6 +382,10 @@ class SupplyProcessor(OptimizationDataHandler):
             ]
         )
 
+    @property
+    def h2_components(self):
+        return ["h2_storage", "fuel_cell", "electrolyzer"]
+
     @staticmethod
     def to_kwh(value):
         """Adapt the order of magnitude (normally from W or Wh oemof results to kWh)"""
@@ -578,7 +582,9 @@ class SupplyProcessor(OptimizationDataHandler):
             + self.energy_system_dict["diesel_genset"]["parameters"]["variable_cost"]
             * self.sequences["genset"].sum()
         )
-
+        self.total_cost_hydrogen = sum(
+            total_epc_cost(comp) for comp in self.h2_components
+        )
         self.total_component = self.total_renewable + self.total_non_renewable
         self.total_fuel = self.annualize(
             self.energy_system_dict["diesel_genset"]["parameters"]["fuel_cost"]
@@ -589,6 +595,11 @@ class SupplyProcessor(OptimizationDataHandler):
 
     def _calculate_kpis(self):
         self.lcoe = 100 * self.total_revenue / self.total_demand
+        self.lcoh = (
+            100 * self.total_cost_hydrogen / sum(self.sequences["h2_storage_charge"])
+            if sum(self.sequences["h2_storage_charge"]) != 0
+            else 0
+        )
         self.res = (
             100
             * (self.total_demand - self.sequences["genset"].sum())
@@ -692,6 +703,7 @@ class SupplyProcessor(OptimizationDataHandler):
         results.cost_fuel = self.total_fuel
         results.epc_total = self.total_revenue + (results.cost_grid or 0)
         results.lcoe = 100 * results.epc_total / self.total_demand
+        results.lcoh = self.lcoh
 
         # --- Key performance indicators ---
         results.res = self.res

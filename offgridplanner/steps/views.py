@@ -378,14 +378,13 @@ def simulation_results(request, proj_id=None):
             ),
         }
     )
+    # Add misc KPIs to output
     for comp in operation_hours.index:
         results_df.loc[f"operation_hours_{comp}"] = operation_hours.loc[comp]
-    # Add misc KPIs to output
     results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
     results_df.loc["h2_production_kg"] = h2_production_kg
     results_df = results_df.astype(float)
     output_kpis = OUTPUT_KPIS.copy()
-
     for kpi in output_kpis:
         output_kpis[kpi]["value"] = results_df[kpi].round(1)
         output_kpis[kpi]["unit"] = output_kpis[kpi]["unit"].replace(
