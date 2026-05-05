@@ -43,6 +43,16 @@ $('.js-captcha-refresh').click(function(){
     return false;
 });
 
+async function update_sankey(ts=null) {
+    const response = await fetch(loadPlotDataUrl + '/sankey?' + new URLSearchParams({ts: ts}).toString());
+    if (response.ok) {
+        data = await response.json();
+        plot_sankey(data.sankey_data);
+    } else {
+        throw new Error("Failed to update sankey");
+    }
+}
+
 
 async function plot_results(sequential = false) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -51,8 +61,8 @@ async function plot_results(sequential = false) {
     if (sequential) {
         // Sequential execution: wait for each fetch and plot to complete before starting the next
 
-        // Fetch and plot 'other' data
-        const response3 = await fetch(loadPlotDataUrl + '/other');
+        // Fetch and plot 'sankey' data
+        const response3 = await fetch(loadPlotDataUrl + '/sankey');
         const data3 = await response3.json();
         plot_lcoe_pie(data3.lcoe_breakdown);
         plot_bar_chart(data3.optimal_capacities);
@@ -115,8 +125,8 @@ async function plot_results(sequential = false) {
             );
         fetchAndPlotPromises.push(fetchAndPlot2);
 
-        // Fetch and plot 'other' data
-        const fetchAndPlot3 = fetch(loadPlotDataUrl + '/other')
+        // Fetch and plot 'sankey' data
+        const fetchAndPlot3 = fetch(loadPlotDataUrl + '/sankey')
             .then(response => response.json())
             .then(data => {
                 plot_lcoe_pie(data.lcoe_breakdown);

@@ -297,6 +297,12 @@
                 <h2 class="title">{% translate 'Sankey Diagram Representing the Energy Flow in the System' %}</h2>
                 <div class="chart">
                   <div class="chart__plot">
+                    <select onchange="javascript:update_sankey(ts=this.value)">
+                      <option value="">Aggregated</option>
+                      {% for ts in timestamps %}
+                      <option value="{{ forloop.counter0 }}">{{ ts }}</option>
+                      {% endfor %}
+                    </select>
                     <div id="sankeyDiagram"></div>
                   </div>
                   <p style="font-size: 12px">{% translate '*electricity surplus is not shown' %}</p>
