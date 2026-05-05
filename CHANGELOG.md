@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - Improve overall design ([#36](https://github.com/rl-institut/offgridplanner-thailand/pull/36))
+- Add hydrogen-related KPIs to outputs ([#50](https://github.com/rl-institut/offgridplanner-thailand/pull/50))
 
 ### Fixed
 - Fix zoom out util not displaying on map ([#49](https://github.com/rl-institut/offgridplanner-thailand/pull/49))
