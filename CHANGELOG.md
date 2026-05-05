@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v1.2.0-thai.5.1] – 2026-05-05
 ### Changed
 - Improve overall design ([#36](https://github.com/rl-institut/offgridplanner-thailand/pull/36))
 - Add hydrogen-related KPIs to outputs ([#50](https://github.com/rl-institut/offgridplanner-thailand/pull/50))

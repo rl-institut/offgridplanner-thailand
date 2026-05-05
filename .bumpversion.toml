@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "1.1.6-thai.4.1"
+current_version = "1.2.0-thai.5.1"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)-thai\\.(?P<fork_minor>\\d+)\\.(?P<fork_patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}-thai.{fork_minor}.{fork_patch}"]
 search = "{current_version}"
