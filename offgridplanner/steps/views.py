@@ -1,4 +1,3 @@
-import copy
 import os
 
 import pandas as pd
@@ -393,12 +392,13 @@ def simulation_results(request, proj_id=None):
 
         unit = output_kpis[kpi]["unit"]
 
-        if "currency" in unit:
-            if currency == "NGN":
-                value = int(round(value * exchange_rate, -3))
-            else:
-                value = int(round(value * exchange_rate))
+        if any(cur in unit for cur in ["currency", "cent"]):
+            value = int(round(value * exchange_rate))
             unit = unit.replace("currency", currency)
+            # For TBH, keep cent values (LCOH, LCOE) as currency instead of cent values
+            if "cent" in unit and currency == "THB":
+                value /= 100
+                unit = unit.replace("cent", currency)
 
         output_kpis[kpi]["value"] = value
         output_kpis[kpi]["unit"] = unit
