@@ -279,7 +279,8 @@
 }
 
 #dashboard .tab-content .row__single {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
     gap: 1rem;
     border-radius: 0.5rem;
     padding: 1rem;
