@@ -398,7 +398,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 # OFFGRIDPLANNER SETTINGS
-APP_VERSION_NUMBER = "1.2.0-thai.5.1"
+APP_VERSION_NUMBER = "1.3.0-thai.5.1"
 
 # Demo user expiry time
 DEMO_EXPIRY_SECONDS = 2 * 60 * 60  # 2 hours
@@ -418,6 +418,12 @@ DEFAULT_CURRENCY = "EUR"
 
 # Default url to privacy statement
 PRIVACY_URL = "https://offgridplanner.org/privacy"
+
+# OVERPASS (OPENSTREETMAP API)
+OVERPASS_API_HOST = os.getenv(
+    "OVERPASS_API_HOST", "https://overpass-api.de/api/interpreter"
+)
+OVERPASS_REFERER = os.getenv("OVERPASS_REFERER", "http://localhost:8000")
 
 # SIMULATION
 # ------------------------------------------------------------------------------
@@ -447,3 +453,5 @@ RN_API_TOKEN = os.getenv("RN_API_TOKEN", "")
 
 SOLVER_NAME = os.environ.get("SOLVER_NAME", "cbc")
 CDS_API_KEY = os.environ.get("CDS_API_KEY")
+
+EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY", "")
