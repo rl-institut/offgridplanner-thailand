@@ -9,6 +9,17 @@
 {% block head_block %}
 <link href="{% static 'css/pages/grid-design.css' %}" rel="stylesheet">
 <link href="{% static 'css/main.css' %}" rel="stylesheet">
+<link href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+      rel="stylesheet" />
+<link href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+      rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw-src.js"></script>
+<link href="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.css"
+      rel="stylesheet" />
+<script src="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.umd.js"></script>
+<link href="{% static 'css/pages/consumer_selection.css' %}"
+      rel="stylesheet" />
 {% endblock head_block %}
 
 {% block progression_content %}
@@ -17,7 +28,7 @@
     <div>
       <form method="post">
         {% csrf_token %}
-        <div class="row" style="justify-content: center;">
+        <div class="row">
           <div class="col-md-4">
             <div class="gd-sidebar">
               <div class="gd-sidebar__header">
@@ -118,17 +129,17 @@
               </div>
             </div>
           </div>
-<!--          <div class="col-md-8">-->
-<!--            <div class="gd-map">-->
-<!--              <div class="gd-map__header">-->
-<!--                <h2>Grid Layout</h2>-->
-<!--              </div>-->
-<!--              <div class="gd-map__content">-->
-<!--                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">-->
-<!--                <div id="gridDesignMap" style="min-height: 650px; width: 100%;"></div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
+          <div class="col-md-8">
+            <div class="gd-map">
+              <div class="gd-map__header">
+                <h2>Grid Layout</h2>
+              </div>
+              <div class="gd-map__content">
+                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">
+                <div id="map" style="min-height: 650px; width: 100%;"></div>
+              </div>
+            </div>
+          </div>
         </div>
         <input type="submit" id="submitFormBtn" hidden>
       </form>
@@ -155,6 +166,11 @@
 
 
 {% block end_body_scripts %}
+<script>
+  const boundsDict = {{ bounds_dict | safe }};
+
+</script>
+<script src="{% static 'js/integrate_map.js' %}"></script>
 <script src="{% static 'js/pages/grid_design.js' %}"></script>
 <script src="{% static 'js/map_api.js' %}"></script>
 <script src="{% static 'js/backend_communication.js' %}"></script>

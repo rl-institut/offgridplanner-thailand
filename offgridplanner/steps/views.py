@@ -256,8 +256,10 @@ def grid_design(request, proj_id=None):
             # Reorder dictionary for easier rendering in the correct order in the template (move SHS fields to beginning)
             grouped_fields = reorder_dict(grouped_fields, 4, 0)
 
+            country_bounds = get_country_bounds(proj_id)
             context = {
                 "grouped_fields": grouped_fields,
+                "bounds_dict": country_bounds,
                 "proj_id": proj_id,
                 "step_id": step_id,
                 "step_list": STEP_LIST_RIBBON,
