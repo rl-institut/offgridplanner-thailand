@@ -286,7 +286,10 @@ var customControl = L.Control.extend({
 function addDrawingToolsToConsumerMap() {
     map.addControl(new CustomMarkerControl());
     map.addControl(trashbinControl);
-    map.addControl(searchControl);
     map.addControl(new customControl());
     map.addControl(drawControl);
+}
+
+function addDrawingToolsToGridMap() {
+    map.addControl(trashbinControl);
 }
