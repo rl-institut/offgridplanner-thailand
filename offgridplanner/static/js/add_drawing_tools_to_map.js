@@ -255,38 +255,12 @@ function removeBoundaries() {
 }
 
 
-var customControl = L.Control.extend({
-    options: {
-        position: 'bottomleft'
-    },
-
-    onAdd: function (map) {
-        var container = L.DomUtil.create('div', 'my-custom-control');
-
-        // Create the form
-        var form = L.DomUtil.create('form', 'my-form', container);
-        var label = L.DomUtil.create('label', '', form);
-        label.textContent = 'Remove Consumers: ';
-        var input = L.DomUtil.create('input', '', form);
-        input.type = 'checkbox';
-
-        // When the input changes, toggle your feature
-        L.DomEvent.on(input, 'change', function () {
-            is_active = !is_active;  // Toggle the is_active variable
-            // TODO: Add your code here to do something with the map when the toggle changes
-        });
-
-        return container;
-    }
-});
-
 
 
 
 function addDrawingToolsToConsumerMap() {
     map.addControl(new CustomMarkerControl());
     map.addControl(trashbinControl);
-    map.addControl(new customControl());
     map.addControl(drawControl);
 }
 
