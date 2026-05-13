@@ -5,17 +5,17 @@
 {% load i18n %}
 
 {% block head_block %}
-  <link href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
-        rel="stylesheet" />
-  <link href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
-        rel="stylesheet" />
-  <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw-src.js"></script>
-  <link href="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.css"
-        rel="stylesheet" />
-  <script src="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.umd.js"></script>
-  <link href="{% static 'css/pages/consumer_selection.css' %}"
-        rel="stylesheet" />
+<link href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+      rel="stylesheet" />
+<link href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+      rel="stylesheet" />
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw-src.js"></script>
+<link href="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.css"
+      rel="stylesheet" />
+<script src="https://unpkg.com/leaflet-geosearch@3.0.6/dist/geosearch.umd.js"></script>
+<link href="{% static 'css/pages/consumer_selection.css' %}"
+      rel="stylesheet" />
 {% endblock head_block %}
 {% block progression_content %}
   <main>
@@ -321,23 +321,14 @@
       const large_load_list = {{ large_load_list | safe }};
       const boundsDict = {{ bounds_dict | safe }};
       const dbNodesToJsUrl = `{% url 'optimization:db_nodes_to_js' proj_id %}`;
-      const dbRoadsToJsUrl = `{% url 'optimization:db_roads_to_js' proj_id %}`;
       const dbLinksToJsUrl = `{% url 'optimization:db_links_to_js' proj_id %}`;
       const fileNodesToJsUrl = `{% url 'optimization:file_nodes_to_js' proj_id %}`;
       const consumerToDBUrl = `{% url 'optimization:consumer_to_db' proj_id %}`;
-      const roadsToDBUrl = `{% url 'optimization:roads_to_db' proj_id %}`;
       const addBuildingsUrl = `{% url 'optimization:add_buildings_inside_boundary' proj_id  %}`;
       const removeBuildingsUrl = `{% url 'optimization:remove_buildings_inside_boundary' proj_id  %}`;
-      const addRoadsUrl = `{% url 'optimization:add_roads_inside_boundary' proj_id %}`;
-      const removeRoadsUrl = `{% url 'optimization:remove_roads_inside_boundary' proj_id %}`;
       window.onload = function () {
-        //redirect_if_cookie_is_missing(true, true); //for anonymous user --> do it pythonside
+        addDrawingToolsToConsumerMap();
         db_nodes_to_js({{proj_id}}, true);
-        db_roads_to_js({{ proj_id }});
-        //show_email_and_project_in_navbar({{proj_id}});
-        //TODO reenable video_tutorial
-        //show_video_tutorial();
-        //update_wizards_and_buttons_based_on_planning_step_selection({{proj_id}}, 'consumer_selection');
       };
     </script>
     <script src="{% static 'js/integrate_map.js' %}"></script>

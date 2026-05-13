@@ -426,11 +426,13 @@ function count_consumers(first_update = true) {
     }
 }
 
-function addDrawingToolsToMap() {
+function addDrawingToolsToConsumerMap() {
     map.addControl(new CustomMarkerControl());
     map.addControl(trashbinControl);
-    map.addControl(searchControl);
     map.addControl(new customControl());
     map.addControl(drawControl);
 }
-addDrawingToolsToMap();
+
+function addDrawingToolsToGridMap() {
+    map.addControl(trashbinControl);
+}
