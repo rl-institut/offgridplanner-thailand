@@ -196,12 +196,6 @@ L.Control.Trashbin = L.Control.extend({
     },
 });
 
-function customTrashBinAction() {
-    removeBoundaries();
-    remove_marker_from_map();
-    polygonCoordinates = [];
-    map_elements = [];
-}
 
 const trashbinControl = new L.Control.Trashbin();
 
@@ -255,9 +249,6 @@ function removeBoundaries() {
 }
 
 
-
-
-
 function addDrawingToolsToConsumerMap() {
     map.addControl(new CustomMarkerControl());
     map.addControl(trashbinControl);
@@ -268,25 +259,3 @@ function addDrawingToolsToGridMap() {
     map.addControl(trashbinControl);
     map.addControl(drawControl);
 }
-
-  function makeRoadLayerClickable(layer, road) {
-      layer.on('click', function () {
-          road.is_clicked = !road.is_clicked;
-          layer.setStyle({
-              weight: road.is_clicked ? 4 : 2,
-              color: road.is_clicked ? '#9933ff' : '#cc99ff'
-          });
-      });
-  }
-
-  function make_roads_clickable() {
-      drawnItems.eachLayer(layer => {
-          const road = road_elements.find(r => {
-              const latlngs = r.coordinates.map(c => [c[0], c[1]]);
-              const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
-              return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
-          });
-          if (!road) return;
-          makeRoadLayerClickable(layer, road);
-      });
-  }

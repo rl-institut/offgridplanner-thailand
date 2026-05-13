@@ -38,9 +38,9 @@ map.on(L.Draw.Event.CREATED, function (event) {
     drawnItems.addLayer(layer);
     if (event.layerType === 'polyline') {
         const coords = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
-        const road = { coordinates: coords, is_clicked: false };
+        const road = { coordinates: coords, is_clicked: true};
         road_elements.push(road);
-        layer.setStyle({ color: '#cc99ff', weight: 2 });
+        layer.setStyle({ color: '#9933ff', weight: 4 });
         makeRoadLayerClickable(layer, road);
     }
     polygonCoordinates.push(layer.getLatLngs());
