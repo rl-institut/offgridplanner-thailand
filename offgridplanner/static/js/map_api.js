@@ -98,14 +98,11 @@ async function db_roads_to_js(proj_id, clickable = false) {
             }));
 
             if (road_elements.length > 0) {
-                put_roads_on_map(road_elements);
+                put_roads_on_map(road_elements, clickable);
             }
         } else {
             road_elements = [];
             put_roads_on_map([]);
-        }
-        if (clickable) {
-            make_roads_clickable();
         }
         } catch (err) {
         console.error("Error loading roads from DB:", err);
@@ -254,14 +251,26 @@ function add_roads_inside_boundary({boundariesCoordinates} = {}) {
         });
 }
 
-function put_roads_on_map(roads) {
+function makeRoadLayerClickable(layer, road) {
+  layer.on('click', function () {
+      road.is_clicked = !road.is_clicked;
+      layer.setStyle({
+          weight: road.is_clicked ? 4 : 2,
+          color: road.is_clicked ? '#9933ff' : '#cc99ff'
+      });
+  });
+}
+
+
+function put_roads_on_map(roads, clickable=true) {
     roads.forEach((road) => {
         const latlngs = road.coordinates.map(c => [c[0], c[1]]);
         const polyline = L.polyline(latlngs, {
             color: road.is_clicked ? '#9933ff' : '#cc99ff',
-            weight: road.is_clicked ? 4 : 2
+            weight: road.is_clicked ? 2 : 4
         });
         drawnItems.addLayer(polyline);
+        if (clickable) makeRoadLayerClickable(polyline, road);
     });
 }
 

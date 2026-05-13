@@ -861,3 +861,10 @@ function count_consumers(first_update = true) {
         document.getElementById("n_public_services").innerText = num_public_services;
     }
 }
+
+function customTrashBinAction() {
+    removeBoundaries();
+    remove_marker_from_map();
+    polygonCoordinates = [];
+    map_elements = [];
+}
