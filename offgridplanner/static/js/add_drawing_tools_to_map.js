@@ -187,7 +187,7 @@ L.Control.Trashbin = L.Control.extend({
 
         L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
             .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => {
+            .on(link, 'click', () => customTrashBinAction());
                 const modal = document.getElementById('msgBox');
                 const message = document.getElementById('responseMsg');
                 const confirmBtn = document.getElementById('confirmDelete');

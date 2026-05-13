@@ -172,6 +172,14 @@ function zoomAll(map) {
     }
 }
 
+function remove_marker_from_map() {
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+}
+
 function drawMarker(latitude, longitude, type) {
     if (type === "consumer") {
         icon_type = markerConsumer;

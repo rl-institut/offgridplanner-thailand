@@ -109,9 +109,10 @@ async function plot_results() {
     }
 
 
-    // Wait for all fetch and plot operations to complete (parallel execution)
-    await Promise.all(fetchAndPlotPromises);
-}
+        // Wait for all fetch and plot operations to complete (parallel execution)
+        await Promise.all(fetchAndPlotPromises);
+    }
+
 
 async function file_demand_to_db(formData) {
     try {
