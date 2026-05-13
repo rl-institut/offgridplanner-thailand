@@ -313,7 +313,7 @@
 
   {% block end_body_scripts %}
     <script>
-      // url of API urls
+      const step = "consumerSelection";
       const csrfToken = '{{ csrf_token }}';
       //const project_id = {{ proj_id }};
       const public_service_list = {{ public_service_list | safe }};

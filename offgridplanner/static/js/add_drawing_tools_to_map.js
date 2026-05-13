@@ -36,6 +36,12 @@ var polygonDrawer = new L.Draw.Polygon(map, {
     }
 });
 
+var lineDrawer = new L.Draw.Polyline(map, {
+    shapeOptions: {
+        color: '#1F567D80'
+    }
+});
+
 var rectangleDrawer = new L.Draw.Rectangle(map, {
     shapeOptions: {
         color: '#1F567D80'
@@ -128,10 +134,16 @@ L.NewMarker = L.Draw.Marker.extend({
     }
 });
 
+const roadDrawControls = {
+        polyline: true,
+        polygon: false,
+        circle: false,
+        circlemarker: false,
+        rectangle: false,
+        marker: false,
+    }
 
-let drawControl = new L.Control.Draw({
-    position: 'topleft',
-    draw: {
+const consumerDrawControls = {
         polyline: false,
         polygon: true,
         circle: false,
@@ -141,6 +153,10 @@ let drawControl = new L.Control.Draw({
             icon: new myCustomMarker
         }
     }
+
+let drawControl = new L.Control.Draw({
+    position: 'topleft',
+    draw: step === "consumerSelection" ? consumerDrawControls : roadDrawControls,
 });
 
 
@@ -435,4 +451,5 @@ function addDrawingToolsToConsumerMap() {
 
 function addDrawingToolsToGridMap() {
     map.addControl(trashbinControl);
+    map.addControl(drawControl);
 }
