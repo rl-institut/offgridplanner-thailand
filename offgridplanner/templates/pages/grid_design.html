@@ -26,11 +26,12 @@
 <main>
   <section class="gd">
     <div>
-      <form method="post">
-        {% csrf_token %}
-        <div class="row">
-          <div class="col-md-4">
-            <div class="gd-sidebar">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="gd-sidebar">
+            <form method="post">
+              {% csrf_token %}
+
               <div class="gd-sidebar__header">
                 <h2>Grid Properties</h2>
               </div>
@@ -127,22 +128,28 @@
                 {% endif %}
                 {% endfor %}
               </div>
-            </div>
+              <input type="submit" id="submitFormBtn" hidden>
+            </form>
           </div>
-          <div class="col-md-8">
-            <div class="gd-map">
-              <div class="gd-map__header">
-                <h2>Grid Layout</h2>
+        </div>
+        <div class="col-md-8">
+          <div class="gd-map">
+            <div class="gd-map__header">
+              <h2>Grid Layout</h2>
+            </div>
+            <div class="gd-map__content">
+              <div id="search-container">
+                <input class="input-group-text"
+                       id="search-input"
+                       placeholder="{% translate 'Search location' %}"
+                       style="text-align: left; padding: 1rem; background-color: #fff;"
+                       type="text" />
               </div>
-              <div class="gd-map__content">
-                <input id="gridDesignSearch" class="input-group-text gd-search" placeholder="Search location" type="text">
-                <div id="map" style="min-height: 650px; width: 100%;"></div>
-              </div>
+              <div id="map" style="min-height: 650px; width: 100%;"></div>
             </div>
           </div>
         </div>
-        <input type="submit" id="submitFormBtn" hidden>
-      </form>
+      </div>
     </div>
   </section>
   <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 999; text-align: left">
