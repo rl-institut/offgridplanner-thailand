@@ -269,22 +269,24 @@ function addDrawingToolsToGridMap() {
     map.addControl(drawControl);
 }
 
-function make_roads_clickable() {
-    drawnItems.eachLayer(layer => {
-        layer.on('click', function () {
-            const road = road_elements.find(r => {
-                const latlngs = r.coordinates.map(c => [c[0], c[1]]);
-                const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
-                return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
-            });
+  function makeRoadLayerClickable(layer, road) {
+      layer.on('click', function () {
+          road.is_clicked = !road.is_clicked;
+          layer.setStyle({
+              weight: road.is_clicked ? 4 : 2,
+              color: road.is_clicked ? '#9933ff' : '#cc99ff'
+          });
+      });
+  }
 
-            if (!road) return;
-            road.is_clicked = !road.is_clicked;
-
-            layer.setStyle({
-                weight: road.is_clicked ? 4 : 2,
-                color: road.is_clicked ? '#9933ff' : '#cc99ff'
-            });
-        });
-    });
-}
+  function make_roads_clickable() {
+      drawnItems.eachLayer(layer => {
+          const road = road_elements.find(r => {
+              const latlngs = r.coordinates.map(c => [c[0], c[1]]);
+              const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
+              return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
+          });
+          if (!road) return;
+          makeRoadLayerClickable(layer, road);
+      });
+  }
