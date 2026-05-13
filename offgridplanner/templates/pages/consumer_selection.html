@@ -315,7 +315,7 @@
 {% url 'steps:demand_estimation' proj_id as demand_estimation_url %}
 <button id="next-button"
         class="btn btn--medium"
-        onclick="roads_to_db(null, 'db'); consumer_to_db(href='{{ demand_estimation_url }}', file_type='db');">
+        onclick="consumer_to_db(href='{{ demand_estimation_url }}', file_type='db');">
     {% translate "Next" %}
 </button>
 {% endblock next_btn %}
