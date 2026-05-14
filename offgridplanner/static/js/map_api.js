@@ -255,18 +255,6 @@ function makeRoadLayerClickable(layer, road) {
 }
 
 
-function put_roads_on_map(roads, clickable=true) {
-    roads.forEach((road) => {
-        const latlngs = road.coordinates.map(c => [c[0], c[1]]);
-        const polyline = L.polyline(latlngs, {
-            color: road.is_clicked ? '#9933ff' : '#cc99ff',
-            weight: road.is_clicked ? 2 : 4
-        });
-        drawnItems.addLayer(polyline);
-        if (clickable) makeRoadLayerClickable(polyline, road);
-    });
-}
-
 async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
 
