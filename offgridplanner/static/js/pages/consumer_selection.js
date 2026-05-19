@@ -695,6 +695,7 @@ function delete_consumer() {
             }
         });
     });
+    selectedMarkers = []
     count_consumers();
 }
 
