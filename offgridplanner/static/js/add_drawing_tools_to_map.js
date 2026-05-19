@@ -141,6 +141,38 @@ const CustomMarkerControl = L.Control.extend({
     }
 });
 
+const streetFetchControl = L.Control.extend({
+    options: {
+        position: 'topleft'
+    },
+
+    onAdd: function (map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        L.DomEvent.disableClickPropagation(container);
+
+        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
+        link.href = '#';
+        link.title = 'fetch OSM roads';
+
+        // add an image inside the link
+        const image = L.DomUtil.create('img', 'my-marker-icon', link);
+        image.src = 'https://www.freeiconspng.com/uploads/maps-icon-30.png';
+        image.title = 'Fetch OSM roads (Image from freeiconspng.com)';
+        image.alt = 'Symbol Maps Icon';
+        image.style.width = '20px';
+        image.style.height = '20px';
+
+        L.DomEvent.on(link, 'click', L.DomEvent.stop)
+            .on(link, 'click', function () {
+                debugger;
+                add_roads_inside_boundary();
+            });
+
+
+        return container;
+    }
+});
+
 const zoomAllControl = L.Control.extend({
     options: {
         position: 'topleft'
@@ -171,9 +203,6 @@ const zoomAllControl = L.Control.extend({
 });
 
 map.addControl(new zoomAllControl());
-
-
-
 
 
 L.Control.Trashbin = L.Control.extend({
@@ -258,4 +287,5 @@ function addDrawingToolsToConsumerMap() {
 function addDrawingToolsToGridMap() {
     map.addControl(trashbinControl);
     map.addControl(drawControl);
+    map.addControl(new streetFetchControl());
 }
