@@ -39,9 +39,9 @@ map.on(L.Draw.Event.CREATED, function (event) {
     if (event.layerType === 'polyline') {
         const coords = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
         const road_id = "m-" + (road_elements.filter((road) => road.how_added === "manual").length + 1)
-        const road = { coordinates: coords, is_clicked: true, how_added: "manual", road_type: "polyline", road_id: road_id};
+        const road = { coordinates: coords, is_clicked: false, how_added: "manual", road_type: "polyline", road_id: road_id, layer: layer};
         road_elements.push(road);
-        layer.setStyle({ color: '#9933ff', weight: 4 });
+        layer.setStyle({ color: '#9933ff', weight: 3 });
         makeRoadLayerClickable(layer, road);
     }
     polygonCoordinates.push(layer.getLatLngs());
@@ -49,7 +49,8 @@ map.on(L.Draw.Event.CREATED, function (event) {
 
 // Override: trash clears road drawings only, not consumer markers
 function customTrashBinAction() {
-    drawnItems.clearLayers();
-    road_elements = [];
-    polygonCoordinates = [];
+    road_elements.filter(r => r.is_clicked).forEach(r => {
+        if (r.layer) drawnItems.removeLayer(r.layer);
+    });
+    road_elements = road_elements.filter(r => !r.is_clicked);
 }

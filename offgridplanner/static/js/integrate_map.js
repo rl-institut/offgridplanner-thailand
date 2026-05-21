@@ -184,10 +184,11 @@ function put_roads_on_map(roads, clickable=true) {
     roads.forEach((road) => {
         const latlngs = road.coordinates.map(c => [c[0], c[1]]);
         const polyline = L.polyline(latlngs, {
-            color: road.is_clicked ? '#9933ff' : '#cc99ff',
-            weight: road.is_clicked ? 4 : 2
+            color: road.is_clicked ? '#cc0000' : '#9933ff',
+            weight: road.is_clicked ? 4 : 3
         });
         drawnItems.addLayer(polyline);
+        road.layer = polyline;
         if (clickable) makeRoadLayerClickable(polyline, road);
     });
 }
