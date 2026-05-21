@@ -41,7 +41,6 @@ map.on(L.Draw.Event.CREATED, function (event) {
         const road_id = "m-" + (road_elements.filter((road) => road.how_added === "manual").length + 1)
         const road = { coordinates: coords, is_clicked: false, how_added: "manual", road_type: "polyline", road_id: road_id, layer: layer};
         road_elements.push(road);
-        layer.setStyle({ color: '#9933ff', weight: 3 });
         makeRoadLayerClickable(layer, road);
     }
     polygonCoordinates.push(layer.getLatLngs());

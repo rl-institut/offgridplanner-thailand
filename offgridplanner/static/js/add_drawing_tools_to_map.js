@@ -76,7 +76,9 @@ L.NewMarker = L.Draw.Marker.extend({
 });
 
 const roadDrawControls = {
-        polyline: true,
+        polyline: {
+            shapeOptions: { color: '#9933ff', weight: 3, opacity: 1 }
+        },
         polygon: false,
         circle: false,
         circlemarker: false,
