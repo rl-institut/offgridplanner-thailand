@@ -431,12 +431,10 @@ def roads_to_db(request, proj_id=None):
             "coordinates",
             "how_added",
             "road_type",
-            "is_clicked",
         ]
         df = df[required_columns]
         df["how_added"] = df["how_added"].fillna("automatic")
         df["road_type"] = df["road_type"].fillna("osm")
-        df["is_clicked"] = df["is_clicked"].fillna(value=False)
 
         roads, _ = Roads.objects.get_or_create(project=project)
 

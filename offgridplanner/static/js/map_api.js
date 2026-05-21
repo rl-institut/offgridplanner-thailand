@@ -90,7 +90,7 @@ async function db_roads_to_js(proj_id, clickable = false) {
             road_elements = data.road_elements || [];
             road_elements = road_elements.map(r => ({
                 ...r,
-                is_clicked: r.is_clicked ?? false
+                is_clicked: false
             }));
 
             if (road_elements.length > 0) {
@@ -150,7 +150,7 @@ async function roads_to_db(href, file_type = "db") {
     const response = await fetch(roadsToDBUrl, {
         method: "POST",
         headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
-        body: JSON.stringify({ road_elements: road_elements, file_type: file_type })
+        body: JSON.stringify({ road_elements: road_elements.map(({ layer, is_clicked, ...r }) => r), file_type: file_type })
     });
 
     if (response.ok) {
