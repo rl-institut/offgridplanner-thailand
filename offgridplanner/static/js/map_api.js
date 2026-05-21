@@ -256,7 +256,7 @@ function makeRoadLayerClickable(layer, road) {
       road.is_clicked = !road.is_clicked;
       layer.setStyle({
           weight: road.is_clicked ? 4 : 2,
-          color: road.is_clicked ? '#9933ff' : '#cc99ff'
+          color: road.is_clicked ? '#cc0000' : '#9933ff'
       });
   });
 }
