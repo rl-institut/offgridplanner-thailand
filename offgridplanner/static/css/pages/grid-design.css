@@ -170,3 +170,12 @@ input.gd-search {
 .gd-sources {
     padding-top: 2rem;
 }
+
+.gd-map__content #map .info.legend {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    font-size: var(--font-size--sm);
+    color: var(--font-color--secondary);
+}
