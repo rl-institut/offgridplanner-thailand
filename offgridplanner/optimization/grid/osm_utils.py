@@ -284,8 +284,15 @@ def get_roads_within_boundaries(df):
         f"(._;>;);out;"
     )
 
+    headers = {
+        "User-Agent": f"offgridplanner/{APP_VERSION_NUMBER} (offgridplanner@rl-institut.de)",
+        "Referer": OVERPASS_REFERER,
+    }
+
     try:
-        resp = httpx.get(OVERPASS_API_HOST, params={"data": query}, timeout=30)
+        resp = httpx.get(
+            OVERPASS_API_HOST, params={"data": query}, headers=headers, timeout=30
+        )
         resp.raise_for_status()
         data = resp.json()
     except (httpx.HTTPError, httpx.ReadTimeout) as exc:
