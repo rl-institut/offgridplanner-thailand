@@ -248,6 +248,36 @@ L.Control.Trashbin = L.Control.extend({
 
 const trashbinControl = new L.Control.Trashbin();
 
+L.Control.SelectAll = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function () {
+        const container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Select all roads';
+        link.innerHTML = '☑';
+        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+            .on(link, 'click', L.DomEvent.preventDefault)
+            .on(link, 'click', () => selectAllRoads());
+        return container;
+    },
+});
+
+L.Control.DeselectAll = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: function () {
+        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Deselect all roads';
+        link.innerHTML = '☐';
+        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
+            .on(link, 'click', L.DomEvent.preventDefault)
+            .on(link, 'click', () => deselectAllRoads());
+        return container;
+    },
+});
+
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
 
@@ -306,6 +336,8 @@ function addDrawingToolsToConsumerMap() {
 
 function addDrawingToolsToGridMap() {
     map.addControl(trashbinControl);
+    map.addControl(new L.Control.SelectAll());
+    map.addControl(new L.Control.DeselectAll());
     map.addControl(drawControl);
     map.addControl(new streetFetchControl());
 }
