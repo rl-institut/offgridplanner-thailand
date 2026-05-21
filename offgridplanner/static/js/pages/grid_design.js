@@ -53,3 +53,17 @@ function customTrashBinAction() {
     });
     road_elements = road_elements.filter(r => !r.is_clicked);
 }
+
+function selectAllRoads() {
+    road_elements.forEach(r => {
+        r.is_clicked = true;
+        if (r.layer) r.layer.setStyle({ color: '#cc0000', weight: 4 });
+    });
+}
+
+function deselectAllRoads() {
+    road_elements.forEach(r => {
+        r.is_clicked = false;
+        if (r.layer) r.layer.setStyle({ color: '#9933ff', weight: 3 });
+    });
+}
