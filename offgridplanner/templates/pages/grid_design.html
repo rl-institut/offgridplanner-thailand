@@ -152,6 +152,21 @@
       </div>
     </div>
   </section>
+        <div id="msgBox"
+           class="modal"
+           style="background-color: rgba(0,0,0,0.5);
+                  z-index: 999;
+                  text-align: left">
+        <form class="modal-content" style="max-width: 24rem">
+          <div class="container">
+            <h1>{% translate 'Warning' %}</h1>
+            <p id="responseMsg"></p>
+            <button onclick="document.getElementById('msgBox').style.display='none'"
+                    type="button"
+                    class="deletebtn">{% translate 'OK' %}</button>
+          </div>
+        </form>
+      </div>
   <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 999; text-align: left">
     <form class="modal-content" style="width: 700px; height: 520px;">
       <div class="container">
