@@ -71,8 +71,9 @@ class CustomModelForm(ModelForm):
                 if self.initial.get(field_name) is not None:
                     original_value = self.initial[field_name]
                     try:
-                        self.initial[field_name] = (
-                            float(original_value) * self.exchange_rate
+                        decimal_places = 1 if self.currency == "THB" else 2
+                        self.initial[field_name] = round(
+                            float(original_value) * self.exchange_rate, decimal_places
                         )
                     except (TypeError, ValueError):
                         logger.warning(
