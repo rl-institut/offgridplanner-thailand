@@ -104,6 +104,8 @@ let countryCentroid = [
     (boundsDict.longitude_min + boundsDict.longitude_max) / 2,
 ];
 
+let bounds;
+
 function initializeMap(center = null, zoom = null, bounds = null) {
     if (!map) {
         // Only initialize the map if it hasn't been initialized yet
@@ -218,7 +220,7 @@ async function put_markers_on_map(array, markers_only) {
     let num_public_services = 0;
 
     let latLonList = array.map(obj => L.latLng(obj.latitude, obj.longitude));
-    let bounds = L.latLngBounds(latLonList);
+    bounds = L.latLngBounds(latLonList);
 
     initializeMap(null, null, bounds);
 

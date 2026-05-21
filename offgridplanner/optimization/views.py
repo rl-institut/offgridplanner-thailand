@@ -185,10 +185,18 @@ def add_roads_inside_boundary(request, proj_id):
             raise PermissionDenied
 
     js_data = json.loads(request.body)
-    boundary_coordinates = js_data["boundary_coordinates"][0][0]
-
-    df = pd.DataFrame.from_dict(boundary_coordinates).rename(
-        columns={"lat": "latitude", "lng": "longitude"},
+    bounds = js_data["boundary_coordinates"]
+    df = pd.DataFrame(
+        [
+            {
+                "latitude": bounds["_southWest"]["lat"],
+                "longitude": bounds["_southWest"]["lng"],
+            },
+            {
+                "latitude": bounds["_northEast"]["lat"],
+                "longitude": bounds["_northEast"]["lng"],
+            },
+        ]
     )
 
     if df["latitude"].max() - df["latitude"].min() > float(

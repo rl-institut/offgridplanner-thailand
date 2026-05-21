@@ -166,8 +166,7 @@ const streetFetchControl = L.Control.extend({
 
         L.DomEvent.on(link, 'click', L.DomEvent.stop)
             .on(link, 'click', function () {
-                debugger;
-                add_roads_inside_boundary();
+                add_roads_inside_boundary({boundariesCoordinates: bounds});
             });
 
 
