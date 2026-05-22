@@ -231,15 +231,35 @@ const UnifiedToolbar = L.Control.extend({
 // ─── Map setup helpers ────────────────────────────────────────────────────────
 
 function addDrawingToolsToConsumerMap() {
-    map.addControl(new UnifiedToolbar({
-        buttons: ['zoom', 'trash', 'powerhouse']
-    }));
+    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'powerhouse'] }));
     map.addControl(drawControl);
+    mergeDrawToolsIntoUnifiedBar();
+}
+
+function mergeDrawToolsIntoUnifiedBar() {
+    requestAnimationFrame(() => {
+        const unifiedBar = document.querySelector('.leaflet-top.leaflet-left .leaflet-bar.leaflet-control:not(.leaflet-control-zoom)');
+        const drawButtons = document.querySelectorAll('.leaflet-draw.leaflet-control .leaflet-draw-toolbar a');
+
+        drawButtons.forEach(a => {
+            const srOnly = a.querySelector('.sr-only');
+            if (srOnly) srOnly.remove();
+            unifiedBar.appendChild(a);
+        });
+
+        const drawContainer = document.querySelector('.leaflet-draw.leaflet-control');
+        if (drawContainer) drawContainer.remove();
+    });
+}
+
+function addDrawingToolsToConsumerMap() {
+    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'powerhouse'] }));
+    map.addControl(drawControl);
+    mergeDrawToolsIntoUnifiedBar();
 }
 
 function addDrawingToolsToGridMap() {
-    map.addControl(new UnifiedToolbar({
-        buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM']
-    }));
+    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM'] }));
     map.addControl(drawControl);
+    mergeDrawToolsIntoUnifiedBar();
 }
