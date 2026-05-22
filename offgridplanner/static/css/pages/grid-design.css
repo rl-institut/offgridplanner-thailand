@@ -218,3 +218,17 @@ input.gd-search {
 .leaflet-control-attribution a:hover {
     font-weight: 700 !important;
 }
+
+#map.leaflet-touch .leaflet-bar a {
+    width: 36px;
+    height: 36px;
+    border-bottom: 1px solid #CEDBE3;
+}
+#map .leaflet-bar.leaflet-control {
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.10);
+}
+
+#map.leaflet-touch .leaflet-control-layers,
+#map.leaflet-touch .leaflet-bar {
+    border: 1px solid #CEDBE3;
+}
