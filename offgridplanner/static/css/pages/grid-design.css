@@ -209,3 +209,12 @@ input.gd-search {
 .leaflet-draw-section {
     display: none !important;
 }
+
+/* Fix turning legend text to bold when hovering over the map controls */
+.leaflet-touch :hover {
+    font-weight: 400 !important;
+}
+
+.leaflet-control-attribution a:hover {
+    font-weight: 700 !important;
+}
