@@ -186,3 +186,26 @@ input.gd-search {
     background-repeat: no-repeat;
     background-position: center;
 }
+
+/* Hide the sr-only span that leaks as visible text after merging the items into the unified toolbar */
+.leaflet-draw-toolbar a .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Hide the actions list (the tooltip row that appears below) */
+.leaflet-draw-actions {
+    display: none !important;
+}
+
+/* Also hide the now-empty draw section wrapper if it lingers */
+.leaflet-draw-section {
+    display: none !important;
+}
