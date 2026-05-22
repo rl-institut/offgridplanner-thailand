@@ -89,3 +89,12 @@
     background-repeat: no-repeat;
     background-position: center;
 }
+
+/* Fix turning legend text to bold when hovering over the map controls */
+.leaflet-touch :hover {
+    font-weight: 400 !important;
+}
+
+.leaflet-control-attribution a:hover {
+    font-weight: 700 !important;
+}
