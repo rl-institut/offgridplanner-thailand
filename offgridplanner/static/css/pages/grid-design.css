@@ -179,3 +179,10 @@ input.gd-search {
     font-size: var(--font-size--sm);
     color: var(--font-color--secondary);
 }
+
+#map .leaflet-control-container .leaflet-draw-draw-polyline {
+    background-image: url("data:image/svg+xml,%3Csvg id='Layer_2' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' height='20' width='20'%3E%3Cpath d='m30 22a4 4 0 0 1 -8 0 4 4 0 0 1 .65-2.17l-5.77-6.3a4 4 0 0 1 -4.32-.36l-2.89 2.25a4 4 0 0 1 .33 1.58 4 4 0 1 1 -4-4 3.94 3.94 0 0 1 2.44.84l2.9-2.25a3.84 3.84 0 0 1 -.34-1.59 4 4 0 0 1 8 0 4 4 0 0 1 -.65 2.17l5.78 6.3a3.93 3.93 0 0 1 1.87-.47 4 4 0 0 1 4 4z'/%3E%3C/svg%3E");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
