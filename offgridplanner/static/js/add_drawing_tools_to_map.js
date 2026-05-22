@@ -49,7 +49,7 @@ var rectangleDrawer = new L.Draw.Rectangle(map, {
 });
 
 
-let isPowerHouseMarker = false
+let isPowerHouseMarker = false;
 
 
 var myCustomMarker = L.Icon.extend({
@@ -64,9 +64,9 @@ var myCustomMarker = L.Icon.extend({
 
 const iconB = L.icon({
     iconUrl: "/static/icons/i_power_house.svg",
-    iconSize: [12, 12], // size of the icon
-    iconAnchor: [12, 12], // point of the icon which will correspond to marker's location
-    popupAnchor: [1, -12] // point from which the popup should open relative to the iconAnchor
+    iconSize: [12, 12],
+    iconAnchor: [12, 12],
+    popupAnchor: [1, -12]
 });
 
 
@@ -76,27 +76,28 @@ L.NewMarker = L.Draw.Marker.extend({
     }
 });
 
+
 const roadDrawControls = {
-        polyline: {
-            shapeOptions: { color: '#9933ff', weight: 3, opacity: 1 }
-        },
-        polygon: false,
-        circle: false,
-        circlemarker: false,
-        rectangle: false,
-        marker: false,
-    }
+    polyline: {
+        shapeOptions: { color: '#9933ff', weight: 3, opacity: 1 }
+    },
+    polygon: false,
+    circle: false,
+    circlemarker: false,
+    rectangle: false,
+    marker: false,
+};
 
 const consumerDrawControls = {
-        polyline: false,
-        polygon: true,
-        circle: false,
-        circlemarker: false,
-        rectangle: true,
-        marker: {
-            icon: new myCustomMarker
-        }
+    polyline: false,
+    polygon: true,
+    circle: false,
+    circlemarker: false,
+    rectangle: true,
+    marker: {
+        icon: new myCustomMarker()
     }
+};
 
 let drawControl = new L.Control.Draw({
     position: 'topleft',
@@ -104,170 +105,7 @@ let drawControl = new L.Control.Draw({
 });
 
 
-const CustomMarkerControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        L.DomEvent.disableClickPropagation(container);
-
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'place power-house';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-marker-icon', link);
-        image.src = '/static/icons/i_power_house_grey.svg';
-        image.alt = 'Marker';
-        image.style.width = '12px';
-        image.style.height = '12px';
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-            .on(link, 'click', function () {
-                isPowerHouseMarker = true;
-
-                // Disable any active drawing layer.
-                for (let type in drawControl._toolbars.draw._modes) {
-                    if (drawControl._toolbars.draw._modes[type].handler.enabled()) {
-                        drawControl._toolbars.draw._modes[type].handler.disable();
-                    }
-                }
-
-                new L.Draw.Marker(map, {icon: iconB}).enable();
-            });
-
-
-        return container;
-    }
-});
-
-const streetFetchControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        L.DomEvent.disableClickPropagation(container);
-
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'fetch OSM roads';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-marker-icon', link);
-        image.src = 'https://www.freeiconspng.com/uploads/maps-icon-30.png';
-        image.title = 'Fetch OSM roads (Image from freeiconspng.com)';
-        image.alt = 'Symbol Maps Icon';
-        image.style.width = '20px';
-        image.style.height = '20px';
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-            .on(link, 'click', function () {
-                add_roads_inside_boundary({boundariesCoordinates: bounds});
-            });
-
-
-        return container;
-    }
-});
-
-const zoomAllControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        L.DomEvent.disableClickPropagation(container);
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'zoom out';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-zoom-icon', link);
-        image.src = '/static/images/imgZoomToAll.png';
-        image.alt = 'Zoom';
-        image.style.width = '30px';
-        image.style.height = '30px';
-
-        container.onclick = function (e) {
-            L.DomEvent.preventDefault(e);
-            L.DomEvent.stopPropagation(e);
-            zoomAll(map);
-        };
-
-        return container;
-    },
-});
-
-map.addControl(new zoomAllControl());
-
-
-L.Control.Trashbin = L.Control.extend({
-    options: {
-        position: 'topleft',
-    },
-
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Clear all';
-        link.innerHTML = '🗑'; // Use the HTML entity for the trash bin icon (U+1F5D1)
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => customTrashBinAction());
-
-        return container;
-    },
-});
-
-
-const trashbinControl = new L.Control.Trashbin();
-
-L.Control.SelectAll = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Select all roads';
-        link.innerHTML = '☑';
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => selectAllRoads());
-        return container;
-    },
-});
-
-L.Control.DeselectAll = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Deselect all roads';
-        link.innerHTML = '☐';
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => deselectAllRoads());
-        return container;
-    },
-});
-
-
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
-
-const searchControl = new GeoSearch.GeoSearchControl({
-    provider: searchProvider,
-    position: 'topleft',
-    showMarker: false,
-});
-
 
 const searchInput = document.getElementById('search-input');
 
@@ -277,9 +115,9 @@ searchInput.addEventListener('keypress', async (event) => {
         let query = searchInput.value;
         if (!query) return;
 
-        let results = await searchProvider.search({query});
+        let results = await searchProvider.search({ query });
         if (results && results.length > 0) {
-            const {x: lng, y: lat} = results[0];
+            const { x: lng, y: lat } = results[0];
 
             if (isLatLngInMapBounds(lat, lng)) {
                 map.setView([lat, lng], 13);
@@ -309,16 +147,99 @@ function removeBoundaries() {
 }
 
 
+// ─── Unified Toolbar ─────────────────────────────────────────────────────────
+
+const UnifiedToolbar = L.Control.extend({
+    options: {
+        position: 'topleft',
+        buttons: [] // pass an array of button keys to include
+    },
+
+    onAdd: function (map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        L.DomEvent.disableClickPropagation(container);
+
+        const addBtn = (title, innerHTML, onClick) => {
+            const a = L.DomUtil.create('a', '', container);
+            a.href = '#';
+            a.title = title;
+            a.innerHTML = innerHTML;
+            a.style.display = 'flex';
+            a.style.alignItems = 'center';
+            a.style.justifyContent = 'center';
+            L.DomEvent.on(a, 'click', L.DomEvent.stopPropagation)
+                .on(a, 'click', L.DomEvent.preventDefault)
+                .on(a, 'click', onClick);
+            return a;
+        };
+
+        const buttonDefs = {
+            zoom: () => addBtn(
+                'Zoom to all',
+                `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
+                () => zoomAll(map)
+            ),
+
+            trash: () => addBtn(
+                'Clear all',
+                '<svg widh="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
+                () => customTrashBinAction()
+            ),
+
+            selectAll: () => addBtn(
+                'Select all roads',
+                '<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><g clip-rule="evenodd" fill="rgb(0,0,0)" fill-rule="evenodd"><path d="m1.75 4c0-1.24264 1.00736-2.25 2.25-2.25h13c1.2427 0 2.25 1.00737 2.25 2.25v13c0 1.2427-1.0073 2.25-2.25 2.25h-13c-1.24263 0-2.25-1.0073-2.25-2.25zm2.25-.75c-.41421 0-.75.33579-.75.75v13c0 .4142.33578.75.75.75h13c.4142 0 .75-.3358.75-.75v-13c0-.41422-.3358-.75-.75-.75z"/><path d="m21.9997 5.75098c.4142 0 .75.33578.75.75v14.49902c0 .9665-.7835 1.75-1.75 1.75h-14.49824c-.41421 0-.75-.3358-.75-.75s.33579-.75.75-.75h14.49824c.138 0 .25-.1119.25-.25v-14.49902c0-.41422.3358-.75.75-.75z"/><path d="m15.0227 7.32173c.297.28866.3039.76348.0152 1.06055l-5.0002 5.14582c-.28316.2915-.74697.3044-1.04591.0291l-2.99985-2.7626c-.30469-.2806-.32423-.755-.04364-1.05974.2806-.3047.75507-.32424 1.05976-.04364l2.46274 2.26788 4.4913-4.62214c.2887-.29707.7635-.30389 1.0606-.01523z"/></g></svg>',
+                () => selectAllRoads()
+            ),
+
+            deselectAll: () => addBtn(
+                'Deselect all roads',
+                '<svg height="16" viewBox="0 0 32 32" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m26 1h-20a5 5 0 0 0 -5 5v20a5 5 0 0 0 5 5h20a5 5 0 0 0 5-5v-20a5 5 0 0 0 -5-5zm3 25a3 3 0 0 1 -3 3h-20a3 3 0 0 1 -3-3v-20a3 3 0 0 1 3-3h20a3 3 0 0 1 3 3z"/><path d="m24.71 7.29a1 1 0 0 0 -1.42 0l-7.29 7.3-7.29-7.3a1 1 0 1 0 -1.42 1.42l7.3 7.29-7.3 7.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l7.29-7.3 7.29 7.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-7.3-7.29 7.3-7.29a1 1 0 0 0 0-1.42z"/></svg>',
+                () => deselectAllRoads()
+            ),
+
+            fetchOSM: () => addBtn(
+                'Fetch OSM roads',
+                `<img src="https://www.freeiconspng.com/uploads/maps-icon-30.png" style="width:20px;height:20px;display:block" title="Fetch OSM roads" alt="Fetch OSM">`,
+                () => add_roads_inside_boundary({ boundariesCoordinates: bounds })
+            ),
+
+            powerhouse: () => addBtn(
+                'Place power-house',
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20"><path d="M6,64H58a2,2,0,0,0,2-2V24a2,2,0,0,0-.71-1.53l-26-22a2,2,0,0,0-2.58,0l-26,22A2,2,0,0,0,4,24V62A2,2,0,0,0,6,64ZM8,24.93,32,4.62,56,24.93V60H8Z"/><path d="M44,33H35.33L37,22.3a2,2,0,0,0-1.08-2.08,2,2,0,0,0-2.31.37l-18,18a2,2,0,0,0-.44,2.18A2,2,0,0,0,17,42h7.69L23,53.72A2,2,0,0,0,25,56a2,2,0,0,0,1.41-.59l19-19a2,2,0,0,0,.44-2.18A2,2,0,0,0,44,33ZM27.83,48.34,29,40.28A2,2,0,0,0,27,38H21.83L32.09,27.73,31,34.7A2,2,0,0,0,33,37h6.17Z"/></svg>`,
+                () => {
+                    isPowerHouseMarker = true;
+                    for (let type in drawControl._toolbars.draw._modes) {
+                        if (drawControl._toolbars.draw._modes[type].handler.enabled()) {
+                            drawControl._toolbars.draw._modes[type].handler.disable();
+                        }
+                    }
+                    new L.Draw.Marker(map, { icon: iconB }).enable();
+                }
+            ),
+        };
+
+        this.options.buttons.forEach(key => {
+            if (buttonDefs[key]) buttonDefs[key]();
+        });
+
+        return container;
+    }
+});
+
+
+// ─── Map setup helpers ────────────────────────────────────────────────────────
+
 function addDrawingToolsToConsumerMap() {
-    map.addControl(new CustomMarkerControl());
-    map.addControl(trashbinControl);
+    map.addControl(new UnifiedToolbar({
+        buttons: ['zoom', 'trash', 'powerhouse']
+    }));
     map.addControl(drawControl);
 }
 
 function addDrawingToolsToGridMap() {
-    map.addControl(trashbinControl);
-    map.addControl(new L.Control.SelectAll());
-    map.addControl(new L.Control.DeselectAll());
+    map.addControl(new UnifiedToolbar({
+        buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM']
+    }));
     map.addControl(drawControl);
-    map.addControl(new streetFetchControl());
 }
