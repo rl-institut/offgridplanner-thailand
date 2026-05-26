@@ -1,3 +1,4 @@
+import copy
 import os
 
 import pandas as pd
@@ -391,7 +392,7 @@ def simulation_results(request, proj_id=None):
     results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
     results_df.loc["h2_production_kg"] = h2_production_kg
     results_df = results_df.astype(float)
-    output_kpis = OUTPUT_KPIS.copy()
+    output_kpis = copy.deepcopy(OUTPUT_KPIS)
     for kpi in output_kpis:
         value = results_df[kpi].round(1)
 

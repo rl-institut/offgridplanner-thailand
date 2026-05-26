@@ -374,6 +374,10 @@
     color: var(--font-color--highlight);
 }
 
+.lcoe-chart-wrapper .label > div:last-child {
+    white-space: nowrap;
+}
+
 .lcoe-chart-wrapper svg {
     display: block;
 }

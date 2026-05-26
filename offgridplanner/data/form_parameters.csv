@@ -42,7 +42,7 @@ diesel_genset_parameters_lifetime,Lifetime,int,8,Years,EnergySystemDesign,"Lifes
 diesel_genset_parameters_capex,CapEx,float,500,currency/kW,EnergySystemDesign,Capital Expenditure (CapEx) is the money that has to be spent to purchase the component
 diesel_genset_parameters_opex,OpEx,float,21,currency/kW/year,EnergySystemDesign,"Operating Expense (OpEx) refers to the fixed annual costs incurred in the operation of a component, specifically excluding fuel and other variable expenses"
 diesel_genset_parameters_variable_cost,Variable Cost,float,0.02,currency/kWh,EnergySystemDesign,"Variable cost refers to the variable annual costs incurred in the operation of a component, e.g. fuel and other variable expenses that are dependent on the amount of produced electricity."
-diesel_genset_parameters_fuel_cost,Fuel Cost,float,0.81,currency/L,EnergySystemDesign,
+diesel_genset_parameters_fuel_cost,Fuel Cost,float,1.06,currency/L,EnergySystemDesign,
 diesel_genset_parameters_fuel_lhv,Fuel LHV,float,11.8,kWh/kg,EnergySystemDesign,kWh produced by combustion of kg of fuel
 diesel_genset_parameters_min_efficiency,Min. Efficiency,float,22,%,EnergySystemDesign,
 diesel_genset_parameters_max_efficiency,Max. Efficiency,float,30,%,EnergySystemDesign,
