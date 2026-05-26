@@ -416,9 +416,11 @@ class SupplyProcessor(OptimizationDataHandler):
             "inverter": np.array(results["inverter__electricity_ac"]["sequences"]),
             "rectifier": np.array(results["rectifier__electricity_dc"]["sequences"]),
             "h2_storage_content": np.array(results["h2_storage__None"]["sequences"]),
-            "h2_storage_charge": np.array(results["hydrogen__h2_storage"]["sequences"]),
-            "h2_storage_discharge": np.array(
-                results["h2_storage__hydrogen"]["sequences"]
+            "h2_storage_charge": np.maximum(
+                np.array(results["hydrogen__h2_storage"]["sequences"]), 0
+            ),
+            "h2_storage_discharge": np.maximum(
+                np.array(results["h2_storage__hydrogen"]["sequences"]), 0
             ),
             "fuel_cell": np.array(results["fuel_cell__electricity_dc"]["sequences"]),
             "electrolyzer": np.array(results["electrolyzer__hydrogen"]["sequences"]),
