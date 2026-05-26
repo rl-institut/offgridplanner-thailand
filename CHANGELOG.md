@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v1.4.0-thai.5.2] – 2026-05-26
 ### Fixed
 - Round decimal places in form fields ([#56](https://github.com/rl-institut/offgridplanner-thailand/pull/56))
 - Fix minor layout issue in LCOE chart ([#56](https://github.com/rl-institut/offgridplanner-thailand/pull/56))
