@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- Fix consumer import sometimes wrongly labeling consumers as outside country bounds ([#58](https://github.com/rl-institut/offgridplanner-thailand/pull/58))
 
 ## [v1.4.0-thai.5.2] – 2026-05-26
 ### Fixed
