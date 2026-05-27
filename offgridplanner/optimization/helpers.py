@@ -158,7 +158,7 @@ def check_nodes_within_country(df, proj_id):
 
     try:
         world = gpd.read_file(
-            "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+            "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
         )
     except (OSError, URLError) as e:
         logger.warning("Failed to load country shapes: %s", e)
@@ -169,13 +169,11 @@ def check_nodes_within_country(df, proj_id):
     if country_shape.empty:
         return False
 
-    for _, row in df.iterrows():
-        point = Point(row["longitude"], row["latitude"])
-
-        if not country_shape.contains(point).any():
-            return False
-
-    return True
+    points = gpd.GeoSeries(
+        df.apply(lambda x: Point(x.longitude, x.latitude), axis=1), crs="EPSG:4326"
+    )
+    # True if any of the points are within the country bounds
+    return country_shape.unary_union.contains(points).any()
 
 
 def check_imported_consumer_data(df, proj_id):
