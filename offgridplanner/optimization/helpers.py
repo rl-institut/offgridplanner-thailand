@@ -172,7 +172,7 @@ def check_nodes_within_country(df, proj_id):
     points = gpd.GeoSeries(df.apply(lambda x: Point(x.longitude, x.latitude), axis=1))
 
     # True if any of the points are within the country bounds
-    return country_shape.contains(points).any()
+    return country_shape.unary_union.contains(points).any()
 
 
 def check_imported_consumer_data(df, proj_id):
