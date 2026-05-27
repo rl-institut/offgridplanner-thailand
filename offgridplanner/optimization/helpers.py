@@ -169,8 +169,9 @@ def check_nodes_within_country(df, proj_id):
     if country_shape.empty:
         return False
 
-    points = gpd.GeoSeries(df.apply(lambda x: Point(x.longitude, x.latitude), axis=1))
-
+    points = gpd.GeoSeries(
+        df.apply(lambda x: Point(x.longitude, x.latitude), axis=1), crs="EPSG:4326"
+    )
     # True if any of the points are within the country bounds
     return country_shape.unary_union.contains(points).any()
 
