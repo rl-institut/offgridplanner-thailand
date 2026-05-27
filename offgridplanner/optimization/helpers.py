@@ -158,7 +158,7 @@ def check_nodes_within_country(df, proj_id):
 
     try:
         world = gpd.read_file(
-            "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+            "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson"
         )
     except (OSError, URLError) as e:
         logger.warning("Failed to load country shapes: %s", e)
