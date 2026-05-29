@@ -232,3 +232,11 @@ input.gd-search {
 #map.leaflet-touch .leaflet-bar {
     border: 1px solid #CEDBE3;
 }
+
+#map .leaflet-bar.leaflet-control {
+    background-color: var(--background-color--main);
+}
+
+.unified-toolbar-btn {
+    border-radius: 0;
+}

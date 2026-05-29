@@ -118,3 +118,11 @@
 #map .leaflet-bar a.leaflet-disabled {
     background-color: #F4F7F9;
 }
+
+#map .leaflet-bar.leaflet-control {
+    background-color: var(--background-color--main);
+}
+
+.unified-toolbar-btn {
+    border-radius: 0;
+}
