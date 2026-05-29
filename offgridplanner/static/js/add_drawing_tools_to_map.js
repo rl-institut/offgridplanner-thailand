@@ -427,12 +427,6 @@ function mergeDrawToolsIntoUnifiedBar() {
     });
 }
 
-function addDrawingToolsToConsumerMap() {
-    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'powerhouse'] }));
-    map.addControl(drawControl);
-    mergeDrawToolsIntoUnifiedBar();
-}
-
 function addDrawingToolsToGridMap() {
     map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM'] }));
     map.addControl(drawControl);
