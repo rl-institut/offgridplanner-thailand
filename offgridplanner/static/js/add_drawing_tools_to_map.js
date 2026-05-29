@@ -152,13 +152,58 @@ function removeBoundaries() {
 const UnifiedToolbar = L.Control.extend({
     options: {
         position: 'topleft',
-        buttons: [] // pass an array of button keys to include
+        buttons: [],
+        items: []
     },
 
     onAdd: function (map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         L.DomEvent.disableClickPropagation(container);
 
+        if (!document.getElementById('unified-toolbar-styles')) {
+            const style = document.createElement('style');
+            style.id = 'unified-toolbar-styles';
+            style.textContent = '.unified-toolbar-btn:hover{background:#f0f3f4!important}.unified-toolbar-btn.is-active{background:#e2e8ec!important}';
+            document.head.appendChild(style);
+        }
+
+        // New-style renderer: <button> with icon + text label (used by items array)
+        const addButton = (label, iconHtml, onClick, key) => {
+            const btn = L.DomUtil.create('button', 'unified-toolbar-btn', container);
+            btn.type = 'button';
+            btn.title = label.replace(/<[^>]+>/g, ' ').trim();
+            btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;color:#212529;padding:6px 2px;border:none;background:transparent;cursor:pointer;box-sizing:border-box;';
+
+            const iconWrap = document.createElement('span');
+            iconWrap.innerHTML = iconHtml;
+            iconWrap.style.cssText = 'display:flex;align-items:center;justify-content:center;width:20px;height:20px;';
+            btn.appendChild(iconWrap);
+
+            const labelEl = document.createElement('span');
+            labelEl.innerHTML = label;
+            labelEl.style.cssText = 'font-size:11px;margin-top:2px;font-weight:400;line-height:1.2;white-space:nowrap;text-align:center;';
+            btn.appendChild(labelEl);
+
+            L.DomEvent.on(btn, 'click', L.DomEvent.stopPropagation)
+                .on(btn, 'click', L.DomEvent.preventDefault)
+                .on(btn, 'click', onClick);
+
+            if (key) this['_btn_' + key] = btn;
+            return btn;
+        };
+
+        const addSeparator = () => {
+            const hr = L.DomUtil.create('hr', '', container);
+            hr.style.cssText = 'border:none;border-top:1px solid #e8edf0;margin:4px 8px;';
+        };
+
+        const addGroupHeader = (text) => {
+            const div = L.DomUtil.create('div', '', container);
+            div.textContent = text;
+            div.style.cssText = 'font-size:10px;text-align:center;color:#9aabb5;font-weight:700;padding:4px 4px 2px;pointer-events:none;user-select:none;';
+        };
+
+        // Old-style renderer: <a> elements (used by buttons array)
         const addBtn = (title, innerHTML, onClick) => {
             const a = L.DomUtil.create('a', '', container);
             a.href = '#';
@@ -182,7 +227,7 @@ const UnifiedToolbar = L.Control.extend({
 
             trash: () => addBtn(
                 'Clear all',
-                '<svg widh="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
+                '<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
                 () => customTrashBinAction()
             ),
 
@@ -219,9 +264,45 @@ const UnifiedToolbar = L.Control.extend({
             ),
         };
 
-        this.options.buttons.forEach(key => {
-            if (buttonDefs[key]) buttonDefs[key]();
-        });
+        if (this.options.items && this.options.items.length > 0) {
+            this.options.items.forEach(item => {
+                if (item.type === 'button') {
+                    addButton(item.label, item.icon, item.onClick, item.key);
+                } else if (item.type === 'separator') {
+                    addSeparator();
+                } else if (item.type === 'header') {
+                    addGroupHeader(item.text);
+                }
+            });
+
+            const layerTypeToKey = { polyline: 'street', rectangle: 'square', polygon: 'polygon' };
+            const buttonKeys = this.options.items
+                .filter(i => i.type === 'button' && i.key)
+                .map(i => i.key);
+
+            map.on('draw:drawstart', (e) => {
+                buttonKeys.forEach(k => {
+                    if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
+                });
+                let activeKey = layerTypeToKey[e.layerType];
+                if (e.layerType === 'marker') {
+                    activeKey = (typeof isPowerHouseMarker !== 'undefined' && isPowerHouseMarker)
+                        ? 'powerhouse' : 'consumer';
+                }
+                if (activeKey && this['_btn_' + activeKey]) {
+                    L.DomUtil.addClass(this['_btn_' + activeKey], 'is-active');
+                }
+            });
+            map.on('draw:drawstop', () => {
+                buttonKeys.forEach(k => {
+                    if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
+                });
+            });
+        } else {
+            this.options.buttons.forEach(key => {
+                if (buttonDefs[key]) buttonDefs[key]();
+            });
+        }
 
         return container;
     }
@@ -231,29 +312,136 @@ const UnifiedToolbar = L.Control.extend({
 // ─── Map setup helpers ────────────────────────────────────────────────────────
 
 function addDrawingToolsToConsumerMap() {
-    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'powerhouse'] }));
     map.addControl(drawControl);
-    mergeDrawToolsIntoUnifiedBar();
-}
-
-function mergeDrawToolsIntoUnifiedBar() {
     requestAnimationFrame(() => {
-        const unifiedBar = document.querySelector('.leaflet-top.leaflet-left .leaflet-bar.leaflet-control:not(.leaflet-control-zoom)');
-        const drawButtons = document.querySelectorAll('.leaflet-draw.leaflet-control .leaflet-draw-toolbar a');
-
-        drawButtons.forEach(a => {
-            const srOnly = a.querySelector('.sr-only');
-            if (srOnly) srOnly.remove();
-            unifiedBar.appendChild(a);
-        });
-
         const drawContainer = document.querySelector('.leaflet-draw.leaflet-control');
-        if (drawContainer) drawContainer.remove();
+        if (drawContainer) drawContainer.style.display = 'none';
     });
+
+    map.addControl(new UnifiedToolbar({
+        items: [
+            {
+                type: 'button',
+                key: 'zoom',
+                label: 'Zoom',
+                icon: `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
+                onClick: () => zoomAll(map)
+            },
+            {
+                type: 'button',
+                key: 'search',
+                label: 'Search',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+                onClick: () => document.getElementById('search-input').focus()
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Add' },
+            {
+                type: 'button',
+                key: 'consumer',
+                label: 'Consumer',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+                onClick: () => drawControl._toolbars.draw._modes.marker.handler.enable()
+            },
+            {
+                type: 'button',
+                key: 'powerhouse',
+                label: 'Power<br>house',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20"><path d="M6,64H58a2,2,0,0,0,2-2V24a2,2,0,0,0-.71-1.53l-26-22a2,2,0,0,0-2.58,0l-26,22A2,2,0,0,0,4,24V62A2,2,0,0,0,6,64ZM8,24.93,32,4.62,56,24.93V60H8Z"/><path d="M44,33H35.33L37,22.3a2,2,0,0,0-1.08-2.08,2,2,0,0,0-2.31.37l-18,18a2,2,0,0,0-.44,2.18A2,2,0,0,0,17,42h7.69L23,53.72A2,2,0,0,0,25,56a2,2,0,0,0,1.41-.59l19-19a2,2,0,0,0,.44-2.18A2,2,0,0,0,44,33ZM27.83,48.34,29,40.28A2,2,0,0,0,27,38H21.83L32.09,27.73,31,34.7A2,2,0,0,0,33,37h6.17Z"/></svg>`,
+                onClick: () => {
+                    isPowerHouseMarker = true;
+                    new L.Draw.Marker(map, { icon: iconB }).enable();
+                }
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Select area' },
+            {
+                type: 'button',
+                key: 'square',
+                label: 'Square',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`,
+                onClick: () => rectangleDrawer.enable()
+            },
+            {
+                type: 'button',
+                key: 'polygon',
+                label: 'Polygon',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,9 18,20 6,20 2,9"/></svg>`,
+                onClick: () => polygonDrawer.enable()
+            },
+            { type: 'separator' },
+            {
+                type: 'button',
+                key: 'trash',
+                label: 'Clear all',
+                icon: `<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>`,
+                onClick: () => customTrashBinAction()
+            },
+        ]
+    }));
 }
 
 function addDrawingToolsToGridMap() {
-    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM'] }));
-    map.addControl(drawControl);
-    mergeDrawToolsIntoUnifiedBar();
+    map.addControl(new UnifiedToolbar({
+        items: [
+            {
+                type: 'button',
+                key: 'zoom',
+                label: 'Zoom',
+                icon: `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
+                onClick: () => zoomAll(map)
+            },
+            {
+                type: 'button',
+                key: 'search',
+                label: 'Search',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+                onClick: () => document.getElementById('search-input').focus()
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Add' },
+            {
+                type: 'button',
+                key: 'street',
+                label: 'Street',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,4 12,12 20,8"/><circle cx="4" cy="4" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="20" cy="8" r="2" fill="currentColor"/></svg>`,
+                onClick: () => lineDrawer.enable()
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Selection' },
+            {
+                type: 'button',
+                key: 'square',
+                label: 'Square',
+                icon: `<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><g clip-rule="evenodd" fill="rgb(0,0,0)" fill-rule="evenodd"><path d="m1.75 4c0-1.24264 1.00736-2.25 2.25-2.25h13c1.2427 0 2.25 1.00737 2.25 2.25v13c0 1.2427-1.0073 2.25-2.25 2.25h-13c-1.24263 0-2.25-1.0073-2.25-2.25zm2.25-.75c-.41421 0-.75.33579-.75.75v13c0 .4142.33578.75.75.75h13c.4142 0 .75-.3358.75-.75v-13c0-.41422-.3358-.75-.75-.75z"/><path d="m21.9997 5.75098c.4142 0 .75.33578.75.75v14.49902c0 .9665-.7835 1.75-1.75 1.75h-14.49824c-.41421 0-.75-.3358-.75-.75s.33579-.75.75-.75h14.49824c.138 0 .25-.1119.25-.25v-14.49902c0-.41422.3358-.75.75-.75z"/><path d="m15.0227 7.32173c.297.28866.3039.76348.0152 1.06055l-5.0002 5.14582c-.28316.2915-.74697.3044-1.04591.0291l-2.99985-2.7626c-.30469-.2806-.32423-.755-.04364-1.05974.2806-.3047.75507-.32424 1.05976-.04364l2.46274 2.26788 4.4913-4.62214c.2887-.29707.7635-.30389 1.0606-.01523z"/></g></svg>`,
+                onClick: () => selectAllRoads()
+            },
+            {
+                type: 'button',
+                key: 'polygon',
+                label: 'Polygon',
+                icon: `<svg height="20" viewBox="0 0 32 32" width="20" xmlns="http://www.w3.org/2000/svg"><path d="m26 1h-20a5 5 0 0 0 -5 5v20a5 5 0 0 0 5 5h20a5 5 0 0 0 5-5v-20a5 5 0 0 0 -5-5zm3 25a3 3 0 0 1 -3 3h-20a3 3 0 0 1 -3-3v-20a3 3 0 0 1 3-3h20a3 3 0 0 1 3 3z"/><path d="m24.71 7.29a1 1 0 0 0 -1.42 0l-7.29 7.3-7.29-7.3a1 1 0 1 0 -1.42 1.42l7.3 7.29-7.3 7.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l7.29-7.3 7.29 7.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-7.3-7.29 7.3-7.29a1 1 0 0 0 0-1.42z"/></svg>`,
+                onClick: () => deselectAllRoads()
+            },
+            { type: 'separator' },
+            {
+                type: 'button',
+                key: 'undo',
+                label: 'Undo',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
+                onClick: () => {
+                    if (lineDrawer && lineDrawer.enabled()) {
+                        lineDrawer.deleteLastVertex();
+                    }
+                }
+            },
+            {
+                type: 'button',
+                key: 'trash',
+                label: 'Clear all',
+                icon: `<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>`,
+                onClick: () => customTrashBinAction()
+            },
+        ]
+    }));
 }
