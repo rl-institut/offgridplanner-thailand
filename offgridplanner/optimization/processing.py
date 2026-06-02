@@ -181,9 +181,28 @@ class OptimizationDataHandler:
         else:
             uploaded_data = self.project.customdemand.uploaded_data
             demand = pd.read_json(StringIO(uploaded_data))["demand"]
-            # # TODO error is thrown for annual total consumption if full year demand is not defined - tbd fix
-            # if self.n_days == 365:
-            #     self.demand_full_year = self.demand
+
+        annual_growth = self.project.customdemand.annual_demand_increase
+
+        # save original demand for comparison
+        original_demand = demand.copy()
+
+        if annual_growth is not None:
+
+            project_years = self.project_lifetime
+
+            yearly_factors = [
+                (1 + annual_growth) ** year
+                for year in range(project_years)
+            ]
+
+            mean_growth_factor = sum(yearly_factors) / project_years
+
+            demand = demand * mean_growth_factor
+
+        else:
+            print("\nNo annual demand increase configured.")
+
         return demand
 
 
