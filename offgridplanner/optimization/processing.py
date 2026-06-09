@@ -275,7 +275,11 @@ class PreProcessor(OptimizationDataHandler):
 
     def collect_grid_opt_json_data(self):
         nodes_df = self.project.nodes.df.copy()
-        roads_df = self.project.roads.df.copy()
+        roads_df = (
+            self.project.roads.df.copy()
+            if hasattr(self.project, "roads")
+            else pd.DataFrame()
+        )
         # Replace NaNs with JSON-compliant None / null
         nodes_df = nodes_df.replace({np.nan: None})
         roads_df = roads_df.replace({np.nan: None})
