@@ -126,8 +126,7 @@ def consumer_selection(request, proj_id=None):
             for ix, enterprise in enumerate(sorted(ENTERPRISE_LIST), 1)
         }
         large_load_list = {
-            machine: _(machine)
-            for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
+            machine: _(machine) for ix, machine in enumerate(sorted(LARGE_LOAD_LIST), 1)
         }
 
         consumer_list = {
