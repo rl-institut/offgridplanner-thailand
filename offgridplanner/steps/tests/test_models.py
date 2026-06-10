@@ -32,7 +32,7 @@ def project(db, example_project_data):
 
 class TestCustomDemand:
     def test_calibration_option_none_when_both_none(self):
-        cd = CustomDemand(very_low=0.2, low=0.2, middle=0.2, high=0.2, very_high=0.2)
+        cd = CustomDemand(low=1 / 3, middle=1 / 3, high=1 / 3)
         assert cd.calibration_option is None
 
     def test_calibration_option_returns_annual_total(self):
@@ -47,27 +47,25 @@ class TestCustomDemand:
         cd = CustomDemand(annual_total_consumption=1000.0, annual_peak_consumption=50.0)
         assert cd.calibration_option == "annual_total_consumption"
 
-    def test_shares_tiers_has_five_entries(self):
+    def test_shares_tiers_has_three_entries(self):
         cd = CustomDemand()
-        assert len(cd.shares_tiers) == 5  # noqa: PLR2004
+        assert len(cd.shares_tiers) == 3  # noqa: PLR2004
         assert set(cd.shares_tiers) == {
-            "very_low",
             "low",
             "middle",
             "high",
-            "very_high",
         }
 
     def test_get_shares_dict_returns_field_values(self):
-        cd = CustomDemand(very_low=0.1, low=0.2, middle=0.3, high=0.25, very_high=0.15)
+        cd = CustomDemand(low=0.2, middle=0.3, high=0.25)
         result = cd.get_shares_dict()
-        assert result["very_low"] == 0.1  # noqa: PLR2004
+        assert result["low"] == 0.2  # noqa: PLR2004
         assert result["high"] == 0.25  # noqa: PLR2004
 
     def test_get_shares_dict_as_percentage_multiplies_by_100(self):
-        cd = CustomDemand(very_low=0.1, low=0.2, middle=0.3, high=0.25, very_high=0.15)
+        cd = CustomDemand(low=0.2, middle=0.3, high=0.25)
         result = cd.get_shares_dict(as_percentage=True)
-        assert abs(result["very_low"] - 10.0) < STRICT_FLOAT_TOLERANCE
+        assert abs(result["low"] - 20.0) < STRICT_FLOAT_TOLERANCE
         assert abs(result["middle"] - 30.0) < STRICT_FLOAT_TOLERANCE
 
 

@@ -72,8 +72,8 @@ class TestNodes:
 
     def test_have_custom_machinery_true_when_specification_present(self):
         nodes = _nodes_from([_enterprise("e1", machinery="1 x Welder (5.25kW)")])
-        assert nodes.have_custom_machinery is True
+        assert nodes.have_custom_machinery() is True
 
     def test_have_custom_machinery_false_when_all_empty(self):
         nodes = _nodes_from([_enterprise("e1", machinery="")])
-        assert nodes.have_custom_machinery is False
+        assert nodes.have_custom_machinery() is False

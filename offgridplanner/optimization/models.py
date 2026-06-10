@@ -63,7 +63,7 @@ class Nodes(BaseJsonData):
             .astype(str)
             .str.strip()
         )
-        return s.ne("").any()
+        return bool(s.ne("").any())
 
 
 class Links(BaseJsonData):

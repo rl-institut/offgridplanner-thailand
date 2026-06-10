@@ -69,7 +69,7 @@ def nodes():
 
 @pytest.fixture
 def custom_demand():
-    return CustomDemand(very_low=0.2, low=0.2, middle=0.2, high=0.2, very_high=0.2)
+    return CustomDemand(low=0.33, middle=0.34, high=0.33)
 
 
 @pytest.fixture
@@ -150,11 +150,9 @@ class TestCalibrateProfiles:
     @pytest.fixture
     def custom_demand_shares(self):
         return {
-            "very_low": 0.2,
-            "low": 0.2,
-            "middle": 0.2,
-            "high": 0.2,
-            "very_high": 0.2,
+            "low": 0.33,
+            "middle": 0.34,
+            "high": 0.33,
         }
 
     def test_no_calibration_option_returns_unchanged(
@@ -244,11 +242,9 @@ class TestComputeHouseholdDemand:
     @pytest.fixture
     def demand_params(self):
         return {
-            "very_low": 0.3,
             "low": 0.3,
-            "middle": 0.2,
-            "high": 0.1,
-            "very_high": 0.1,
+            "middle": 0.4,
+            "high": 0.3,
         }
 
     def test_returns_series_of_correct_length(
@@ -281,14 +277,12 @@ class TestComputeHouseholdDemand:
     def test_single_tier_matches_profile_times_count(self, small_profiles):
         counts = pd.Series({"default": 5})
         params = {
-            "very_low": 1.0,
-            "low": 0.0,
+            "low": 1.0,
             "middle": 0.0,
             "high": 0.0,
-            "very_high": 0.0,
         }
         result = compute_household_demand(counts, params, small_profiles)
-        expected_col = "Household_Distribution_Based_Very Low Consumption"
+        expected_col = "Household_Low Consumption"
         expected = small_profiles[expected_col] * 5
         pd.testing.assert_series_equal(result, expected, check_names=False)
 
@@ -328,9 +322,11 @@ class TestComputeStandardDemand:
         )
 
     def test_machinery_returns_correct_series(self, small_profiles):
-        large_load_cols = [c for c in LOAD_PROFILES.columns if "Large Load_" in c]
-        assert large_load_cols, "No large load columns in load profiles"
-        detail = large_load_cols[0].split("Large Load_")[1]
+        large_load_cols = [
+            c for c in LOAD_PROFILES.columns if c.startswith("Appliances_")
+        ]
+        assert large_load_cols, "No appliance columns in load profiles"
+        detail = large_load_cols[0].removeprefix("Appliances_")
         counts = pd.Series({detail: 1})
         result = compute_standard_demand("machinery", counts, small_profiles)
         assert isinstance(result, pd.Series)
@@ -345,36 +341,42 @@ class TestUnpackMachinery:
         df = pd.DataFrame({"custom_specification": ["1 x Welder (5.25kW)"]})
         result = unpack_machinery(df)
         assert isinstance(result, pd.Series)
-        assert result["Welder"] == 1
+        assert result["Welder (5.25kW)"] == 1
 
     def test_extracts_multiple_machines_from_one_row(self):
         df = pd.DataFrame(
-            {"custom_specification": ["2 x Milling Machine (7.5kW);1 x Drill (0.4kW)"]}
+            {"custom_specification": ["3 x AC;1 x Washing Machine (8kg, 400 W)"]}
         )
         result = unpack_machinery(df)
-        assert result["Milling Machine"] == 2  # noqa: PLR2004
-        assert result["Drill"] == 1
+        assert result["AC"] == 3  # noqa: PLR2004
+        assert result["Washing Machine (8kg, 400 W)"] == 1
 
     def test_sums_duplicate_machine_types_across_rows(self):
         df = pd.DataFrame(
             {
                 "custom_specification": [
-                    "1 x Welder (5.25kW)",
-                    "2 x Welder (5.25kW)",
+                    "3 x AC",
+                    "1 x Washing Machine (8kg, 400 W)",
                 ]
             }
         )
         result = unpack_machinery(df)
-        assert result["Welder"] == 3  # noqa: PLR2004
+        assert result["AC"] == 3  # noqa: PLR2004
 
     def test_sums_duplicate_machine_types_within_one_row(self):
         df = pd.DataFrame(
-            {"custom_specification": ["3 x Sawmill (2.25kW);2 x Sawmill (2.25kW)"]}
+            {
+                "custom_specification": [
+                    "1 x Washing Machine (8kg, 400 W);2 x Washing Machine (8kg, 400 W)"
+                ]
+            }
         )
         result = unpack_machinery(df)
-        assert result["Sawmill"] == 5  # noqa: PLR2004
+        assert result["Washing Machine (8kg, 400 W)"] == 3  # noqa: PLR2004
 
     def test_count_is_integer_type(self):
-        df = pd.DataFrame({"custom_specification": ["4 x Grinder (5.2kW)"]})
+        df = pd.DataFrame(
+            {"custom_specification": ["2 x Washing Machine (8kg, 400 W)"]}
+        )
         result = unpack_machinery(df)
         assert pd.api.types.is_integer_dtype(result)
