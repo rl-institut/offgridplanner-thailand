@@ -4,6 +4,9 @@
 ### Fixed
 - Fix consumer import sometimes wrongly labeling consumers as outside country bounds ([#58](https://github.com/rl-institut/offgridplanner-thailand/pull/58))
 
+## [v1.4.1-thai.5.2] – 2026-06-10
+- Merge changes and bug fixes made in upstream repository ([#60](https://github.com/rl-institut/offgridplanner-thailand/pull/60))
+
 ## [v1.4.0-thai.5.2] – 2026-05-26
 ### Fixed
 - Round decimal places in form fields ([#56](https://github.com/rl-institut/offgridplanner-thailand/pull/56))
