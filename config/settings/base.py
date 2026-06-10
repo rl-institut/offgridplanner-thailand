@@ -30,7 +30,7 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # In Windows, this must be set to your system time zone.
 TIME_ZONE = "CET"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
 
 LANGUAGES = [
@@ -398,7 +398,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 # OFFGRIDPLANNER SETTINGS
-APP_VERSION_NUMBER = "1.4.0-thai.5.2"
+APP_VERSION_NUMBER = "1.4.1-thai.5.2"
 
 # Demo user expiry time
 DEMO_EXPIRY_SECONDS = 2 * 60 * 60  # 2 hours

@@ -166,29 +166,29 @@ const colors = {
 };
 
 var layout = {
-    font: { size: 14 },
-    autosize: true,
-    xaxis: {
-        title: 'Hour of the day',
-        hoverformat: '.1f',
-        titlefont: { size: 16 },
-        tickfont: { size: 14 },
-    },
-    yaxis: {
-        title: 'Demand (kW)',
-        hoverformat: '.1f',
-        titlefont: { size: 16 },
-        tickfont: { size: 14 },
-    },
-    legend: {
-        orientation: 'h',
-        x: 0,
-        y: -0.3,
-        xanchor: 'left',
-        yanchor: 'top',
-        traceorder: 'normal' // Ensure legendrank is honored
-    }
-};
+        font: { size: 14 },
+        autosize: true,
+        xaxis: {
+            title: gettext('Hour of the day'),
+            hoverformat: '.1f',
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
+        },
+        yaxis: {
+            title: gettext('Demand (kW)'),
+            hoverformat: '.1f',
+            titlefont: { size: 16 },
+            tickfont: { size: 14 },
+        },
+        legend: {
+            orientation: 'h',
+            x: 0,
+            y: -0.3,
+            xanchor: 'left',
+            yanchor: 'top',
+            traceorder: 'normal' // Ensure legendrank is honored
+        }
+    };
 
 
 function buildPlot(data) {
@@ -221,7 +221,7 @@ function buildPlot(data) {
             x: x,
             y: AppState.total_demand_raw,
             mode: 'lines',
-            name: 'Total Demand',
+            name: gettext('Total Demand'),
             line: { color: colors.total, width: 3, shape: 'spline' },
             visible: true, // Initially visible
             legendrank: 0
@@ -231,7 +231,7 @@ function buildPlot(data) {
             y: public_services,
             type: 'scatter',
             mode: 'lines',
-            name: 'Demand of Public Services',
+            name: gettext('Demand of Public Services'),
             stackgroup: 'one',
             fill: 'tonexty',
             hoverinfo: 'x+y',
@@ -244,7 +244,7 @@ function buildPlot(data) {
             y: enterprises,
             type: 'scatter',
             mode: 'lines',
-            name: 'Demand of Enterprises',
+            name: gettext('Demand of Enterprises'),
             stackgroup: 'one',
             fill: 'tonexty',
             hoverinfo: 'x+y',
@@ -257,7 +257,7 @@ function buildPlot(data) {
             y: households,
             type: 'scatter',
             mode: 'lines',
-            name: 'Demand of Households',
+            name: gettext('Demand of Households'),
             stackgroup: 'one',
             fill: 'tonexty',
             hoverinfo: 'x+y',
@@ -269,7 +269,7 @@ function buildPlot(data) {
             x: x,
             y: Average,
             mode: 'lines',
-            name: 'Average Household Profile',
+            name: gettext('Average Household Profile'),
             line: { color: colors.average, width: 2, shape: 'spline' },
             visible: false, // Initially hidden
             legendrank: 4
@@ -278,7 +278,7 @@ function buildPlot(data) {
             x: x,
             y: High,
             mode: 'lines',
-            name: 'High Consumption',
+            name: gettext('High Consumption'),
             line: { color: colors.high, width: 1, shape: 'spline' },
             visible: 'legendonly',
             legendrank: 6
@@ -287,7 +287,7 @@ function buildPlot(data) {
             x: x,
             y: Middle,
             mode: 'lines',
-            name: 'Middle Consumption',
+            name: gettext('Middle Consumption'),
             line: { color: colors.middle, width: 1, shape: 'spline' },
             visible: 'legendonly',
             legendrank: 7
@@ -296,7 +296,7 @@ function buildPlot(data) {
             x: x,
             y: Low,
             mode: 'lines',
-            name: 'Low Consumption',
+            name: gettext('Low Consumption'),
             line: { color: colors.low, width: 1, shape: 'spline' },
             visible: 'legendonly',
             legendrank: 8

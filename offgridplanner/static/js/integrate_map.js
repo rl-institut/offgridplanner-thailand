@@ -357,12 +357,20 @@ function load_legend() {
                 image[i] +
                 " height='12' width='12'>" +
                 "&nbsp" +
-                description[i] +
+                gettext(description[i]) +
                 "<br>";
         }
         return div;
     };
     legend.addTo(map);
+}
+
+function remove_marker_from_map() {
+    map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
 }
 
 // Function to load external script dynamically
