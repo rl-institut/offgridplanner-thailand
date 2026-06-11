@@ -223,11 +223,8 @@
             </div>
           </div>
                     <div class="accordion-item" style="border-top: none;">
-            <p style="display: flex;
-                        justify-content: end;
-                        align-items: center;
-                        color: var(--ccb);
-                        padding-top:10px">
+            <p class="demand-cat-header">
+              <span></span>
               <span style="display: flex; margin-right: 10px">
                   <a style="margin-right: 10px;">{% translate 'Set Annual Demand Increase' %}</a>
                   <label class="switch">
@@ -243,15 +240,14 @@
                  class="accordion-collapse collapse {% if demand_increase.active %}show{% endif %}"
                  aria-labelledby="headingDemandIncrease">
               <div class="accordion-body">
-                <p>
-                  <a>
-                    {% translate 'Set Annual Demand Increase' %}</a>
-                </p>
-                <p>
+                  <p class="demand-title">
+                {% translate 'Set Annual Demand Increase (Optional)' %}
+              </p>
+                <p class="demand-hint">
                   {% blocktranslate trimmed %}
-                  Specify the expected annual increase in demand as a percentage.
+                  Specify the expected annual demand increase as a percentage.
                   <br>
-                  This will be applied to the projected demand calculations.
+                  The system will be sized according to the average expected demand over the project duration.
                   {% endblocktranslate %}
                 </p>
                 <div class="input-group" style="max-width: 200px">
