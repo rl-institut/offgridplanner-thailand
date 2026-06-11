@@ -232,3 +232,84 @@ class TestUploadedDataBranch:
     def test_length_matches_uploaded_data(self, uploaded_demand):
         handler = _make_handler(uploaded_series=uploaded_demand)
         assert len(handler.collect_project_demand()) == len(uploaded_demand)
+
+
+# ---------- Annual demand increase ----------
+
+
+class TestAnnualDemandIncrease:
+    @pytest.fixture
+    def base_demand(self):
+        return pd.Series([1.5] * N_HOURS)
+
+    def test_none_growth_returns_original_demand(self, base_demand):
+        handler = _make_handler(uploaded_series=base_demand, annual_growth=None)
+        result = handler.collect_project_demand().reset_index(drop=True)
+        pd.testing.assert_series_equal(result, base_demand, check_names=False)
+
+    def test_positive_growth_increases_demand(self, base_demand):
+        handler = _make_handler(
+            uploaded_series=base_demand,
+            annual_growth=0.05,
+            project_lifetime=10,
+        )
+        assert handler.collect_project_demand().sum() > base_demand.sum()
+
+    def test_mean_growth_factor_math(self, base_demand):
+        growth = 0.1
+        years = 3
+        handler = _make_handler(
+            uploaded_series=base_demand,
+            annual_growth=growth,
+            project_lifetime=years,
+        )
+        result = handler.collect_project_demand().reset_index(drop=True)
+
+        yearly_factors = [(1 + growth) ** y for y in range(years)]
+        expected_factor = sum(yearly_factors) / years
+        expected = (base_demand * expected_factor).reset_index(drop=True)
+        pd.testing.assert_series_equal(result, expected, check_names=False)
+
+    def test_one_year_project_applies_no_scaling(self, base_demand):
+        # range(1) = [0] → (1+g)^0 = 1.0 → mean factor = 1.0
+        handler = _make_handler(
+            uploaded_series=base_demand,
+            annual_growth=0.2,
+            project_lifetime=1,
+        )
+        result = handler.collect_project_demand().reset_index(drop=True)
+        pd.testing.assert_series_equal(result, base_demand, check_names=False)
+
+    def test_result_scales_linearly_with_base_demand(self):
+        base = pd.Series([2.5] * N_HOURS)
+        double = base * 2
+        growth, years = 0.08, 15
+
+        result_base = (
+            _make_handler(
+                uploaded_series=base, annual_growth=growth, project_lifetime=years
+            )
+            .collect_project_demand()
+            .reset_index(drop=True)
+        )
+
+        result_double = (
+            _make_handler(
+                uploaded_series=double, annual_growth=growth, project_lifetime=years
+            )
+            .collect_project_demand()
+            .reset_index(drop=True)
+        )
+
+        pd.testing.assert_series_equal(
+            result_double, result_base * 2, check_names=False
+        )
+
+    def test_higher_growth_rate_produces_larger_demand(self, base_demand):
+        low = _make_handler(
+            uploaded_series=base_demand, annual_growth=0.01, project_lifetime=20
+        ).collect_project_demand()
+        high = _make_handler(
+            uploaded_series=base_demand, annual_growth=0.10, project_lifetime=20
+        ).collect_project_demand()
+        assert high.sum() > low.sum()
