@@ -113,7 +113,7 @@
     border: 1px solid #CEDBE3;
 }
 
-#map .leaflet-bar a:hover, 
+#map .leaflet-bar a:hover,
 #map .leaflet-bar a:focus,
 #map .leaflet-bar a.leaflet-disabled {
     background-color: #F4F7F9;
