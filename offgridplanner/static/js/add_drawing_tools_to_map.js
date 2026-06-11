@@ -174,7 +174,6 @@ function make_roads_clickable() {
 const UnifiedToolbar = L.Control.extend({
     options: {
         position: 'topleft',
-        buttons: [],
         items: []
     },
 
@@ -225,132 +224,39 @@ const UnifiedToolbar = L.Control.extend({
             div.style.cssText = 'font-size:10px;text-align:center;color:#9aabb5;font-weight:700;padding:4px 4px 2px;pointer-events:none;user-select:none;';
         };
 
-        // Old-style renderer: <a> elements (used by buttons array)
-        const addBtn = (title, innerHTML, onClick) => {
-            const a = L.DomUtil.create('a', '', container);
-            a.href = '#';
-            a.title = title;
-            a.innerHTML = innerHTML;
-            a.style.display = 'flex';
-            a.style.alignItems = 'center';
-            a.style.justifyContent = 'center';
-            L.DomEvent.on(a, 'click', L.DomEvent.stopPropagation)
-                .on(a, 'click', L.DomEvent.preventDefault)
-                .on(a, 'click', onClick);
-            return a;
-        };
+        this.options.items.forEach(item => {
+            if (item.type === 'button') {
+                addButton(item.label, item.icon, item.onClick, item.key);
+            } else if (item.type === 'separator') {
+                addSeparator();
+            } else if (item.type === 'header') {
+                addGroupHeader(item.text);
+            }
+        });
 
-        const buttonDefs = {
-            zoom: () => addBtn(
-                'Zoom to all',
-                `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
-                () => zoomAll(map)
-            ),
+        const layerTypeToKey = { polyline: 'street', rectangle: 'square', polygon: 'polygon' };
+        const buttonKeys = this.options.items
+            .filter(i => i.type === 'button' && i.key)
+            .map(i => i.key);
 
-            trash_consumers: () => addBtn(
-                'Clear all',
-                '<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
-                () => {
-                    const modal = document.getElementById('msgBox');
-                    const message = document.getElementById('responseMsg');
-                    const confirmBtn = document.getElementById('confirmDelete');
-                    const cancelBtn = document.getElementById('cancelDelete');
-                    const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
-
-                    message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
-                    confirmBtn.style.display = 'inline-block';
-                    cancelBtn.style.display = 'inline-block';
-                    okBtn.style.display = 'none';
-
-                    confirmBtn.onclick = () => {
-                        modal.style.display = 'none';
-                        customTrashBinAction();
-                    };
-                    cancelBtn.onclick = () => {
-                        modal.style.display = 'none';
-                    };
-
-                    modal.style.display = 'block';
-                }
-            ),
-            trash_roads: () => addBtn(
-                'Delete selected',
-                '<svg widh="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
-                () => customTrashBinAction()
-            ),
-
-            selectAll: () => addBtn(
-                'Select all roads',
-                '<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><g clip-rule="evenodd" fill="rgb(0,0,0)" fill-rule="evenodd"><path d="m1.75 4c0-1.24264 1.00736-2.25 2.25-2.25h13c1.2427 0 2.25 1.00737 2.25 2.25v13c0 1.2427-1.0073 2.25-2.25 2.25h-13c-1.24263 0-2.25-1.0073-2.25-2.25zm2.25-.75c-.41421 0-.75.33579-.75.75v13c0 .4142.33578.75.75.75h13c.4142 0 .75-.3358.75-.75v-13c0-.41422-.3358-.75-.75-.75z"/><path d="m21.9997 5.75098c.4142 0 .75.33578.75.75v14.49902c0 .9665-.7835 1.75-1.75 1.75h-14.49824c-.41421 0-.75-.3358-.75-.75s.33579-.75.75-.75h14.49824c.138 0 .25-.1119.25-.25v-14.49902c0-.41422.3358-.75.75-.75z"/><path d="m15.0227 7.32173c.297.28866.3039.76348.0152 1.06055l-5.0002 5.14582c-.28316.2915-.74697.3044-1.04591.0291l-2.99985-2.7626c-.30469-.2806-.32423-.755-.04364-1.05974.2806-.3047.75507-.32424 1.05976-.04364l2.46274 2.26788 4.4913-4.62214c.2887-.29707.7635-.30389 1.0606-.01523z"/></g></svg>',
-                () => selectAllRoads()
-            ),
-
-            deselectAll: () => addBtn(
-                'Deselect all roads',
-                '<svg height="16" viewBox="0 0 32 32" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m26 1h-20a5 5 0 0 0 -5 5v20a5 5 0 0 0 5 5h20a5 5 0 0 0 5-5v-20a5 5 0 0 0 -5-5zm3 25a3 3 0 0 1 -3 3h-20a3 3 0 0 1 -3-3v-20a3 3 0 0 1 3-3h20a3 3 0 0 1 3 3z"/><path d="m24.71 7.29a1 1 0 0 0 -1.42 0l-7.29 7.3-7.29-7.3a1 1 0 1 0 -1.42 1.42l7.3 7.29-7.3 7.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l7.29-7.3 7.29 7.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-7.3-7.29 7.3-7.29a1 1 0 0 0 0-1.42z"/></svg>',
-                () => deselectAllRoads()
-            ),
-
-            fetchOSM: () => addBtn(
-                'Fetch OSM roads',
-                `<img src="https://www.freeiconspng.com/uploads/maps-icon-30.png" style="width:20px;height:20px;display:block" title="Fetch OSM roads" alt="Fetch OSM">`,
-                () => add_roads_inside_boundary({ boundariesCoordinates: bounds })
-            ),
-
-            powerhouse: () => addBtn(
-                'Place power-house',
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20"><path d="M6,64H58a2,2,0,0,0,2-2V24a2,2,0,0,0-.71-1.53l-26-22a2,2,0,0,0-2.58,0l-26,22A2,2,0,0,0,4,24V62A2,2,0,0,0,6,64ZM8,24.93,32,4.62,56,24.93V60H8Z"/><path d="M44,33H35.33L37,22.3a2,2,0,0,0-1.08-2.08,2,2,0,0,0-2.31.37l-18,18a2,2,0,0,0-.44,2.18A2,2,0,0,0,17,42h7.69L23,53.72A2,2,0,0,0,25,56a2,2,0,0,0,1.41-.59l19-19a2,2,0,0,0,.44-2.18A2,2,0,0,0,44,33ZM27.83,48.34,29,40.28A2,2,0,0,0,27,38H21.83L32.09,27.73,31,34.7A2,2,0,0,0,33,37h6.17Z"/></svg>`,
-                () => {
-                    isPowerHouseMarker = true;
-                    for (let type in drawControl._toolbars.draw._modes) {
-                        if (drawControl._toolbars.draw._modes[type].handler.enabled()) {
-                            drawControl._toolbars.draw._modes[type].handler.disable();
-                        }
-                    }
-                    new L.Draw.Marker(map, { icon: iconB }).enable();
-                }
-            ),
-        };
-
-        if (this.options.items && this.options.items.length > 0) {
-            this.options.items.forEach(item => {
-                if (item.type === 'button') {
-                    addButton(item.label, item.icon, item.onClick, item.key);
-                } else if (item.type === 'separator') {
-                    addSeparator();
-                } else if (item.type === 'header') {
-                    addGroupHeader(item.text);
-                }
+        map.on('draw:drawstart', (e) => {
+            buttonKeys.forEach(k => {
+                if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
             });
-
-            const layerTypeToKey = { polyline: 'street', rectangle: 'square', polygon: 'polygon' };
-            const buttonKeys = this.options.items
-                .filter(i => i.type === 'button' && i.key)
-                .map(i => i.key);
-
-            map.on('draw:drawstart', (e) => {
-                buttonKeys.forEach(k => {
-                    if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
-                });
-                let activeKey = layerTypeToKey[e.layerType];
-                if (e.layerType === 'marker') {
-                    activeKey = (typeof isPowerHouseMarker !== 'undefined' && isPowerHouseMarker)
-                        ? 'powerhouse' : 'consumer';
-                }
-                if (activeKey && this['_btn_' + activeKey]) {
-                    L.DomUtil.addClass(this['_btn_' + activeKey], 'is-active');
-                }
+            let activeKey = layerTypeToKey[e.layerType];
+            if (e.layerType === 'marker') {
+                activeKey = (typeof isPowerHouseMarker !== 'undefined' && isPowerHouseMarker)
+                    ? 'powerhouse' : 'consumer';
+            }
+            if (activeKey && this['_btn_' + activeKey]) {
+                L.DomUtil.addClass(this['_btn_' + activeKey], 'is-active');
+            }
+        });
+        map.on('draw:drawstop', () => {
+            buttonKeys.forEach(k => {
+                if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
             });
-            map.on('draw:drawstop', () => {
-                buttonKeys.forEach(k => {
-                    if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
-                });
-            });
-        } else {
-            this.options.buttons.forEach(key => {
-                if (buttonDefs[key]) buttonDefs[key]();
-            });
-        }
+        });
 
         return container;
     }
