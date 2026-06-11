@@ -22,6 +22,16 @@
  * the FastAPI application, playing a crucial role in both the "consumer-selection" and "results" pages.
  */
 
+const roadProperties = {
+    clicked: {weight: 4, color: '#cc0000', opacity: 1},
+    unclicked: {weight: 2, color: '#9933ff', opacity: 0.7}
+};
+
+const linkProperties = {
+    distribution: {weight: 3, color: "rgb(255, 99, 71)", opacity: 1},
+    other: {weight: 2, color: "rgb(0, 165, 114)", opacity: 1}
+
+}
 
 var is_load_center = true;
 
@@ -188,8 +198,9 @@ function put_roads_on_map(roads, clickable=true) {
     roads.forEach((road) => {
         const latlngs = road.coordinates.map(c => [c[0], c[1]]);
         const polyline = L.polyline(latlngs, {
-            color: road.is_clicked ? '#cc0000' : '#9933ff',
-            weight: road.is_clicked ? 4 : 3
+            color: road.is_clicked ? roadProperties.clicked.color : roadProperties.unclicked.color,
+            weight: road.is_clicked ? roadProperties.clicked.weight : roadProperties.unclicked.weight,
+            opacity: road.is_clicked ? roadProperties.clicked.opacity : roadProperties.unclicked.opacity
         });
         roadsLayer.addLayer(polyline);
         road.layer = polyline;
@@ -297,9 +308,9 @@ function removeLinksFromMap(map) {
 
 function put_links_on_map(links) {
     for (let index = 0; index < Object.keys(links.link_type).length; index++) {
-        var color = links.link_type[index] === "distribution" ? "rgb(255, 99, 71)" : "rgb(0, 165, 114)";
-        var weight = links.link_type[index] === "distribution" ? 3 : 2;
-        var opacity = links.link_type[index] === "distribution" ? 1 : 1;
+        var color = links.link_type[index] === "distribution" ? linkProperties.distribution.color : linkProperties.other.color;
+        var weight = links.link_type[index] === "distribution" ? linkProperties.distribution.weight : linkProperties.other.weight;
+        var opacity = links.link_type[index] === "distribution" ? linkProperties.distribution.opacity : linkProperties.other.opacity;
         drawLinkOnMap(
             links.lat_from[index],
             links.lon_from[index],

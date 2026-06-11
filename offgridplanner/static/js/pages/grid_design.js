@@ -57,13 +57,13 @@ function customTrashBinAction() {
 function selectAllRoads() {
     road_elements.forEach(r => {
         r.is_clicked = true;
-        if (r.layer) r.layer.setStyle({ color: '#cc0000', weight: 4 });
+        if (r.layer) r.layer.setStyle({ color: roadProperties.clicked.color, weight: roadProperties.clicked.weight });
     });
 }
 
 function deselectAllRoads() {
     road_elements.forEach(r => {
         r.is_clicked = false;
-        if (r.layer) r.layer.setStyle({ color: '#9933ff', weight: 3 });
+        if (r.layer) r.layer.setStyle({ color: roadProperties.unclicked.color, weight: roadProperties.unclicked.weight });
     });
 }
