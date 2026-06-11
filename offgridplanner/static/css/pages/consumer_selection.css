@@ -54,8 +54,75 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+.dashboard .chart #map .info.legend {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    font-size: var(--font-size--sm);
+    color: var(--font-color--secondary);
+}
+
 .consumer-title {
     color: var(--font-color--main);
     font-weight: 700;
     font-size: var(--font-size--md);
+}
+
+#map .leaflet-control-container .leaflet-draw-draw-polygon {
+    background-image: url("data:image/svg+xml,%3Csvg height='20' viewBox='0 0 100 100' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m82.275 70.283-4.59-41.318c3.33-1.621 5.647-5.01 5.647-8.965 0-5.521-4.479-10-10-10-4.847 0-8.887 3.454-9.801 8.03l-28.051 4.008c-1.673-3.178-4.974-5.371-8.814-5.371-5.521 0-10 4.479-10 10 0 3.76 2.103 6.995 5.169 8.704l-3.577 21.472c-4.691.826-8.258 4.898-8.258 9.824 0 5.521 4.479 10 10 10 3.571 0 6.687-1.889 8.45-4.707l41.674 9.261c.608 4.938 4.772 8.779 9.876 8.779 5.521 0 10-4.479 10-10 0-4.736-3.304-8.682-7.725-9.717zm-57.444-12.321 3.577-21.471c4.046-.713 7.256-3.842 8.06-7.855l28.051-4.007c1.331 2.526 3.688 4.421 6.539 5.088l4.59 41.318c-1.686.823-3.108 2.09-4.102 3.672l-41.67-9.261c-.397-3.236-2.317-5.967-5.045-7.484z'/%3E%3C/svg%3E");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#map .leaflet-control-container .leaflet-draw-draw-rectangle {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 32 32' width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m30 26h-28c-.55 0-1-.45-1-1v-18c0-.55.45-1 1-1h28c.55 0 1 .45 1 1v18c0 .55-.45 1-1 1zm-27-2h26v-16h-26z'/%3E%3C/svg%3E");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#map .leaflet-control-container .leaflet-draw-draw-marker {
+    background-image: url("data:image/svg+xml,%3Csvg height='20' viewBox='0 0 64 64' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Cg%3E%3Cpath d='m32 62c-2.3 0-4.4-1.1-5.7-3-7.7-11.1-17-26.1-17-34.3 0-12.5 10.2-22.7 22.7-22.7s22.7 10.2 22.7 22.7c0 8.2-9.2 23.2-16.9 34.3-1.4 1.9-3.5 3-5.8 3zm0-56c-10.3 0-18.7 8.4-18.7 18.7 0 5.5 5.9 17.2 16.2 32.1.6.7 1.5 1.2 2.5 1.2s1.9-.5 2.4-1.3c10.3-14.8 16.2-26.5 16.2-32.1.1-10.2-8.3-18.6-18.6-18.6z'/%3E%3C/g%3E%3Cg%3E%3Cpath d='m32 33c-5.7 0-10.3-4.6-10.3-10.3s4.6-10.3 10.3-10.3 10.3 4.6 10.3 10.3-4.6 10.3-10.3 10.3zm0-16.6c-3.5 0-6.3 2.8-6.3 6.3s2.8 6.3 6.3 6.3 6.3-2.8 6.3-6.3-2.8-6.3-6.3-6.3z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Fix turning legend text to bold when hovering over the map controls */
+.leaflet-touch :hover {
+    font-weight: 400 !important;
+}
+
+.leaflet-control-attribution a:hover {
+    font-weight: 700 !important;
+}
+
+#map.leaflet-touch .leaflet-bar a {
+    width: 36px;
+    height: 36px;
+    border-bottom: 1px solid #CEDBE3;
+}
+#map .leaflet-bar.leaflet-control {
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.10);
+}
+
+#map.leaflet-touch .leaflet-control-layers,
+#map.leaflet-touch .leaflet-bar {
+    border: 1px solid #CEDBE3;
+}
+
+#map .leaflet-bar a:hover,
+#map .leaflet-bar a:focus,
+#map .leaflet-bar a.leaflet-disabled {
+    background-color: #F4F7F9;
+}
+
+#map .leaflet-bar.leaflet-control {
+    background-color: var(--background-color--main);
+}
+
+.unified-toolbar-btn {
+    border-radius: 0;
 }

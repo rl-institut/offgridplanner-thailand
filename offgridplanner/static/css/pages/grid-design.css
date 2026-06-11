@@ -170,3 +170,73 @@ input.gd-search {
 .gd-sources {
     padding-top: 2rem;
 }
+
+.gd-map__content #map .info.legend {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    font-size: var(--font-size--sm);
+    color: var(--font-color--secondary);
+}
+
+#map .leaflet-control-container .leaflet-draw-draw-polyline {
+    background-image: url("data:image/svg+xml,%3Csvg id='Layer_2' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' height='20' width='20'%3E%3Cpath d='m30 22a4 4 0 0 1 -8 0 4 4 0 0 1 .65-2.17l-5.77-6.3a4 4 0 0 1 -4.32-.36l-2.89 2.25a4 4 0 0 1 .33 1.58 4 4 0 1 1 -4-4 3.94 3.94 0 0 1 2.44.84l2.9-2.25a3.84 3.84 0 0 1 -.34-1.59 4 4 0 0 1 8 0 4 4 0 0 1 -.65 2.17l5.78 6.3a3.93 3.93 0 0 1 1.87-.47 4 4 0 0 1 4 4z'/%3E%3C/svg%3E");
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Hide the sr-only span that leaks as visible text after merging the items into the unified toolbar */
+.leaflet-draw-toolbar a .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Hide the actions list (the tooltip row that appears below) */
+.leaflet-draw-actions {
+    display: none !important;
+}
+
+/* Also hide the now-empty draw section wrapper if it lingers */
+.leaflet-draw-section {
+    display: none !important;
+}
+
+/* Fix turning legend text to bold when hovering over the map controls */
+.leaflet-touch :hover {
+    font-weight: 400 !important;
+}
+
+.leaflet-control-attribution a:hover {
+    font-weight: 700 !important;
+}
+
+#map.leaflet-touch .leaflet-bar a {
+    width: 36px;
+    height: 36px;
+    border-bottom: 1px solid #CEDBE3;
+}
+#map .leaflet-bar.leaflet-control {
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.10);
+}
+
+#map.leaflet-touch .leaflet-control-layers,
+#map.leaflet-touch .leaflet-bar {
+    border: 1px solid #CEDBE3;
+}
+
+#map .leaflet-bar.leaflet-control {
+    background-color: var(--background-color--main);
+}
+
+.unified-toolbar-btn {
+    border-radius: 0;
+}

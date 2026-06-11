@@ -186,10 +186,18 @@ def add_roads_inside_boundary(request, proj_id):
             raise PermissionDenied
 
     js_data = json.loads(request.body)
-    boundary_coordinates = js_data["boundary_coordinates"][0][0]
-
-    df = pd.DataFrame.from_dict(boundary_coordinates).rename(
-        columns={"lat": "latitude", "lng": "longitude"},
+    bounds = js_data["boundary_coordinates"]
+    df = pd.DataFrame(
+        [
+            {
+                "latitude": bounds["_southWest"]["lat"],
+                "longitude": bounds["_southWest"]["lng"],
+            },
+            {
+                "latitude": bounds["_northEast"]["lat"],
+                "longitude": bounds["_northEast"]["lng"],
+            },
+        ]
     )
 
     if df["latitude"].max() - df["latitude"].min() > float(
@@ -439,7 +447,12 @@ def roads_to_db(request, proj_id=None):
             return JsonResponse({"message": "No valid data"}, status=200)
 
         df = df.drop_duplicates(subset=["road_id"], keep="first")
-        required_columns = ["road_id", "coordinates", "how_added", "road_type"]
+        required_columns = [
+            "road_id",
+            "coordinates",
+            "how_added",
+            "road_type",
+        ]
         df = df[required_columns]
         df["how_added"] = df["how_added"].fillna("automatic")
         df["road_type"] = df["road_type"].fillna("osm")

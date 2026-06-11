@@ -36,6 +36,12 @@ var polygonDrawer = new L.Draw.Polygon(map, {
     }
 });
 
+var lineDrawer = new L.Draw.Polyline(map, {
+    shapeOptions: {
+        color: '#1F567D80'
+    }
+});
+
 var rectangleDrawer = new L.Draw.Rectangle(map, {
     shapeOptions: {
         color: '#1F567D80'
@@ -43,7 +49,7 @@ var rectangleDrawer = new L.Draw.Rectangle(map, {
 });
 
 
-let isPowerHouseMarker = false
+let isPowerHouseMarker = false;
 
 var myCustomMarker = L.Icon.extend({
     options: {
@@ -57,9 +63,9 @@ var myCustomMarker = L.Icon.extend({
 
 const iconB = L.icon({
     iconUrl: "/static/icons/i_power_house.svg",
-    iconSize: [12, 12], // size of the icon
-    iconAnchor: [12, 12], // point of the icon which will correspond to marker's location
-    popupAnchor: [1, -12] // point from which the popup should open relative to the iconAnchor
+    iconSize: [12, 12],
+    iconAnchor: [12, 12],
+    popupAnchor: [1, -12]
 });
 
 
@@ -70,151 +76,36 @@ L.NewMarker = L.Draw.Marker.extend({
 });
 
 
+const roadDrawControls = {
+    polyline: {
+        shapeOptions: { color: '#9933ff', weight: 3, opacity: 1 }
+    },
+    polygon: false,
+    circle: false,
+    circlemarker: false,
+    rectangle: false,
+    marker: false,
+};
+
+const consumerDrawControls = {
+    polyline: false,
+    polygon: true,
+    circle: false,
+    circlemarker: false,
+    rectangle: true,
+    marker: {
+        icon: new myCustomMarker()
+    }
+};
+
 let drawControl = new L.Control.Draw({
     position: 'topleft',
-    draw: {
-        polyline: false,
-        polygon: true,
-        circle: false,
-        circlemarker: false,
-        rectangle: true,
-        marker: {
-            icon: new myCustomMarker
-        }
-    }
+    draw: step === "consumerSelection" ? consumerDrawControls : roadDrawControls,
 });
 
-
-const CustomMarkerControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        L.DomEvent.disableClickPropagation(container);
-
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'place power-house';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-marker-icon', link);
-        image.src = '/static/icons/i_power_house_grey.svg';
-        image.alt = 'Marker';
-        image.style.width = '12px';
-        image.style.height = '12px';
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-            .on(link, 'click', function () {
-                isPowerHouseMarker = true;
-
-                // Disable any active drawing layer.
-                for (let type in drawControl._toolbars.draw._modes) {
-                    if (drawControl._toolbars.draw._modes[type].handler.enabled()) {
-                        drawControl._toolbars.draw._modes[type].handler.disable();
-                    }
-                }
-
-                new L.Draw.Marker(map, {icon: iconB}).enable();
-            });
-
-
-        return container;
-    }
-});
-
-const zoomAllControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        L.DomEvent.disableClickPropagation(container);
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'zoom out';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-zoom-icon', link);
-        image.src = '/static/images/imgZoomToAll.png';
-        image.alt = 'Zoom';
-        image.style.width = '30px';
-        image.style.height = '30px';
-
-        container.onclick = function (e) {
-            L.DomEvent.preventDefault(e);
-            L.DomEvent.stopPropagation(e);
-            zoomAll(map);
-        };
-
-        return container;
-    },
-});
-
-map.addControl(new zoomAllControl());
-
-
-
-L.Control.Trashbin = L.Control.extend({
-    options: {
-        position: 'topleft',
-    },
-
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Clear all';
-        link.innerHTML = '🗑'; // Use the HTML entity for the trash bin icon (U+1F5D1)
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => {
-                const modal = document.getElementById('msgBox');
-                const message = document.getElementById('responseMsg');
-                const confirmBtn = document.getElementById('confirmDelete');
-                const cancelBtn = document.getElementById('cancelDelete');
-                const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
-
-                message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
-                confirmBtn.style.display = 'inline-block';
-                cancelBtn.style.display = 'inline-block';
-                okBtn.style.display = 'none';
-
-                confirmBtn.onclick = () => {
-                    modal.style.display = 'none';
-                    customTrashBinAction();
-                };
-                cancelBtn.onclick = () => {
-                    modal.style.display = 'none';
-                };
-
-                modal.style.display = 'block';
-            });
-        return container;
-    },
-});
-
-function customTrashBinAction() {
-    removeBoundaries();
-    remove_marker_from_map();
-    polygonCoordinates = [];
-    map_elements = [];
-}
-
-const trashbinControl = new L.Control.Trashbin();
 
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
-
-const searchControl = new GeoSearch.GeoSearchControl({
-    provider: searchProvider,
-    position: 'topleft',
-    showMarker: false,
-});
-
 
 const searchInput = document.getElementById('search-input');
 
@@ -224,9 +115,9 @@ searchInput.addEventListener('keypress', async (event) => {
         let query = searchInput.value;
         if (!query) return;
 
-        let results = await searchProvider.search({query});
+        let results = await searchProvider.search({ query });
         if (results && results.length > 0) {
-            const {x: lng, y: lat} = results[0];
+            const { x: lng, y: lat } = results[0];
 
             if (isLatLngInMapBounds(lat, lng)) {
                 map.setView([lat, lng], 13);
@@ -252,29 +143,119 @@ let input = document.getElementById('toggleswitch');
 
 function removeBoundaries() {
     drawnItems.clearLayers();
+    roadsLayer.clearLayers();
     polygonCoordinates = [];
 }
 
 
-var customControl = L.Control.extend({
+function make_roads_clickable() {
+    drawnItems.eachLayer(layer => {
+        layer.on('click', function () {
+            const road = road_elements.find(r => {
+                const latlngs = r.coordinates.map(c => [c[0], c[1]]);
+                const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
+                return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
+            });
+
+            if (!road) return;
+            road.is_clicked = !road.is_clicked;
+
+            layer.setStyle({
+                weight: road.is_clicked ? 4 : 2,
+                color: road.is_clicked ? '#9933ff' : '#cc99ff'
+            });
+        });
+    });
+}
+
+
+// ─── Unified Toolbar ─────────────────────────────────────────────────────────
+
+const UnifiedToolbar = L.Control.extend({
     options: {
-        position: 'bottomleft'
+        position: 'topleft',
+        items: []
     },
 
     onAdd: function (map) {
-        var container = L.DomUtil.create('div', 'my-custom-control');
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        L.DomEvent.disableClickPropagation(container);
 
-        // Create the form
-        var form = L.DomUtil.create('form', 'my-form', container);
-        var label = L.DomUtil.create('label', '', form);
-        label.textContent = 'Remove Consumers: ';
-        var input = L.DomUtil.create('input', '', form);
-        input.type = 'checkbox';
+        if (!document.getElementById('unified-toolbar-styles')) {
+            const style = document.createElement('style');
+            style.id = 'unified-toolbar-styles';
+            style.textContent = '.unified-toolbar-btn:hover{background:#f0f3f4!important}.unified-toolbar-btn.is-active{background:#e2e8ec!important}';
+            document.head.appendChild(style);
+        }
 
-        // When the input changes, toggle your feature
-        L.DomEvent.on(input, 'change', function () {
-            is_active = !is_active;  // Toggle the is_active variable
-            // TODO: Add your code here to do something with the map when the toggle changes
+        // New-style renderer: <button> with icon + text label (used by items array)
+        const addButton = (label, iconHtml, onClick, key) => {
+            const btn = L.DomUtil.create('button', 'unified-toolbar-btn', container);
+            btn.type = 'button';
+            btn.title = label.replace(/<[^>]+>/g, ' ').trim();
+            btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;color:#212529;padding:6px 2px;border:none;background:transparent;cursor:pointer;box-sizing:border-box;';
+
+            const iconWrap = document.createElement('span');
+            iconWrap.innerHTML = iconHtml;
+            iconWrap.style.cssText = 'display:flex;align-items:center;justify-content:center;width:20px;height:20px;';
+            btn.appendChild(iconWrap);
+
+            const labelEl = document.createElement('span');
+            labelEl.innerHTML = label;
+            labelEl.style.cssText = 'font-size:11px;margin-top:2px;font-weight:400;line-height:1.2;white-space:nowrap;text-align:center;';
+            btn.appendChild(labelEl);
+
+            L.DomEvent.on(btn, 'click', L.DomEvent.stopPropagation)
+                .on(btn, 'click', L.DomEvent.preventDefault)
+                .on(btn, 'click', onClick);
+
+            if (key) this['_btn_' + key] = btn;
+            return btn;
+        };
+
+        const addSeparator = () => {
+            const hr = L.DomUtil.create('hr', '', container);
+            hr.style.cssText = 'border:none;border-top:1px solid #e8edf0;margin:4px 8px;';
+        };
+
+        const addGroupHeader = (text) => {
+            const div = L.DomUtil.create('div', '', container);
+            div.textContent = text;
+            div.style.cssText = 'font-size:10px;text-align:center;color:#9aabb5;font-weight:700;padding:4px 4px 2px;pointer-events:none;user-select:none;';
+        };
+
+        this.options.items.forEach(item => {
+            if (item.type === 'button') {
+                addButton(item.label, item.icon, item.onClick, item.key);
+            } else if (item.type === 'separator') {
+                addSeparator();
+            } else if (item.type === 'header') {
+                addGroupHeader(item.text);
+            }
+        });
+
+        const layerTypeToKey = { polyline: 'street', rectangle: 'square', polygon: 'polygon' };
+        const buttonKeys = this.options.items
+            .filter(i => i.type === 'button' && i.key)
+            .map(i => i.key);
+
+        map.on('draw:drawstart', (e) => {
+            buttonKeys.forEach(k => {
+                if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
+            });
+            let activeKey = layerTypeToKey[e.layerType];
+            if (e.layerType === 'marker') {
+                activeKey = (typeof isPowerHouseMarker !== 'undefined' && isPowerHouseMarker)
+                    ? 'powerhouse' : 'consumer';
+            }
+            if (activeKey && this['_btn_' + activeKey]) {
+                L.DomUtil.addClass(this['_btn_' + activeKey], 'is-active');
+            }
+        });
+        map.on('draw:drawstop', () => {
+            buttonKeys.forEach(k => {
+                if (this['_btn_' + k]) L.DomUtil.removeClass(this['_btn_' + k], 'is-active');
+            });
         });
 
         return container;
@@ -282,11 +263,167 @@ var customControl = L.Control.extend({
 });
 
 
+// ─── Map setup helpers ────────────────────────────────────────────────────────
 
 function addDrawingToolsToConsumerMap() {
-    map.addControl(new CustomMarkerControl());
-    map.addControl(trashbinControl);
-    map.addControl(searchControl);
-    map.addControl(new customControl());
     map.addControl(drawControl);
+    requestAnimationFrame(() => {
+        const drawContainer = document.querySelector('.leaflet-draw.leaflet-control');
+        if (drawContainer) drawContainer.style.display = 'none';
+    });
+
+    map.addControl(new UnifiedToolbar({
+        items: [
+            {
+                type: 'button',
+                key: 'zoom',
+                label: 'Zoom',
+                icon: `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
+                onClick: () => zoomAll(map)
+            },
+            {
+                type: 'button',
+                key: 'search',
+                label: 'Search',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+                onClick: () => document.getElementById('search-input').focus()
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Add' },
+            {
+                type: 'button',
+                key: 'consumer',
+                label: 'Consumer',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+                onClick: () => drawControl._toolbars.draw._modes.marker.handler.enable()
+            },
+            {
+                type: 'button',
+                key: 'powerhouse',
+                label: 'Power<br>house',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="20" height="20"><path d="M6,64H58a2,2,0,0,0,2-2V24a2,2,0,0,0-.71-1.53l-26-22a2,2,0,0,0-2.58,0l-26,22A2,2,0,0,0,4,24V62A2,2,0,0,0,6,64ZM8,24.93,32,4.62,56,24.93V60H8Z"/><path d="M44,33H35.33L37,22.3a2,2,0,0,0-1.08-2.08,2,2,0,0,0-2.31.37l-18,18a2,2,0,0,0-.44,2.18A2,2,0,0,0,17,42h7.69L23,53.72A2,2,0,0,0,25,56a2,2,0,0,0,1.41-.59l19-19a2,2,0,0,0,.44-2.18A2,2,0,0,0,44,33ZM27.83,48.34,29,40.28A2,2,0,0,0,27,38H21.83L32.09,27.73,31,34.7A2,2,0,0,0,33,37h6.17Z"/></svg>`,
+                onClick: () => {
+                    isPowerHouseMarker = true;
+                    new L.Draw.Marker(map, { icon: iconB }).enable();
+                }
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Select area' },
+            {
+                type: 'button',
+                key: 'square',
+                label: 'Square',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`,
+                onClick: () => rectangleDrawer.enable()
+            },
+            {
+                type: 'button',
+                key: 'polygon',
+                label: 'Polygon',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,9 18,20 6,20 2,9"/></svg>`,
+                onClick: () => polygonDrawer.enable()
+            },
+            { type: 'separator' },
+            {
+                type: 'button',
+                key: 'trash',
+                label: 'Clear all',
+                icon: `<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>`,
+                onClick: () => {
+                    const modal = document.getElementById('msgBox');
+                    const message = document.getElementById('responseMsg');
+                    const confirmBtn = document.getElementById('confirmDelete');
+                    const cancelBtn = document.getElementById('cancelDelete');
+                    const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
+
+                    message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'inline-block';
+                    okBtn.style.display = 'none';
+
+                    confirmBtn.onclick = () => {
+                        modal.style.display = 'none';
+                        customTrashBinAction();
+                    };
+                    cancelBtn.onclick = () => {
+                        modal.style.display = 'none';
+                    };
+
+                    modal.style.display = 'block';
+                }
+            },
+        ]
+    }));
+}
+
+function addDrawingToolsToGridMap() {
+    map.addControl(new UnifiedToolbar({
+        items: [
+            {
+                type: 'button',
+                key: 'zoom',
+                label: 'Zoom',
+                icon: `<img src="/static/images/imgZoomToAll.png" style="width:20px;height:20px;display:block" alt="Zoom">`,
+                onClick: () => zoomAll(map)
+            },
+            {
+                type: 'button',
+                key: 'search',
+                label: 'Search',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+                onClick: () => document.getElementById('search-input').focus()
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Add' },
+            {
+                type: 'button',
+                key: 'street',
+                label: 'Street',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,4 12,12 20,8"/><circle cx="4" cy="4" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="20" cy="8" r="2" fill="currentColor"/></svg>`,
+                onClick: () => lineDrawer.enable()
+            },
+            {
+                type: 'button',
+                key: 'osm',
+                label: 'OSM Data',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6-4 6 4 6-4v13l-6 4-6-4-6 4V7z"/><line x1="9" y1="3" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="21"/></svg>`,
+                onClick: () => add_roads_inside_boundary({ boundariesCoordinates: bounds })
+            },
+            { type: 'separator' },
+            { type: 'header', text: 'Selection' },
+            {
+                type: 'button',
+                key: 'selectAll',
+                label: 'Select all',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="7,12 10,15 17,9"/></svg>`,
+                onClick: () => selectAllRoads()
+            },
+            {
+                type: 'button',
+                key: 'deselectAll',
+                label: 'Deselect all',
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>`,
+                onClick: () => deselectAllRoads()
+            },
+            { type: 'separator' },
+//            {
+//                type: 'button',
+//                key: 'undo',
+//                label: 'Undo',
+//                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
+//                onClick: () => {
+//                    if (lineDrawer && lineDrawer.enabled()) {
+//                        lineDrawer.deleteLastVertex();
+//                    }
+//                }
+//            },
+            {
+                type: 'button',
+                key: 'trash_roads',
+                label: 'Clear selected',
+                icon: `<svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>`,
+                onClick: () => customTrashBinAction()
+            },
+        ]
+    }));
 }

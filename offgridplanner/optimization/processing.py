@@ -275,10 +275,17 @@ class PreProcessor(OptimizationDataHandler):
 
     def collect_grid_opt_json_data(self):
         nodes_df = self.project.nodes.df.copy()
+        roads_df = (
+            self.project.roads.df.copy()
+            if hasattr(self.project, "roads")
+            else pd.DataFrame()
+        )
         # Replace NaNs with JSON-compliant None / null
         nodes_df = nodes_df.replace({np.nan: None})
+        roads_df = roads_df.replace({np.nan: None})
         grid_opt_json = {
             "nodes": nodes_df.to_dict(orient="list"),
+            "roads": roads_df.to_dict(orient="list"),
             "grid_design": self.grid_design_dict,
             "yearly_demand": self.demand.sum(),
         }

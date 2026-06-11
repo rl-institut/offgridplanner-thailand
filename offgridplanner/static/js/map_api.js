@@ -85,21 +85,26 @@ async function file_nodes_to_js(formData) {
 }
 
 // osm roads
-async function db_roads_to_js(proj_id) {
+async function db_roads_to_js(proj_id, clickable = false) {
     try {
         const response = await fetch(dbRoadsToJsUrl);
         const data = await response.json();
 
         if (data !== null) {
             road_elements = data.road_elements || [];
+            road_elements = road_elements.map(r => ({
+                ...r,
+                is_clicked: false
+            }));
+
             if (road_elements.length > 0) {
-                put_roads_on_map(road_elements);
+                put_roads_on_map(road_elements, clickable);
             }
         } else {
             road_elements = [];
             put_roads_on_map([]);
         }
-    } catch (err) {
+        } catch (err) {
         console.error("Error loading roads from DB:", err);
     }
 }
@@ -152,7 +157,7 @@ async function roads_to_db(href, file_type = "db") {
     const response = await fetch(roadsToDBUrl, {
         method: "POST",
         headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
-        body: JSON.stringify({ road_elements: road_elements, file_type: file_type })
+        body: JSON.stringify({ road_elements: road_elements.map(({ layer, is_clicked, ...r }) => r), file_type: file_type })
     });
 
     if (response.ok) {
@@ -212,41 +217,45 @@ function add_roads_inside_boundary({boundariesCoordinates} = {}) {
     fetch(addRoadsUrl, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
         },
-        body: JSON.stringify({ boundary_coordinates: boundariesCoordinates, road_elements }),
+        body: JSON.stringify({ boundary_coordinates: boundariesCoordinates }),
     })
         .then((response) => {
             if (response.ok) {
                 return response.json();
             } else {
-                throw new Error("Failed to fetch road data");
+        throw new Error("Failed to fetch road data");
             }
-        })
+    })
         .then((res) => {
-            $("*").css("cursor", "auto");
-            const responseMsg = document.getElementById("responseMsg");
-            responseMsg.innerHTML = res.msg;
+        $("*").css("cursor", "auto");
+        const responseMsg = document.getElementById("responseMsg");
+        responseMsg.innerHTML = res.msg;
 
-            if (res.executed) {
-                responseMsg.innerHTML = "";
-                road_elements = res.new_roads;
-                put_roads_on_map(res.new_roads);
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching roads:", error);
-        });
+        if (res.executed) {
+            responseMsg.innerHTML = "";
+            const newRoads = res.new_roads.map(r => ({ ...r, is_clicked: false }));
+            const existingIds = new Set(road_elements.map(r => r.road_id));
+            const deduped = newRoads.filter(r => !existingIds.has(r.road_id));
+            Array.prototype.push.apply(road_elements, deduped);
+            put_roads_on_map(deduped);
+        }
+    })
+    .catch(error => console.error("Error fetching roads:", error));
 }
 
-function put_roads_on_map(roads) {
-    roads.forEach((road) => {
-        const latlngs = road.coordinates.map(c => [c[0], c[1]]);
-        const polyline = L.polyline(latlngs, { color: "#cc99ff", weight: 2 });
-        drawnItems.addLayer(polyline);
-    });
+function makeRoadLayerClickable(layer, road) {
+  layer.on('click', function () {
+      road.is_clicked = !road.is_clicked;
+      layer.setStyle({
+          weight: road.is_clicked ? 4 : 2,
+          color: road.is_clicked ? '#cc0000' : '#9933ff'
+      });
+  });
 }
+
 
 async function remove_buildings_inside_boundary({boundariesCoordinates} = {}) {
     $("*").css("cursor", "wait");
@@ -290,7 +299,7 @@ async function remove_roads_inside_boundary({boundariesCoordinates} = {}) {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken,
             },
-            body: JSON.stringify({ boundary_coordinates: boundariesCoordinates, road_elements }),
+            body: JSON.stringify({ boundary_coordinates: boundariesCoordinates, road_elements: road_elements.map(({ layer, is_clicked, ...r }) => r) }),
         });
 
         if (!response.ok) {
@@ -300,7 +309,7 @@ async function remove_roads_inside_boundary({boundariesCoordinates} = {}) {
         const res = await response.json();
 
         road_elements = res.road_elements;
-        drawnItems.clearLayers();
+        roadsLayer.clearLayers();
         put_roads_on_map(road_elements);
     } catch (error) {
         console.error("Error removing roads:", error.message);

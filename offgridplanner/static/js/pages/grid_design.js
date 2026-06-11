@@ -31,3 +31,39 @@ document.addEventListener('DOMContentLoaded', function () {
     change_shs_box_visibility();
     shsCheckbox.addEventListener("change", change_shs_box_visibility);
 });
+
+// Road draw:created handler — polylines only, no consumer logic
+map.on(L.Draw.Event.CREATED, function (event) {
+    const layer = event.layer;
+    roadsLayer.addLayer(layer);
+    if (event.layerType === 'polyline') {
+        const coords = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
+        const road_id = "m-" + (road_elements.filter((road) => road.how_added === "manual").length + 1)
+        const road = { coordinates: coords, is_clicked: false, how_added: "manual", road_type: "polyline", road_id: road_id, layer: layer};
+        road_elements.push(road);
+        makeRoadLayerClickable(layer, road);
+    }
+    polygonCoordinates.push(layer.getLatLngs());
+});
+
+// Override: trash clears road drawings only, not consumer markers
+function customTrashBinAction() {
+    road_elements.filter(r => r.is_clicked).forEach(r => {
+        if (r.layer) roadsLayer.removeLayer(r.layer);
+    });
+    road_elements = road_elements.filter(r => !r.is_clicked);
+}
+
+function selectAllRoads() {
+    road_elements.forEach(r => {
+        r.is_clicked = true;
+        if (r.layer) r.layer.setStyle({ color: roadProperties.clicked.color, weight: roadProperties.clicked.weight });
+    });
+}
+
+function deselectAllRoads() {
+    road_elements.forEach(r => {
+        r.is_clicked = false;
+        if (r.layer) r.layer.setStyle({ color: roadProperties.unclicked.color, weight: roadProperties.unclicked.weight });
+    });
+}
