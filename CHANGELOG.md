@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Add annual demand increase option to adjust projected demand during system sizing ([#59](https://github.com/rl-institut/offgridplanner-thailand/pull/59))
+
 ### Fixed
 - Fix consumer import sometimes wrongly labeling consumers as outside country bounds ([#58](https://github.com/rl-institut/offgridplanner-thailand/pull/58))
 - Update example project to Thailand ([#60](https://github.com/rl-institut/offgridplanner-thailand/pull/60))
@@ -17,6 +20,9 @@
 
 ## [v1.4.0-thai.5.1] – 2026-05-05
 - Merge changes and bug fixes made in upstream repository ([#46](https://github.com/rl-institut/offgridplanner-thailand/pull/46))
+
+### Added
+- There is now a demand increase option ([#31](https://github.com/rl-institut/offgridplanner-thailand/pull/31))
 
 ## [v1.3.0-thai.5.1] – 2026-05-05
 - Merge changes and bug fixes made in upstream repository ([#51](https://github.com/rl-institut/offgridplanner-thailand/pull/51))

@@ -100,6 +100,7 @@ class CustomModelForm(ModelForm):
 
 class CustomDemandForm(CustomModelForm):
     percentage_fields = ["low", "middle", "high"]
+    percentage_display_fields = ["low", "middle", "high", "annual_demand_increase"]
     w_to_kw_factor = 1000
 
     class Meta:
@@ -111,7 +112,7 @@ class CustomDemandForm(CustomModelForm):
         instance = kwargs.get("instance")
 
         if instance is not None:
-            for field in self.percentage_fields:
+            for field in self.percentage_display_fields:
                 # Serve number to user in 0-100 format
                 initial[field] = self.change_percentage_format(
                     getattr(instance, field),
@@ -123,7 +124,6 @@ class CustomDemandForm(CustomModelForm):
                 initial[calibration_field] = (
                     getattr(instance, calibration_field) / self.w_to_kw_factor
                 )  # Change units from W to kW for display in form
-
             kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
@@ -139,7 +139,7 @@ class CustomDemandForm(CustomModelForm):
             raise ValidationError(error_message)
 
         for field, value in self.cleaned_data.items():
-            if field in self.percentage_fields:
+            if field in self.percentage_display_fields:
                 # Save number to database in 0-1 format
                 self.cleaned_data[field] = self.change_percentage_format(
                     value,
@@ -151,8 +151,16 @@ class CustomDemandForm(CustomModelForm):
 
         return cleaned_data
 
+    def clean_annual_demand_increase(self):
+        value = self.cleaned_data.get("annual_demand_increase")
+        if value == 0:
+            return None
+        return value
+
     @staticmethod
     def change_percentage_format(value, upper_limit=1):
+        if value is None:
+            return None
         # Changes the value from a percentage range 0-1 to 0-100 and viceversa
         upper_limit_one = 1
         upper_limit_hundred = 100
