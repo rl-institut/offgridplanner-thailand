@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load i18n %}
+{% load statici18n %}
 {% load custom_template_tags %}
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
@@ -152,7 +153,7 @@
       </div>
     </div>
   </section>
-        <div id="msgBox"
+      <div id="msgBox"
            class="modal"
            style="background-color: rgba(0,0,0,0.5);
                   z-index: 999;
@@ -164,9 +165,18 @@
             <button onclick="document.getElementById('msgBox').style.display='none'"
                     type="button"
                     class="deletebtn">{% translate 'OK' %}</button>
+            <button id="confirmDelete"
+                    type="button"
+                    class="deletebtn"
+                    style="display: none;">{% translate 'Yes' %}</button>
+            <button id="cancelDelete"
+                    type="button"
+                    class="cancelbtn"
+                    style="display: none;">{% translate 'Cancel' %}</button>
           </div>
         </form>
       </div>
+
   <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 999; text-align: left">
     <form class="modal-content" style="width: 700px; height: 520px;">
       <div class="container">
@@ -203,6 +213,7 @@
     db_roads_to_js({{ proj_id }}, true);
   };
 </script>
+<script src="{% statici18n LANGUAGE_CODE %}"></script>
 <script src="{% static 'js/integrate_map.js' %}"></script>
 <script src="{% static 'js/pages/grid_design.js' %}"></script>
 <script src="{% static 'js/map_api.js' %}"></script>

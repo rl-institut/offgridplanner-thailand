@@ -205,50 +205,6 @@ const zoomAllControl = L.Control.extend({
 
 map.addControl(new zoomAllControl());
 
-
-L.Control.Trashbin = L.Control.extend({
-    options: {
-        position: 'topleft',
-    },
-
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Clear all';
-        link.innerHTML = '🗑'; // Use the HTML entity for the trash bin icon (U+1F5D1)
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => customTrashBinAction());
-                const modal = document.getElementById('msgBox');
-                const message = document.getElementById('responseMsg');
-                const confirmBtn = document.getElementById('confirmDelete');
-                const cancelBtn = document.getElementById('cancelDelete');
-                const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
-
-                message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
-                confirmBtn.style.display = 'inline-block';
-                cancelBtn.style.display = 'inline-block';
-                okBtn.style.display = 'none';
-
-                confirmBtn.onclick = () => {
-                    modal.style.display = 'none';
-                    customTrashBinAction();
-                };
-                cancelBtn.onclick = () => {
-                    modal.style.display = 'none';
-                };
-
-                modal.style.display = 'block';
-            });
-        return container;
-    },
-});
-
-
-const trashbinControl = new L.Control.Trashbin();
-
 L.Control.SelectAll = L.Control.extend({
     options: { position: 'topleft' },
     onAdd: function () {
@@ -323,6 +279,27 @@ function removeBoundaries() {
 }
 
 
+function make_roads_clickable() {
+    drawnItems.eachLayer(layer => {
+        layer.on('click', function () {
+            const road = road_elements.find(r => {
+                const latlngs = r.coordinates.map(c => [c[0], c[1]]);
+                const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
+                return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
+            });
+
+            if (!road) return;
+            road.is_clicked = !road.is_clicked;
+
+            layer.setStyle({
+                weight: road.is_clicked ? 4 : 2,
+                color: road.is_clicked ? '#9933ff' : '#cc99ff'
+            });
+        });
+    });
+}
+
+
 // ─── Unified Toolbar ─────────────────────────────────────────────────────────
 
 const UnifiedToolbar = L.Control.extend({
@@ -356,8 +333,34 @@ const UnifiedToolbar = L.Control.extend({
                 () => zoomAll(map)
             ),
 
-            trash: () => addBtn(
+            trash_consumers: () => addBtn(
                 'Clear all',
+                '<svg widh="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
+                () => {
+                    const modal = document.getElementById('msgBox');
+                    const message = document.getElementById('responseMsg');
+                    const confirmBtn = document.getElementById('confirmDelete');
+                    const cancelBtn = document.getElementById('cancelDelete');
+                    const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
+
+                    message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
+                    confirmBtn.style.display = 'inline-block';
+                    cancelBtn.style.display = 'inline-block';
+                    okBtn.style.display = 'none';
+
+                    confirmBtn.onclick = () => {
+                        modal.style.display = 'none';
+                        customTrashBinAction();
+                    };
+                    cancelBtn.onclick = () => {
+                        modal.style.display = 'none';
+                    };
+
+                    modal.style.display = 'block';
+                }
+            ),
+            trash_roads: () => addBtn(
+                'Delete selected',
                 '<svg widh="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="m21.12 5.09a3 3 0 0 0 -4.24 0l-8.59 8.58-4.58 4.59a3 3 0 0 0 0 4.24l2.88 2.88h-3.59a1 1 0 0 0 0 2h21a1 1 0 0 0 0-2h-2.59l7.88-7.88a3 3 0 0 0 0-4.24zm-16 16a1 1 0 0 1 0-1.42l3.88-3.88 9.59 9.59h-9.18zm22.76-5-7.88 7.91-9.59-9.59 7.88-7.91a1 1 0 0 1 1.42 0l8.17 8.17a1 1 0 0 1 0 1.42z"/></svg>',
                 () => customTrashBinAction()
             ),
@@ -407,7 +410,7 @@ const UnifiedToolbar = L.Control.extend({
 // ─── Map setup helpers ────────────────────────────────────────────────────────
 
 function addDrawingToolsToConsumerMap() {
-    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'powerhouse'] }));
+    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash_consumers', 'powerhouse'] }));
     map.addControl(drawControl);
     mergeDrawToolsIntoUnifiedBar();
 }
@@ -429,7 +432,7 @@ function mergeDrawToolsIntoUnifiedBar() {
 }
 
 function addDrawingToolsToGridMap() {
-    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash', 'selectAll', 'deselectAll', 'fetchOSM'] }));
+    map.addControl(new UnifiedToolbar({ buttons: ['zoom', 'trash_roads', 'selectAll', 'deselectAll', 'fetchOSM'] }));
     map.addControl(drawControl);
     mergeDrawToolsIntoUnifiedBar();
 }
