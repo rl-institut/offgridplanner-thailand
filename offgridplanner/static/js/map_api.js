@@ -309,7 +309,7 @@ async function remove_roads_inside_boundary({boundariesCoordinates} = {}) {
         const res = await response.json();
 
         road_elements = res.road_elements;
-        drawnItems.clearLayers();
+        roadsLayer.clearLayers();
         put_roads_on_map(road_elements);
     } catch (error) {
         console.error("Error removing roads:", error.message);

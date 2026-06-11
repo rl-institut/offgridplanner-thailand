@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Road draw:created handler — polylines only, no consumer logic
 map.on(L.Draw.Event.CREATED, function (event) {
     const layer = event.layer;
-    drawnItems.addLayer(layer);
+    roadsLayer.addLayer(layer);
     if (event.layerType === 'polyline') {
         const coords = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
         const road_id = "m-" + (road_elements.filter((road) => road.how_added === "manual").length + 1)
@@ -49,7 +49,7 @@ map.on(L.Draw.Event.CREATED, function (event) {
 // Override: trash clears road drawings only, not consumer markers
 function customTrashBinAction() {
     road_elements.filter(r => r.is_clicked).forEach(r => {
-        if (r.layer) drawnItems.removeLayer(r.layer);
+        if (r.layer) roadsLayer.removeLayer(r.layer);
     });
     road_elements = road_elements.filter(r => !r.is_clicked);
 }

@@ -89,6 +89,7 @@ var image = [
     "/static/assets/icons/i_roads.svg",
 ];
 
+const roadsLayer = new L.FeatureGroup();
 const drawnItems = new L.FeatureGroup();
 
 let is_active = false;
@@ -155,6 +156,7 @@ function initializeMap(center = null, zoom = null, bounds = null) {
 
 
 
+        map.addLayer(roadsLayer);
         map.addLayer(drawnItems);
 
         load_legend();
@@ -189,9 +191,10 @@ function put_roads_on_map(roads, clickable=true) {
             color: road.is_clicked ? '#cc0000' : '#9933ff',
             weight: road.is_clicked ? 4 : 3
         });
-        drawnItems.addLayer(polyline);
+        roadsLayer.addLayer(polyline);
         road.layer = polyline;
         if (clickable) makeRoadLayerClickable(polyline, road);
+//    roadsLayer.bringToBack()
     });
 }
 

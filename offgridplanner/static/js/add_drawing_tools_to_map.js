@@ -318,6 +318,7 @@ let input = document.getElementById('toggleswitch');
 
 function removeBoundaries() {
     drawnItems.clearLayers();
+    roadsLayer.clearLayers();
     polygonCoordinates = [];
 }
 
