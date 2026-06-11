@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [v1.4.1-thai.6.2] – 2026-06-11
+## [v1.4.1-thai.6.0] – 2026-06-11
 ### Added
 - New annual demand increase option to adjust projected demand during system sizing ([#59](https://github.com/rl-institut/offgridplanner-thailand/pull/59))
 - New grid layout feature to orient poles along roads ([#54](https://github.com/rl-institut/offgridplanner-thailand/pull/54))
