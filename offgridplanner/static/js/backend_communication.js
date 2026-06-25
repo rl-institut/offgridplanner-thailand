@@ -70,7 +70,7 @@ async function plot_results() {
                 const dataObj = {};
                 formData.forEach((value, key) => { dataObj[key] = value; });
                 const indicator = document.getElementById('autosave-indicator');
-                if (indicator) indicator.classList.add('visible');
+                indicator?.classList.add('visible');
                 fetch(form.dataset.autosaveUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -85,7 +85,7 @@ async function plot_results() {
                 })
                 .catch(err => {
                     console.error('Autosave error:', err);
-                    if (indicator) indicator.classList.remove('visible');
+                    indicator?.classList.remove('visible');
                 });
             }, SAVE_DELAY);
         });
