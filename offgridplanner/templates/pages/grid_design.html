@@ -36,7 +36,8 @@
               <div class="gd-sidebar__header">
                 <h2>Grid Properties
                   </h2>
-              </div>
+      <form method="post" data-autosave-url="{% url 'steps:autosave_grid_design' proj_id %}">
+        {% csrf_token %}
               <div class="gd-sidebar__content" id="gd-accordion">
                 {% for component, fields in grouped_fields.items %}
                 {% if component != 'Shs' %}
@@ -156,32 +157,8 @@
       </div>
     </div>
   </section>
-      <div id="msgBox"
-           class="modal"
-           style="background-color: rgba(0,0,0,0.5);
-                  z-index: 1001;
-                  text-align: left">
-        <form class="modal-content" style="max-width: 24rem">
-          <div class="container">
-            <h1>{% translate 'Warning' %}</h1>
-            <p id="responseMsg"></p>
-            <button onclick="document.getElementById('msgBox').style.display='none'"
-                    type="button"
-                    class="deletebtn">{% translate 'OK' %}</button>
-            <button id="confirmDelete"
-                    type="button"
-                    class="deletebtn"
-                    style="display: none;">{% translate 'Yes' %}</button>
-            <button id="cancelDelete"
-                    type="button"
-                    class="cancelbtn"
-                    style="display: none;">{% translate 'Cancel' %}</button>
-          </div>
-        </form>
-      </div>
-
-  <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 1001; text-align: left">
-    <form class="modal-content" style="width: 700px; height: 520px;">
+  <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 999; text-align: left">
+  <form class="modal-content" style="width: 700px; height: 520px;">
       <div class="container">
         <h1 style="margin-bottom: 0;">Video Tutorial</h1>
         <div style="padding: 15px;">
@@ -218,6 +195,9 @@
 </script>
 <script src="{% statici18n LANGUAGE_CODE %}"></script>
 <script src="{% static 'js/integrate_map.js' %}"></script>
+<script>
+  const csrfToken = '{{ csrf_token }}';
+</script>
 <script src="{% static 'js/pages/grid_design.js' %}"></script>
 <script src="{% static 'js/map_api.js' %}"></script>
 <script src="{% static 'js/backend_communication.js' %}"></script>
