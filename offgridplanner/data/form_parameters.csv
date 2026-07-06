@@ -1,10 +1,10 @@
 ﻿label,verbose,type,default,unit,model,help_text
 name,Project Name,str,,,Project,
 description,Project Description,str,,,Project,
-interest_rate,,float,4.2,%,Project,"The interest rate in investment calculations signifies the cost of capital and the potential return from an alternative investment of similar risk. It helps express the time value of money, crucial for determining the present value of future cash flows. This assists in evaluating and comparing investment opportunities. Default value of 12.3% is taken from World Bank reported average lending interest rate data of 2022. Please make sure to check this value for your project."
+interest_rate,,float,4.2,%,Project,"The interest rate in investment calculations signifies the cost of capital and the potential return from an alternative investment of similar risk. It helps express the time value of money, crucial for determining the present value of future cash flows. This assists in evaluating and comparing investment opportunities."
 lifetime,Project Lifetime,int,25,Years,Project,"The period during which the system will be in operation. Components whose lifetime is below that of the project lifetime must be replaced during operation, which will be taken into account in the cost calculation. In addition, the residual value of the components is determined at the end of the project lifetime."
 n_days,Simulation Period,int,365,Days,Project,"Number of days used for the modelling period. For economic calculations, the project lifetime will be used."
-country,Project Country,str,TH,,Project,"Country for the project. The country will be used to center map features on the correct location, but will have no impact on the default demand profiles used, which are specific to Nigeria."
+country,Project Country,str,TH,,Project,"Country for the project. The country will be used to center map features on the correct location, but will have no impact on the default demand profiles used, which are specific to the tool's specialized country."
 currency,Currency,str,EUR,,Project,"Currency used for all cost calculations."
 exchange_rate,Exchange Rate,float,1.0,,Project,"Exchange rate relative to the base currency."
 low,,float,0.09,%,CustomDemand,Percentage of households with low demand (1.1kWh/hh/day)
