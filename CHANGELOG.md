@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Minor changes to description and help texts across step pages ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
+
+### Fixed
+- Fix inconsistent decimal separator in forms (now dot across all fields) ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
+- Fix link to about page ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
+
 
 ## [v1.4.1-thai.6.0] – 2026-06-11
 ### Added

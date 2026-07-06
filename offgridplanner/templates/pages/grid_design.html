@@ -34,7 +34,8 @@
               {% csrf_token %}
 
               <div class="gd-sidebar__header">
-                <h2>Grid Properties</h2>
+                <h2>Grid Properties
+                  </h2>
               </div>
               <div class="gd-sidebar__content" id="gd-accordion">
                 {% for component, fields in grouped_fields.items %}
@@ -136,7 +137,9 @@
         <div class="col-md-8">
           <div class="gd-map">
             <div class="gd-map__header">
-              <h2>Grid Layout</h2>
+              <h2>Grid Layout
+              <span class="icon icon-question" id="videoTutorialIcon" data-bs-toggle="tooltip" title="{% translate 'The grid layout feature enables you to define roads that should be followed when designing the distribution grid. Start by fetching OpenStreetMap data to display already available road data, and continue by manually adding or removing lines as you see fit' %}" onclick="bootstrap.Tooltip.getInstance(this).hide(); document.getElementById('videoTutorial').style.display='block'"></span>
+              </h2>
             </div>
             <div class="gd-map__content">
               <div id="search-container">

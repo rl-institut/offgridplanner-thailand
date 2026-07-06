@@ -30,7 +30,9 @@
     <section class="dashboard" id="section">
       <div class="row">
         <div class="chart" style="height: auto">
-          <h2>{% translate 'Set Consumer Properties' %}</h2>
+          <h2>{% translate 'Set Consumer Properties' %}
+            <span class="icon icon-question" id="videoTutorialIcon" data-bs-toggle="tooltip" title="{% translate 'Click to watch video tutorial' %}" onclick="bootstrap.Tooltip.getInstance(this).hide(); document.getElementById('videoTutorial').style.display='block'"></span>
+          </h2>
           <table style="border-top: none; color: #5f7489; border-spacing: 0; margin-top: 1rem;">
             <tr>
               <th style="vertical-align: top; padding: 5px;">{% translate 'Consumer Type' %}</th>
@@ -188,15 +190,13 @@
                       class="accordion-collapse collapse"
                       id="largeLoadsCollapse">
                   <div class="accordion-body" style="border: 1px solid var(--cdg); border-radius: 8px; margin-top: 1rem; margin-bottom: 1rem;">
-                    <p class="consumer-title">{% translate 'Select Individual Large Enterprise Loads' %}</a>
+                    <p class="consumer-title">{% translate 'Select Individual Large Loads' %}</p>
                     <p class="chart__info-box">
                       {% blocktranslate trimmed %}
-                      Note: Productive use enterprises selected above will not by default have added any
-                      'large loads' (such as milling machines or electric welders etc.) and will only have
-                      typical low power appliances included.
-                      The functionality below allows the user to
-                      add, remove, and view specific types and quantities of large loads for each
-                      individual enterprise consumer.
+                      Note: Consumers selected above will not by default have added any 'large loads'
+                      (such as ACs, water pumps or fridges) and will only have typical low power appliances included.
+                      The functionality below allows the user to add, remove, and view specific types and quantities
+                      of large loads for each individual consumer.
                       {% endblocktranslate %}
                     </p>
                     <div class="list_container">
@@ -339,6 +339,17 @@
       window.onload = function () {
         addDrawingToolsToConsumerMap();
         db_nodes_to_js({{proj_id}}, true);
+
+        // Click opens the video tutorial modal instead of toggling the tooltip, so the
+        // 'click' trigger from the shared tooltip init must be dropped for this icon
+        var videoTutorialIcon = document.getElementById('videoTutorialIcon');
+        if (videoTutorialIcon) {
+          var existingTooltip = bootstrap.Tooltip.getInstance(videoTutorialIcon);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+          new bootstrap.Tooltip(videoTutorialIcon, { trigger: 'hover' });
+        }
       };
     </script>
     <script src="{% statici18n LANGUAGE_CODE %}"></script>
