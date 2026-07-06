@@ -198,7 +198,7 @@
     ry: 8;
 }
 
-.esd-component-box.buildings {
+.esd-component-box.consumers {
     fill: #E8F6F1;
     stroke: #79A193;
 }
@@ -220,7 +220,7 @@
     fill: #212529;
 }
 
-.esd-component-label.buildings {
+.esd-component-label.consumers {
     fill: #157754;
 }
 

@@ -290,7 +290,7 @@ function initDiagram() {
       "Fuel cell": "/static/images/energy-system/component-fuel-cell.svg",
       "Hydrogen Storage": "/static/images/energy-system/component-storage.svg",
       "Electrolyzer": "/static/images/energy-system/component-electrolyzer.svg",
-      "Buildings": "/static/images/energy-system/component-building.svg"
+      "Consumers": "/static/images/energy-system/component-building.svg"
     };
 
     window.renderESDDiagram = function () {
@@ -358,7 +358,7 @@ function initDiagram() {
       return {
         supply: supply,
         storage: storage,
-        use: [{ name: "Buildings", badge: "Active" }],
+        use: [{ name: "Consumers", badge: "Active" }],
         hasHydrogen: systemData.hydrogen
       };
     }
@@ -530,7 +530,7 @@ function initDiagram() {
 
         // Component box
         componentGroup.append("rect")
-          .attr("class", component.name === "Buildings" ? "esd-component-box buildings" : "esd-component-box")
+          .attr("class", component.name === "Consumers" ? "esd-component-box consumers" : "esd-component-box")
           .attr("width", componentWidth)
           .attr("height", componentHeight);
 
@@ -548,7 +548,7 @@ function initDiagram() {
         // Component label
         const labelY = isUseCategory ? componentHeight / 2 + 20 : 85;
         componentGroup.append("text")
-          .attr("class", component.name === "Buildings" ? "esd-component-label buildings" : "esd-component-label")
+          .attr("class", component.name === "Consumers" ? "esd-component-label consumers" : "esd-component-label")
           .attr("x", componentWidth / 2)
           .attr("y", labelY)
           .attr("text-anchor", "middle")
@@ -806,17 +806,17 @@ function initDiagram() {
   // Add legend text
   let legendText = "";
   if (systemData.hydrogen && systemData.battery) {
-    legendText = "Sun and diesel produce electricity → stored in battery or converted to hydrogen → used by buildings";
+    legendText = "Solar PV and diesel produce electricity → stored in battery or converted to hydrogen → used by consumers";
   } else if (systemData.hydrogen) {
-    legendText = "Sun and diesel produce electricity → converted to hydrogen → used by buildings";
+    legendText = "Solar PV and diesel produce electricity → converted to hydrogen → used by consumers";
   } else if (systemData.pv && systemData.battery) {
-    legendText = "Sun and diesel produce electricity → stored in battery → used by buildings";
+    legendText = "Solar PV and diesel produce electricity → stored in battery → used by consumers";
   } else if (systemData.battery) {
-    legendText = "Diesel produces electricity → stored in battery → used by buildings";
+    legendText = "Diesel produces electricity → stored in battery → used by consumers";
   } else if (systemData.pv) {
-    legendText = "Sun and diesel produce electricity → used by buildings";
+    legendText = "Sun and diesel produce electricity → used by consumers";
   } else {
-    legendText = "Diesel produces electricity → used by buildings";
+    legendText = "Diesel produces electricity → used by consumers";
   }
 
   mainGroup.append("text")
