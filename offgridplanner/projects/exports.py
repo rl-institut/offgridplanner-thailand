@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pandas as pd
 from django.contrib.staticfiles.storage import staticfiles_storage
+from reportlab.graphics import renderPDF
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.lib.enums import TA_LEFT
@@ -12,7 +13,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Image
 from reportlab.platypus import KeepTogether
 from reportlab.platypus import ListFlowable
 from reportlab.platypus import ListItem
@@ -22,6 +22,7 @@ from reportlab.platypus import SimpleDocTemplate
 from reportlab.platypus import Spacer
 from reportlab.platypus import Table
 from reportlab.platypus import TableStyle
+from svglib.svglib import svg2rlg
 
 
 def format_first_col(df):
@@ -167,22 +168,6 @@ def load_reportlab_styles():
         alignment=TA_LEFT,
         spaceAfter=6,
     )
-    """
-    table_style = TableStyle([
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),  # Left-align section titles
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),  # Right-align page numbers
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('FONTSIZE', (0, 0), (-1, -1), 12),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  # Bold font for header row
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),  # Regular font for other rows
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        # Add a horizontal line below the header row
-        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
-    ])
-    """
     table_style = TableStyle(
         [
             # Top line above header
@@ -274,9 +259,21 @@ def load_reportlab_styles():
         toc_title_style,
         table_style,
         header_style,
-        italic_body_style,
         add_page_number,
         on_first_page,
+    )
+
+
+def figure_caption(text):
+    return Paragraph(
+        text,
+        ParagraphStyle(
+            "FigureCaption",
+            fontSize=8,
+            alignment=TA_CENTER,
+            spaceAfter=24,
+            fontName="Helvetica-Oblique",
+        ),
     )
 
 
@@ -375,7 +372,6 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
         toc_title_style,
         table_style,
         header_style,
-        italic_body_style,
         add_page_number,
         on_first_page,
     ) = load_reportlab_styles()
@@ -383,15 +379,7 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     # Initialize PDF elements list
     elements = []
 
-    # Add logo and titles
-    image_path = staticfiles_storage.path("assets/logos/Green-H2Islands-Full-Logo.png")
-    image_reader = ImageReader(image_path)
-    img_width, img_height = image_reader.getSize()
-    desired_height = 1 * inch  # Adjust as needed
-    desired_width = desired_height * img_width / img_height
-    logo = Image(image_path, width=desired_width, height=desired_height)
-    logo.hAlign = "LEFT"
-
+    # Add titles (logos are drawn in the page header, see draw_header)
     title = Paragraph("Off-Grid System Planning Results", styles["Title"])
     subtitle = Paragraph(
         "Energy System Optimization Carried Out with the Tool Offgridplanner (https://offgridplanner.org)",
@@ -401,8 +389,6 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     elements.append(
         KeepTogether(
             [
-                logo,
-                Spacer(1, 12),  # Space between logo and title
                 title,
                 subtitle,
                 Spacer(1, 12),
@@ -421,52 +407,31 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     elements.append(Paragraph("Table of Contents", toc_title_style))
     elements.append(Spacer(1, 12))
 
+    indent = "&nbsp;&nbsp;&nbsp;&nbsp;"
     toc = [
         ["Section", "Page"],
         ["1. Overview of Project Parameters", "&nbsp;&nbsp;1"],
-        ["2. Brief Tool Description", "&nbsp;&nbsp;2"],
+        ["2. Results", "&nbsp;&nbsp;2"],
+        [f"{indent}2.1 Summary of Results", "&nbsp;&nbsp;2"],
+        [f"{indent}2.2 Technical Results", "&nbsp;&nbsp;3"],
+        [f"{indent}2.3 Economic Results", "&nbsp;&nbsp;5"],
+        [f"{indent}2.4 Demand Results", "&nbsp;&nbsp;7"],
+        [f"{indent}2.5 Environmental Results", "&nbsp;&nbsp;8"],
+        ["3. Tool Description", "&nbsp;&nbsp;9"],
+        [f"{indent}3.1 Demand Estimation", "&nbsp;&nbsp;9"],
+        [f"{indent}3.2 Grid Design Optimization", "&nbsp;&nbsp;10"],
+        [f"{indent}3.3 Energy System Optimization", "&nbsp;&nbsp;10"],
     ]
 
     planning_steps = []
-
-    # Demand Estimation Step
     if input_data.do_demand_estimation:
         planning_steps.append("Demand estimation based on selected consumers")
-        toc.append(["3. Demand Estimation", "&nbsp;&nbsp;4"])
-    else:
-        toc.append(["3. Demand Time Series", "&nbsp;&nbsp;4"])
-
-    # Grid Optimization Step
     if input_data.do_grid_optimization:
         grid_text = "Spatial optimization of distribution grid"
-        grid_text += f" with the option to exclude consumers with specific marginal connection costs above {input_data.shs_max_specific_marginal_grid_cost} c/kWh"
+        grid_text += f" with the option to exclude consumers with specific marginal connection costs above {input_data.shs_max_specific_marginal_grid_cost} ct/kWh"
         planning_steps.append(grid_text)
-        toc.append(["4. Optimal Spatial Distribution of the Grid", "&nbsp;&nbsp;5"])
-
-    # Energy System Design Optimization Step
     if input_data.do_es_design_optimization:
         planning_steps.append("Design optimization of energy converters and storage")
-        pos = 5 if input_data.do_grid_optimization else 4
-        page = 6 if input_data.do_grid_optimization else 5
-        toc.append(
-            [
-                f"{pos}. Optimal Design of Energy Converters and Storage",
-                f"&nbsp;&nbsp;{page}",
-            ]
-        )
-
-    if input_data.do_es_design_optimization:
-        page = 5
-        if input_data.do_grid_optimization:
-            page += 1
-        if input_data.do_es_design_optimization:
-            page += 4
-        pos = (
-            6
-            if input_data.do_es_design_optimization and input_data.do_grid_optimization
-            else 5
-        )
-        toc.append([f"{pos}. Overview of Economic Results", f"&nbsp;&nbsp;{page}"])
 
     # Create ToC entries
     toc_entries = []
@@ -537,198 +502,39 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
         )
     elements.append(Paragraph(economic_assessment_text, body_style))
 
-    # Add Spacer
     elements.append(PageBreak())
 
-    # Section 2: Brief Tool Description
-    elements.append(Paragraph("2. Brief Tool Description", styles["Heading1"]))
+    # Section 2: Results
+    elements.append(Paragraph("2. Results", styles["Heading1"]))
     elements.append(Spacer(1, 24))
 
-    # Add Tool Description Paragraphs
-    elements.append(
-        Paragraph(
-            "The tool systematically integrates geospatial data, demand forecasting, grid optimization, and generation system design to deliver optimized energy solutions. "
-            "It begins by acquiring geolocation data of consumers through automatic detection using OpenStreetMap integration, manual selection via map markers, or direct input of geocoordinates. "
-            "This geospatial information forms the foundation for demand estimation and grid layout planning.",
-            body_style,
-        )
+    upfront_invest_total = results_df[
+        results_df.iloc[:, 0].str.contains("Upfront")
+    ]["Value"].sum()
+
+    # Section 2.1: Summary of Results
+    elements.append(Paragraph("2.1 Summary of Results", styles["Heading2"]))
+    elements.append(Spacer(1, 12))
+
+    summary_data = [["KPI", "Value"]]
+    summary_data.append(["LCOE", f"{results.lcoe:,.1f} cents/kWh"])
+    if input_data.do_es_design_optimization and results.h2_storage_capacity > 0:
+        summary_data.append(["LCOH", f"{results.lcoh:,.1f} cents/kWh"])
+    summary_data.append(
+        ["Total Upfront Investment", f"{upfront_invest_total:,.0f} {currency}"]
     )
-    elements.append(
-        Paragraph(
-            "For demand estimation, the tool employs statistical models and stochastic algorithms based on extensive survey data from thousands of households and enterprises in non-urban Nigerian villages. "
-            "It analyzes factors such as appliance ownership, electricity consumption patterns, and affordability to generate realistic demand profiles. "
-            "These profiles are customized for each location, considering geographical zones and socioeconomic levels, to provide precise predictions of electricity demand.",
-            body_style,
-        )
-    )
-    elements.append(
-        Paragraph(
-            "With both geolocation and demand data, the tool optimizes the spatial layout of the distribution grid. "
-            "It sorts consumers based on proximity to the load center and determines optimal pole locations using clustering algorithms. "
-            "A minimum spanning tree is constructed to ensure efficient interconnectivity between poles. "
-            "The tool adheres to constraints on maximum connections per pole and maximum distances between consumers, "
-            "adding additional poles or segmenting long connections as necessary to ensure all consumers are effectively connected.",
-            body_style,
-        )
-    )
-    elements.append(
-        Paragraph(
-            "In the generation system design phase, the tool integrates various energy converters, including photovoltaic systems and diesel generators, "
-            "along with battery storage, inverters, and rectifiers. It models solar potential using ERA5 satellite data and PVLIB software. "
-            "The optimization focuses on minimizing the Levelized Cost of Energy (LCOE) by considering both capital expenditures and operational costs. "
-            "Formulating the problem as a mixed-integer linear model, the tool utilizes the open-source modeling framework OEMOF and the high-performance Gurobi solver "
-            "to find the optimal configuration that meets consumer demands.",
-            body_style,
-        )
-    )
-    elements.append(
-        Paragraph(
-            "Finally, the tool provides detailed outputs such as optimal installed capacities for each system component, time-series data of system operations, "
-            "investment cost breakdowns, CO<sub>2</sub> emission estimates, and fuel consumption requirements. "
-            "These results offer valuable insights for stakeholders to make informed decisions regarding the planning and implementation of off-grid energy solutions.",
-            body_style,
-        )
-    )
-
-    # Add Page Break
-    elements.append(PageBreak())
-
-    # Section 3: Demand Estimation
-    elements.append(Paragraph(toc[3][0], styles["Heading1"]))
-    elements.append(Spacer(1, 24))
-
-    # Helper function for pluralization
-    def pluralize(count, singular, plural):
-        return singular if count == 1 else plural
-
-    # Determine if custom demand was used
-    # import pdb; pdb.set_trace()
-    if custom_demand_df.iloc[0].uploaded_data:
-        elements.append(
-            Paragraph(
-                "The demand estimation feature of the tool was not used. Instead, a time series was uploaded by the user.",
-                body_style,
-            )
-        )
-        demand_ts = custom_demand_df.iloc[:, 0]
-    else:
-        # Count different types of consumers
-        consumers_df = nodes_df[nodes_df["Node type"] == "consumer"]
-        n_households = consumers_df[consumers_df["Consumer type"] == "household"].shape[
-            0
-        ]
-        n_enterprises = consumers_df[
-            consumers_df["Consumer type"] == "enterprise"
-        ].shape[0]
-        n_public_services = consumers_df[
-            consumers_df["Consumer type"] == "public_service"
-        ].shape[0]
-
-        # Add consumer counts
-        elements.append(
-            Paragraph(
-                f"A total of {n_households} {pluralize(n_households, 'household', 'households')}, "
-                f"{n_enterprises} {pluralize(n_enterprises, 'enterprise', 'enterprises')}, and "
-                f"{n_public_services} {pluralize(n_public_services, 'public service', 'public services')} were selected.",
-                body_style,
-            )
-        )
-
-        if "demand" in energy_flow_df.columns:
-            demand_ts = energy_flow_df["demand"]
-
-    # Calculate yearly demand
-    yearly_demand = demand_ts.sum()
-    num_hours = demand_ts.shape[0]
-    full_year_hours = 8760
-
-    # Add demand statistics
-    demand_text = (
-        f"The demand time series has a maximum load of {demand_ts.max():.2f} kW, "
-        f"a minimum load of {demand_ts.min():.2f} kW, and an average load of {demand_ts.mean():.2f} kW. "
-        f"The total annual demand is estimated to be {yearly_demand:.0f} kWh."
-    )
-    if num_hours < full_year_hours:
-        demand_text += (
-            f" Note: The original demand time series covered {num_hours} hours and has been scaled up "
-            f"to represent a full year (8760 hours) for annual demand estimation."
-        )
-    elements.append(Paragraph(demand_text, body_style))
-
-    # Insert image and caption if demand estimation was performed
-    if not custom_demand_df.iloc[0].uploaded_data and input_data.do_demand_estimation:
-        elements.append(img_dict.get("demandTs"))
-        elements.append(
-            Paragraph(
-                "Figure: Demand Coverage of the Off-Grid System",
-                ParagraphStyle(
-                    "FigureCaption",
-                    fontSize=8,
-                    alignment=1,  # TA_CENTER
-                    spaceAfter=24,
-                    fontName="Helvetica-Oblique",
-                ),
-            )
-        )
-    elements.append(PageBreak())
-    if input_data.do_grid_optimization:
-        # Section 4: Optimal Spatial Distribution of the Grid
-        elements.append(Paragraph(toc[4][0], styles["Heading1"]))
-        elements.append(Spacer(1, 24))
-        # Add distribution grid map
-        elements.append(img_dict.get("map"))
-        elements.append(
-            Paragraph(
-                "Figure: Distribution Grid of the Off-Grid System",
-                ParagraphStyle(
-                    "FigureCaption",
-                    fontSize=8,
-                    alignment=1,  # TA_CENTER
-                    spaceAfter=24,
-                    fontName="Helvetica-Oblique",
-                ),
-            )
-        )
-
-        # Add connection details
-        connected_text = f"Out of the total {results.n_consumers} selected consumers, "
-        if results.n_shs_consumers == 0:
-            connected_text += "all were connected to the grid."
-        else:
-            num_unconnected = results.n_shs_consumers
-            consumer_word = "consumer" if num_unconnected == 1 else "consumers"
-            threshold = input_data.shs_max_specific_marginal_grid_cost
-            connected_text += (
-                f"{num_unconnected} {consumer_word} were not connected to the grid because their specific marginal connection costs exceeded "
-                f"the user-defined threshold of {threshold} c/kWh. Therefore, these consumers will need to be equipped with a solar home system "
-                "instead."
-            )
-        elements.append(Paragraph(connected_text, body_style))
-
-        # Add grid requirements
-        grid_requirements_text = (
-            f"The grid requires {results.n_poles} poles, {results.length_distribution_cable} meters of distribution cable, and "
-            f"{results.length_connection_cable} meters of connection cable. The upfront grid investment costs amount to "
-            f"{results.upfront_invest_grid:,.0f} USD."
-        )
-        elements.append(Paragraph(grid_requirements_text, body_style))
-
-        # Add positioning details
-        positioning_text = (
-            "The positioning of the poles and the layout of the connection cables are shown on the attached map. Detailed location "
-            "information, including latitude and longitude values, can be found in the Excel file."
-        )
-        elements.append(Paragraph(positioning_text, body_style))
-
-        # Add Page Break
-        elements.append(PageBreak())
-
-    # Section 5: Optimal Design of Energy Converters and Storage
     if input_data.do_es_design_optimization:
-        elements.append(Paragraph(toc[-2][0], styles["Heading1"]))
-        elements.append(Spacer(1, 24))
+        summary_data.append(["Renewable Energy Share", f"{results.res_share:.1f}%"])
+    summary_table = Table(summary_data, colWidths=[250, 150])
+    summary_table.setStyle(table_style)
+    elements.append(summary_table)
+    elements.append(Spacer(1, 24))
 
-        # Introduction to energy design
+    # Section 2.2: Technical Results
+    elements.append(Paragraph("2.2 Technical Results", styles["Heading2"]))
+    elements.append(Spacer(1, 12))
+
+    if input_data.do_es_design_optimization:
         energy_design_intro = "The minimization of the project's total costs during project lifetime results in the following installations:"
         elements.append(Paragraph(energy_design_intro, body_style))
 
@@ -818,75 +624,33 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
         elements.append(Paragraph(grid_requirements_text, body_style))
         elements.append(Spacer(1, 12))
 
-        # Add Sankey Diagram
-        sankey_text = "The presented Sankey diagram visualizes the extent to which each component contributes to meeting the demand."
+    if input_data.do_es_design_optimization:
+        sankey_text = "The presented accumulated Sankey diagram visualizes the extent to which each component contributes to meeting the demand."
         elements.append(Paragraph(sankey_text, body_style))
         elements.append(img_dict.get("sankeyDiagram"))
         elements.append(
-            Paragraph(
-                "Figure: Sankey Diagram Representing the Energy Flow in the System",
-                ParagraphStyle(
-                    "FigureCaption",
-                    fontSize=8,
-                    alignment=1,  # TA_CENTER
-                    spaceAfter=24,
-                    fontName="Helvetica-Oblique",
-                ),
-            )
+            figure_caption("Figure: Sankey Diagram Representing the Energy Flow in the System")
         )
 
-        # Additional Diagrams
         additional_diagrams_text = (
-            "The following two diagrams illustrate an exemplary period at the beginning of the simulation timeframe, "
-            "depicting the system's demand coverage and energy flows."
+            "The following diagram illustrates an exemplary period at the beginning of the "
+            "simulation timeframe, depicting the system's energy flows."
         )
         elements.append(Paragraph(additional_diagrams_text, body_style))
-
-        elements.append(img_dict.get("demandCoverage"))
-        elements.append(
-            Paragraph(
-                "Figure: Range by Renewable and Non-Renewable Resources",
-                ParagraphStyle(
-                    "FigureCaption",
-                    fontSize=8,
-                    alignment=1,  # TA_CENTER
-                    spaceAfter=24,
-                    fontName="Helvetica-Oblique",
-                ),
-            )
-        )
-
         elements.append(img_dict.get("energyFlows"))
-        elements.append(
-            Paragraph(
-                "Figure: Energy Flows with 1-Hour Resolution",
-                ParagraphStyle(
-                    "FigureCaption",
-                    fontSize=8,
-                    alignment=1,  # TA_CENTER
-                    spaceAfter=24,
-                    fontName="Helvetica-Oblique",
-                ),
-            )
-        )
+        elements.append(figure_caption("Figure: Energy Flows with 1-Hour Resolution"))
 
-        # Add Page Break
-        elements.append(PageBreak())
+    elements.append(PageBreak())
 
-    # Section 6: Overview of Economic Results
+    # Section 2.3: Economic Results
     if input_data.do_es_design_optimization:
-        elements.append(Paragraph(toc[-1][0], styles["Heading1"]))
-        elements.append(Spacer(1, 24))
+        elements.append(Paragraph("2.3 Economic Results", styles["Heading2"]))
+        elements.append(Spacer(1, 12))
 
-        # Calculate investment costs
-        upfront_invest_total = results_df[
-            results_df.iloc[:, 0].str.contains("Upfront")
-        ]["Value"].sum()
         upfront_invest_converters_and_storage = (
             upfront_invest_total - results.upfront_invest_grid
         )
 
-        # Add investment costs text
         economic_costs_text = (
             f"The total upfront investment costs amount to {upfront_invest_total:,.0f} {currency}. "
             f"Of this, {results.upfront_invest_grid:,.0f} {currency} is allocated to grid investment costs, and "
@@ -894,33 +658,15 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
         )
         elements.append(Paragraph(economic_costs_text, body_style))
 
-        # Add LCOE text
-        if input_data.do_es_design_optimization:
-            lcoe_text = f"The Levelized Cost of Electricity for the energy system is {results.lcoe:,.0f} cents per kWh."
-            elements.append(Paragraph(lcoe_text, body_style))
+        lcoe_text = f"The Levelized Cost of Electricity for the energy system is {results.lcoe:,.0f} cents per kWh."
+        elements.append(Paragraph(lcoe_text, body_style))
 
-            # Add LCOE Breakdown Image
-            elements.append(img_dict.get("lcoeBreakdown"))
-            elements.append(
-                Paragraph(
-                    "Figure: Levelized Cost of Electricity Breakdown",
-                    ParagraphStyle(
-                        "FigureCaption",
-                        fontSize=8,
-                        alignment=1,  # TA_CENTER
-                        spaceAfter=24,
-                        fontName="Helvetica-Oblique",
-                    ),
-                )
-            )
+        elements.append(img_dict.get("lcoeBreakdown"))
+        elements.append(figure_caption("Figure: Levelized Cost of Electricity Breakdown"))
 
-        # Add Page Break
-        elements.append(PageBreak())
-
-        # Add economic details table
         economic_details_text = (
-            "The following table lists the respective upfront investment costs of individual components of the energy system, as well as "
-            "the annualized costs."
+            "The following table lists the respective upfront investment costs of individual "
+            "components of the energy system, as well as the annualized costs."
         )
         elements.append(Paragraph(economic_details_text, body_style))
 
@@ -994,16 +740,176 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
         economic_table.setStyle(table_style)
         elements.append(economic_table)
         elements.append(Spacer(1, 24))
+        elements.append(PageBreak())
 
-        if input_data.do_grid_optimization and input_data.do_es_design_optimization:
-            # Add Note on Annualized Costs
-            note_text = (
-                "Note: Annualized costs provide a comprehensive view of the expenses related to an investment over its duration. These costs include the initial investment expenses, "
-                "the costs for replacing assets with a lifespan shorter than the project, variable costs, fuel expenses, and the residual value at the end of the project's lifecycle. "
-                "By incorporating the time value of money using a specified interest rate, annualized costs translate these multifaceted expenditures into a standardized yearly figure. "
-                "The Capital Recovery Factor (CRF) is utilized in the calculation to ensure a consistent and accurate understanding of the total costs over time."
+    # Section 2.4: Demand Results
+    elements.append(Paragraph("2.4 Demand Results", styles["Heading2"]))
+    elements.append(Spacer(1, 24))
+
+    # Helper function for pluralization
+    def pluralize(count, singular, plural):
+        return singular if count == 1 else plural
+
+    if custom_demand_df.iloc[0].uploaded_data:
+        elements.append(
+            Paragraph(
+                "The demand estimation feature of the tool was not used. Instead, a time series was uploaded by the user.",
+                body_style,
             )
-            elements.append(Paragraph(note_text, italic_body_style))
+        )
+        demand_ts = custom_demand_df.iloc[:, 0]
+    else:
+        consumers_df = nodes_df[nodes_df["Node type"] == "consumer"]
+        n_households = consumers_df[consumers_df["Consumer type"] == "household"].shape[
+            0
+        ]
+        n_enterprises = consumers_df[
+            consumers_df["Consumer type"] == "enterprise"
+        ].shape[0]
+        n_public_services = consumers_df[
+            consumers_df["Consumer type"] == "public_service"
+        ].shape[0]
+
+        elements.append(
+            Paragraph(
+                f"A total of {n_households} {pluralize(n_households, 'household', 'households')}, "
+                f"{n_enterprises} {pluralize(n_enterprises, 'enterprise', 'enterprises')}, and "
+                f"{n_public_services} {pluralize(n_public_services, 'public service', 'public services')} were selected.",
+                body_style,
+            )
+        )
+
+        consumer_counts = consumers_df.groupby(
+            ["Consumer type", "Consumer detail"], dropna=False
+        ).size()
+        if not consumer_counts.empty:
+            consumer_table_data = [["Consumer Type", "Detail", "Count"]]
+            for (consumer_type, consumer_detail), count in consumer_counts.items():
+                detail_label = "-" if pd.isna(consumer_detail) else consumer_detail
+                consumer_table_data.append(
+                    [consumer_type, detail_label, f"{count:,.0f}"]
+                )
+            consumer_table = Table(consumer_table_data, colWidths=[150, 200, 100])
+            consumer_table.setStyle(table_style)
+            elements.append(consumer_table)
+            elements.append(Spacer(1, 12))
+
+        if "Demand [kW]" in energy_flow_df.columns:
+            demand_ts = energy_flow_df["Demand [kW]"]
+
+    yearly_demand = demand_ts.sum()
+    num_hours = demand_ts.shape[0]
+    full_year_hours = 8760
+
+    demand_text = (
+        f"The demand time series has a maximum load of {demand_ts.max():.2f} kW, "
+        f"a minimum load of {demand_ts.min():.2f} kW, and an average load of {demand_ts.mean():.2f} kW. "
+        f"The total annual demand is estimated to be {yearly_demand:.0f} kWh."
+    )
+    if num_hours < full_year_hours:
+        demand_text += (
+            f" Note: The original demand time series covered {num_hours} hours and has been scaled up "
+            f"to represent a full year (8760 hours) for annual demand estimation."
+        )
+    elements.append(Paragraph(demand_text, body_style))
+
+    if input_data.do_es_design_optimization:
+        demand_kpi_text = (
+            f"The peak demand is {results.peak_demand:,.1f} kW with a base load of {results.base_load:,.1f} kW. "
+            f"The average annual demand per consumer is {results.average_annual_demand_per_consumer:,.0f} kWh, "
+            f"and the total electricity surplus amounts to {surplus_total_kwh:,.0f} kWh/a."
+        )
+        elements.append(Paragraph(demand_kpi_text, body_style))
+
+        if input_data.shortage_settings_is_selected:
+            shortage_text = (
+                f"The total annual shortage amounts to {results.shortage_total:.1f}% of the demand, "
+                f"with a maximum shortage of {results.max_shortage:.1f}% in a single time step."
+            )
+            elements.append(Paragraph(shortage_text, body_style))
+
+    if not custom_demand_df.iloc[0].uploaded_data and input_data.do_demand_estimation:
+        elements.append(img_dict.get("demandTs"))
+        elements.append(figure_caption("Figure: Demand Coverage of the Off-Grid System"))
+
+    elements.append(PageBreak())
+
+    # Section 2.5: Environmental Results
+    if input_data.do_es_design_optimization:
+        elements.append(Paragraph("2.5 Environmental Results", styles["Heading2"]))
+        elements.append(Spacer(1, 24))
+
+        environmental_text = (
+            f"The system achieves annual CO2 savings of {results.co2_savings:,.1f} t/a, compared to "
+            f"annual CO2 emissions of {results.co2_emissions:,.1f} t/a. "
+            f"The annual fuel consumption amounts to {results.fuel_consumption:,.0f} liters, and the "
+            f"electricity surplus rate is {results.surplus_rate:.1f}%."
+        )
+        elements.append(Paragraph(environmental_text, body_style))
+
+        elements.append(img_dict.get("demandCoverage"))
+        elements.append(
+            figure_caption("Figure: Range by Renewable and Non-Renewable Resources")
+        )
+
+    elements.append(PageBreak())
+
+    # Section 3: Tool Description
+    elements.append(Paragraph("3. Tool Description", styles["Heading1"]))
+    elements.append(Spacer(1, 24))
+
+    elements.append(
+        Paragraph(
+            "The tool systematically integrates geospatial data, demand forecasting, grid optimization, and generation system design to deliver optimized energy solutions. "
+            "It begins by acquiring geolocation data of consumers through automatic detection using OpenStreetMap integration, manual selection via map markers, or direct input of geocoordinates. "
+            "Users can then assign different types (households, public services or enterprises) to these geolocated consumers. "
+            "This geospatial information forms the foundation for demand estimation and grid layout planning.",
+            body_style,
+        )
+    )
+
+    elements.append(Paragraph("3.1 Demand Estimation", styles["Heading2"]))
+    elements.append(Spacer(1, 12))
+    elements.append(
+        Paragraph(
+            "For demand estimation, a predefined load profile is assigned to each consumer type in the background. "
+            "This profile is based on processed load measurements of the specific consumer type. "
+            "The total demand curve is then the accumulated load of all consumers.",
+            body_style,
+        )
+    )
+
+    elements.append(Paragraph("3.2 Grid Design Optimization", styles["Heading2"]))
+    elements.append(Spacer(1, 12))
+    elements.append(
+        Paragraph(
+            "With both geolocation and demand data, the tool optimizes the spatial layout of the distribution grid. "
+            "The tool adheres to constraints on grid allocation along roads, maximum connections per pole and maximum "
+            "distances between consumers to ensure all consumers are effectively connected.",
+            body_style,
+        )
+    )
+
+    elements.append(Paragraph("3.3 Energy System Optimization", styles["Heading2"]))
+    elements.append(Spacer(1, 12))
+    elements.append(
+        Paragraph(
+            "In the generation system design phase, the tool integrates various energy converters, including photovoltaic systems and diesel generators, "
+            "along with battery and hydrogen storage, inverters, and rectifiers. It models solar potential using ERA5 satellite data and PVLIB software. "
+            "The optimization focuses on minimizing the Levelized Cost of Energy (LCOE) by considering both capital expenditures and operational costs. "
+            "Formulating the problem as a mixed-integer linear model, the tool utilizes the open-source modeling framework OEMOF "
+            "to find the optimal configuration that meets consumer demands.",
+            body_style,
+        )
+    )
+    elements.append(
+        Paragraph(
+            "Finally, the tool provides detailed outputs such as optimal installed capacities for each system component, time-series data of system operations, "
+            "investment cost breakdowns, CO<sub>2</sub> emission estimates, and fuel consumption requirements. "
+            "These results offer valuable insights for stakeholders to make informed decisions regarding the planning and implementation of off-grid energy solutions.",
+            body_style,
+        )
+    )
 
     # Build the PDF document
     buffer = io.BytesIO()
@@ -1021,10 +927,10 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
 
 
 def project_data_df_to_xlsx(  # noqa:PLR0913
-    input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df
+    input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df, currency
 ):
     input_df, energy_flow_df, results_df, nodes_df, links_df = prepare_data_for_export(
-        input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df
+        input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df, currency
     )
     excel_file = io.BytesIO()
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
