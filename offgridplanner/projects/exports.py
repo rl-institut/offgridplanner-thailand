@@ -304,8 +304,44 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     links_df = dataframes["links_df"]
     custom_demand_df = dataframes["custom_demand_df"]
 
-    # Prepare data (assuming this function is defined elsewhere)
+    # These KPIs aren't persisted on the Results model, so they have to be
+    # derived from the raw energy flow time series before prepare_data_for_export
+    # renames its columns (mirrors offgridplanner/steps/views.py:simulation_results)
     demand_ts = energy_flow_df["demand"].copy()
+    lhv = energy_system_design["fuel_cell_parameters_fuel_lhv"].iloc[0]
+    h2_production_kwh = (
+        energy_flow_df["hydrogen_bus_to_h2_storage"].sum()
+        if "hydrogen_bus_to_h2_storage" in energy_flow_df
+        else 0
+    )
+    h2_production_kg = h2_production_kwh / lhv if lhv else 0
+    operation_hours_battery = (
+        (
+            energy_flow_df["dc_bus_to_battery"].abs()
+            + energy_flow_df["battery_to_dc_bus"].abs()
+        )
+        .round(2)
+        .astype(bool)
+        .sum()
+        if "dc_bus_to_battery" in energy_flow_df
+        else 0
+    )
+    operation_hours_electrolyzer = (
+        energy_flow_df["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
+        if "dc_bus_to_electrolyzer" in energy_flow_df
+        else 0
+    )
+    operation_hours_fuel_cell = (
+        energy_flow_df["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
+        if "fuel_cell_to_dc_bus" in energy_flow_df
+        else 0
+    )
+    surplus_total_kwh = (
+        energy_flow_df["dc_bus_to_surplus"].sum()
+        if "dc_bus_to_surplus" in energy_flow_df
+        else 0
+    )
+
     input_df, energy_flow_df, results_df, nodes_df, links_df = prepare_data_for_export(
         input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df, currency
     )
@@ -712,32 +748,75 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
             capacity_dict["Battery System"] = (
                 f"{results.battery_capacity:,.1f} kWh"  # Corrected typo
             )
+        if results.electrolyzer_capacity > 0:
+            capacity_dict["Electrolyzer"] = f"{results.electrolyzer_capacity:,.1f} kW"
+        if results.fuel_cell_capacity > 0:
+            capacity_dict["Fuel Cell"] = f"{results.fuel_cell_capacity:,.1f} kW"
+        if results.h2_storage_capacity > 0:
+            capacity_dict["H2 Storage"] = f"{results.h2_storage_capacity:,.1f} kWh"
+        if h2_production_kg > 0:
+            capacity_dict["Hydrogen Production"] = f"{h2_production_kg:,.1f} kg/a"
 
-        # Define table headers
         table_data = [["Unit", "Capacity"]]
         for unit, capacity in capacity_dict.items():
             table_data.append([unit, capacity])
 
-        # Create capacity table
         capacity_table = Table(table_data, colWidths=[250, 150])
         capacity_table.setStyle(table_style)
         elements.append(capacity_table)
-        elements.append(Spacer(1, 24))
+        elements.append(Spacer(1, 12))
 
-        # System performance text
+        operation_hours_dict = {}
+        if operation_hours_battery > 0:
+            operation_hours_dict["Battery"] = f"{operation_hours_battery:,.0f} h"
+        if operation_hours_electrolyzer > 0:
+            operation_hours_dict["Electrolyzer"] = (
+                f"{operation_hours_electrolyzer:,.0f} h"
+            )
+        if operation_hours_fuel_cell > 0:
+            operation_hours_dict["Fuel Cell"] = f"{operation_hours_fuel_cell:,.0f} h"
+        if operation_hours_dict:
+            op_hours_data = [["Component", "Operation Hours"]]
+            for component, hours in operation_hours_dict.items():
+                op_hours_data.append([component, hours])
+            op_hours_table = Table(op_hours_data, colWidths=[250, 150])
+            op_hours_table.setStyle(table_style)
+            elements.append(op_hours_table)
+            elements.append(Spacer(1, 24))
+
         system_performance_text = (
             f"With this system, a renewable energy share of {results.res_share:.1f}% is achieved. "
             f"An electricity surplus of {results.surplus_rate:.1f}% occurs. "
         )
-        if results.shortage_total == 0:
-            system_performance_text += "The demand is met at all times."
-        else:
-            system_performance_text += (
-                f"The demand is not fully met at all times; the shortage amounts to {results.shortage_total:.1f}%. "
-                "Note: Designing the energy system without accounting for maximum load peaks can lead to significant cost savings, "
-                "but it may compromise grid stability."
-            )
         elements.append(Paragraph(system_performance_text, body_style))
+
+    if input_data.do_grid_optimization:
+        elements.append(img_dict.get("map"))
+        elements.append(figure_caption("Figure: Distribution Grid of the Off-Grid System"))
+
+        connected_text = f"Out of the total {results.n_consumers} selected consumers, "
+        if results.n_shs_consumers == 0:
+            connected_text += "all were connected to the grid."
+        else:
+            num_unconnected = results.n_shs_consumers
+            consumer_word = "consumer" if num_unconnected == 1 else "consumers"
+            threshold = input_data.shs_max_specific_marginal_grid_cost
+            connected_text += (
+                f"{num_unconnected} {consumer_word} were not connected to the grid because their specific marginal connection costs exceeded "
+                f"the user-defined threshold of {threshold} ct/kWh. Therefore, these consumers will need to be equipped with a solar home system "
+                "instead."
+            )
+        elements.append(Paragraph(connected_text, body_style))
+
+        grid_requirements_text = (
+            f"The grid requires {results.n_poles:,.0f} poles, {results.length_distribution_cable:,.0f} meters of distribution cable "
+            f"(avg. {results.average_length_distribution_cable:,.1f} m per connection), and "
+            f"{results.length_connection_cable:,.0f} meters of connection cable (avg. {results.average_length_connection_cable:,.1f} m per connection). "
+            f"The upfront grid investment costs amount to {results.upfront_invest_grid:,.0f} {currency}. "
+            "The positioning of the poles and the layout of the connection cables are shown on the attached map."
+        )
+        elements.append(Paragraph(grid_requirements_text, body_style))
+        elements.append(Spacer(1, 12))
 
         # Add Sankey Diagram
         sankey_text = "The presented Sankey diagram visualizes the extent to which each component contributes to meeting the demand."
