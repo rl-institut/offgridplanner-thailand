@@ -7,6 +7,8 @@
 ### Fixed
 - Fix inconsistent decimal separator in forms (now dot across all fields) ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
 - Fix link to about page ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
+- Disable checking consumer country on import (was buggy for Thailand due to complex geometry) ([#75](https://github.com/rl-institut/offgridplanner-thailand/pull/75))
+- Fix non-zero LCOH values on zero H2-component scenarios ([#75](https://github.com/rl-institut/offgridplanner-thailand/pull/75))
 
 
 ## [v1.4.1-thai.6.0] – 2026-06-11
