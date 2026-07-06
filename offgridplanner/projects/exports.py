@@ -209,20 +209,49 @@ def load_reportlab_styles():
         spaceAfter=6,
         leading=14,
     )
-    italic_body_style = ParagraphStyle(
-        name="ItalicBody",
-        parent=getSampleStyleSheet()["BodyText"],  # Inherit from 'BodyText' style
-        fontName="Helvetica-Oblique",  # Use an italic variant of Helvetica
-        fontSize=10,
-        leading=12,  # Optional: Adjust line spacing as needed
-        alignment=TA_JUSTIFY,  # Left-aligned text
-    )
+
+    def draw_header(canvas, doc):
+        """
+        Draws the Offgridplanner logo top-left and the Green-H2Islands logo
+        top-right, positioned in the page's top margin band.
+        """
+        canvas.saveState()
+        page_width, page_height = A4
+        logo_height = 0.4 * inch
+        logo_y = page_height - 0.7 * inch
+
+        left_logo_path = staticfiles_storage.path(
+            "assets/logos/LogoOffgridplanner.svg"
+        )
+        left_drawing = svg2rlg(left_logo_path)
+        scale = logo_height / left_drawing.height
+        left_drawing.width *= scale
+        left_drawing.height *= scale
+        left_drawing.scale(scale, scale)
+        renderPDF.draw(left_drawing, canvas, doc.leftMargin, logo_y)
+
+        right_logo_path = staticfiles_storage.path(
+            "assets/logos/Green-H2Islands-Full-Logo.png"
+        )
+        right_reader = ImageReader(right_logo_path)
+        right_img_width, right_img_height = right_reader.getSize()
+        right_width = logo_height * right_img_width / right_img_height
+        canvas.drawImage(
+            right_reader,
+            page_width - doc.rightMargin - right_width,
+            logo_y,
+            width=right_width,
+            height=logo_height,
+            mask="auto",
+        )
+        canvas.restoreState()
 
     def add_page_number(canvas, doc):
         """
         Adds the page number at the bottom right of the page.
         Page numbering starts at 1 from the second page.
         """
+        draw_header(canvas, doc)
         page_num = doc.page
         if page_num > 1:
             display_num = page_num - 1
@@ -234,8 +263,9 @@ def load_reportlab_styles():
 
     def on_first_page(canvas, doc):
         """
-        No operation function for the first page.
+        Draws the header logos on the title page.
         """
+        draw_header(canvas, doc)
 
     return (
         styles,
