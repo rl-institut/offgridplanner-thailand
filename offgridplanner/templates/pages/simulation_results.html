@@ -80,6 +80,7 @@
                     <div class="item__unit">{{results.lcoe.unit}}</div>
                   </div>
                 </div>
+                {% if results.lcoh.value != 0 %}
                 <div class="item item--main">
                   <div class="item__name">{% translate "LCOH" %}</div>
                   <div class="item__result">
@@ -87,6 +88,7 @@
                     <div class="item__unit">{{results.lcoh.unit}}</div>
                   </div>
                 </div>
+                {% endif %}
                 <div class="item item--main">
                   <div class="item__name">{{results.upfront_invest_total.verbose}}</div>
                   <div class="item__result">
