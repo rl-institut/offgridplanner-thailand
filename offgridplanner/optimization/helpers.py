@@ -230,11 +230,11 @@ def check_imported_consumer_data(df, proj_id):
         "is_connected": bool,
     }
     convert_column_types(df, column_types)
-    if not check_nodes_within_country(df, proj_id):
-        return None, (
-            "Some of the imported consumers are located outside the selected country. "
-            "Please verify the project country or check the coordinates in your CSV file."
-        )
+    # if not check_nodes_within_country(df, proj_id):
+    #     return None, (
+    #         "Some of the imported consumers are located outside the selected country. "
+    #         "Please verify the project country or check the coordinates in your CSV file."
+    #     )
 
     df = df[
         [

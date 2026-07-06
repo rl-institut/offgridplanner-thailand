@@ -618,7 +618,7 @@ class SupplyProcessor(OptimizationDataHandler):
         self.lcoe = 100 * self.total_revenue / self.total_demand
         self.lcoh = (
             100 * self.total_cost_hydrogen / sum(self.sequences["h2_storage_charge"])
-            if sum(self.sequences["h2_storage_charge"]) != 0
+            if round(sum(self.sequences["h2_storage_charge"])) != 0
             else 0
         )
         self.res = (
