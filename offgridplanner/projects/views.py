@@ -215,7 +215,7 @@ def export_project_results(request, proj_id):
         "energy system design": energy_system_design_df,
     }
 
-    prepared_data = prepare_data_for_export(dataframes)
+    prepared_data = prepare_data_for_export(dataframes, project.currency)
 
     excel_file = io.BytesIO()
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
@@ -286,6 +286,7 @@ def get_project_data(project):
 @user_owns_project
 @require_http_methods(["POST"])
 def download_pdf_report(request, proj_id):  # noqa:PLR0915
+    project = get_object_or_404(Project, id=proj_id)
     dataframes = collect_project_dataframes(proj_id)
     data = json.loads(request.body)
     images = data.get("images", [])  # TODO check format and set default
@@ -351,8 +352,8 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
             img = Image(image_io, width=final_width, height=final_height)
             image_dict[plot_id] = img
     if "demand" not in energy_flow_df.columns:
-        energy_flow_df["demand"] = PreProcessor(proj_id).demand
-    doc, buffer = create_pdf_report(image_dict, dataframes)
+        energy_flow_df["demand"] = PreProcessor(proj_id).demand.to_numpy()
+    doc, buffer = create_pdf_report(image_dict, dataframes, currency=project.currency)
 
     buffer.seek(0)  # ensure we're at the start
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
@@ -366,6 +367,7 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
 @user_owns_project
 @require_http_methods(["GET"])
 def download_excel_results(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
     dataframes = collect_project_dataframes(proj_id)
     input_parameters_df = dataframes["input_parameters_df"]
     energy_flow_df = dataframes["energy_flow_df"]
@@ -381,6 +383,7 @@ def download_excel_results(request, proj_id):
         results_df,
         nodes_df,
         links_df,
+        project.currency,
     )
     return HttpResponse(
         excel_file,

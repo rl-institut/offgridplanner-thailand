@@ -47,7 +47,7 @@ def format_column_names(df):
 
 
 def prepare_data_for_export(  # noqa:PLR0913,PLR0915
-    input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df
+    input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df, currency
 ):
     # TODO set units etc. with mapping instead
     """
@@ -68,20 +68,20 @@ def prepare_data_for_export(  # noqa:PLR0913,PLR0915
     input_df.loc["n_days", "Unit"] = "days"
     input_df.loc["interest_rate", "Unit"] = "%"
     input_df.loc[["distribution_cable_capex", "connection_cable_capex"], "Unit"] = (
-        "USD/m"
+        f"{currency}/m"
     )
-    input_df.loc["pole_capex"] = "USD/pole"
+    input_df.loc["pole_capex"] = f"{currency}/pole"
     input_df.loc[input_df.index.str.contains("lifetime"), "Unit"] = "years"
     input_df.loc[input_df.index.str.contains("length"), "Unit"] = "m"
-    input_df.loc[input_df.index.str.contains("_capex"), "Unit"] = "USD/kWh"
-    input_df.loc[input_df.index.str.contains("_opex"), "Unit"] = "USD/(kW a)"
-    input_df.loc[input_df.index.str.contains("_fuel"), "Unit"] = "USD/l"
-    input_df.loc[input_df.index.str.contains("_fuel_cost"), "Unit"] = "USD/l"
+    input_df.loc[input_df.index.str.contains("_capex"), "Unit"] = f"{currency}/kWh"
+    input_df.loc[input_df.index.str.contains("_opex"), "Unit"] = f"{currency}/(kW a)"
+    input_df.loc[input_df.index.str.contains("_fuel"), "Unit"] = f"{currency}/l"
+    input_df.loc[input_df.index.str.contains("_fuel_cost"), "Unit"] = f"{currency}/l"
     input_df.loc[input_df.index.str.contains("_fuel_lhv"), "Unit"] = "kWh/kg"
     input_df.loc[input_df.index.str.contains("_capacity"), "Unit"] = "kWh"
-    input_df.loc[["battery_parameters_capex"], "Unit"] = "USD/kWh"
-    input_df.loc[["mg_connection_cost"], "Unit"] = "USD"
-    input_df.loc[["shs_max_specific_marginal_grid_cost"], "Unit"] = "c/kWh"
+    input_df.loc[["battery_parameters_capex"], "Unit"] = f"{currency}/kWh"
+    input_df.loc[["mg_connection_cost"], "Unit"] = f"{currency}"
+    input_df.loc[["shs_max_specific_marginal_grid_cost"], "Unit"] = "ct/kWh"
     input_df = input_df.reset_index()
     input_df = format_first_col(input_df)
     cols = [
@@ -99,11 +99,11 @@ def prepare_data_for_export(  # noqa:PLR0913,PLR0915
     results_df = results_df.set_index("")
     results_df.loc[results_df.index.str.contains("length"), "Unit"] = "m"
     results_df.loc[results_df.index.str.contains("CO2"), "Unit"] = "t/a"
-    results_df.loc[results_df.index.str.contains("Upfront"), "Unit"] = "USD"
-    results_df.loc[results_df.index.str.contains("Cost"), "Unit"] = "USD/a"
-    results_df.loc[results_df.index.str.contains("Epc"), "Unit"] = "USD/a"
-    results_df.loc[results_df.index.str.contains("capacity"), "Unit"] = "USD/kW"
-    results_df.loc[["Battery capacity"], "Unit"] = "USD/kWh"
+    results_df.loc[results_df.index.str.contains("Upfront"), "Unit"] = f"{currency}"
+    results_df.loc[results_df.index.str.contains("Cost"), "Unit"] = f"{currency}/a"
+    results_df.loc[results_df.index.str.contains("Epc"), "Unit"] = f"{currency}/a"
+    results_df.loc[results_df.index.str.contains("capacity"), "Unit"] = f"{currency}/kW"
+    results_df.loc[["Battery capacity"], "Unit"] = f"{currency}/kWh"
     results_df.loc[
         [
             "Max voltage drop",
@@ -252,7 +252,7 @@ def load_reportlab_styles():
 
 # TODO refactor export functions
 def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
-    img_dict, dataframes
+    img_dict: dict, dataframes: dict, currency: str
 ):
     """
     Generates a PDF report based on the provided data and images.
@@ -260,6 +260,7 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     Parameters:
         img_dict (dict): Dictionary containing image objects.
         dataframes (dict): Dict of dataframes containing project data.
+        currency (str): Currency that the project is set to.
 
     Returns:
         tuple: A tuple containing the PDF document object and a BytesIO buffer.
@@ -276,7 +277,7 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
     # Prepare data (assuming this function is defined elsewhere)
     demand_ts = energy_flow_df["demand"].copy()
     input_df, energy_flow_df, results_df, nodes_df, links_df = prepare_data_for_export(
-        input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df
+        input_df, energy_system_design, energy_flow_df, results_df, nodes_df, links_df, currency
     )
 
     # Convert DataFrames to SimpleNamespace for easier attribute access
@@ -778,9 +779,9 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
 
         # Add investment costs text
         economic_costs_text = (
-            f"The total upfront investment costs amount to {upfront_invest_total:,.0f} USD. "
-            f"Of this, {results.upfront_invest_grid:,.0f} USD is allocated to grid investment costs, and "
-            f"{upfront_invest_converters_and_storage:,.0f} USD is allocated to energy converters and battery systems."
+            f"The total upfront investment costs amount to {upfront_invest_total:,.0f} {currency}. "
+            f"Of this, {results.upfront_invest_grid:,.0f} {currency} is allocated to grid investment costs, and "
+            f"{upfront_invest_converters_and_storage:,.0f} {currency} is allocated to energy converters and storage systems."
         )
         elements.append(Paragraph(economic_costs_text, body_style))
 
@@ -825,47 +826,60 @@ def create_pdf_report(  # noqa: PLR0915, PLR0912, C901
             table_data.append(
                 [
                     "Grid",
-                    f"{results.upfront_invest_grid:,.0f} USD",
-                    f"{results.cost_grid:,.0f} USD",
+                    f"{results.upfront_invest_grid:,.0f} {currency}",
+                    f"{results.cost_grid:,.0f} {currency}",
                 ]
             )
-        if input_data.do_es_design_optimization:
-            table_data += [
-                [
-                    "PV",
-                    f"{results.upfront_invest_pv:,.0f} USD",
-                    f"{results.epc_pv:,.0f} USD",
-                ],
-                [
-                    "Diesel Genset",
-                    f"{results.upfront_invest_diesel_genset:,.0f} USD",
-                    f"{results.epc_diesel_genset:,.0f} USD",
-                ],
-                [
-                    "Inverter",
-                    f"{results.upfront_invest_inverter:,.0f} USD",
-                    f"{results.epc_inverter:,.0f} USD",
-                ],
-                [
-                    "Rectifier",
-                    f"{results.upfront_invest_rectifier:,.0f} USD",
-                    f"{results.epc_rectifier:,.0f} USD",
-                ],
-                [
-                    "Battery",
-                    f"{results.upfront_invest_battery:,.0f} USD",
-                    f"{results.epc_battery:,.0f} USD",
-                ],
-                ["Diesel Fuel", "-", f"{results.cost_fuel:,.0f} USD"],
+        table_data += [
+            [
+                "PV",
+                f"{results.upfront_invest_pv:,.0f} {currency}",
+                f"{results.epc_pv:,.0f} {currency}",
+            ],
+            [
+                "Diesel Genset",
+                f"{results.upfront_invest_diesel_genset:,.0f} {currency}",
+                f"{results.epc_diesel_genset:,.0f} {currency}",
+            ],
+            [
+                "Inverter",
+                f"{results.upfront_invest_inverter:,.0f} {currency}",
+                f"{results.epc_inverter:,.0f} {currency}",
+            ],
+            [
+                "Rectifier",
+                f"{results.upfront_invest_rectifier:,.0f} {currency}",
+                f"{results.epc_rectifier:,.0f} {currency}",
+            ],
+            [
+                "Battery",
+                f"{results.upfront_invest_battery:,.0f} {currency}",
+                f"{results.epc_battery:,.0f} {currency}",
+            ],
+            [
+                "H2 Storage",
+                f"{results.upfront_invest_h2_storage:,.0f} {currency}",
+                f"{results.epc_h2_storage:,.0f} {currency}",
+            ],
+            [
+                "Electrolyzer",
+                f"{results.upfront_invest_electrolyzer:,.0f} {currency}",
+                f"{results.epc_electrolyzer:,.0f} {currency}",
+            ],
+            [
+                "Fuel Cell",
+                f"{results.upfront_invest_fuel_cell:,.0f} {currency}",
+                f"{results.epc_fuel_cell:,.0f} {currency}",
+            ],
+            ["Diesel Fuel", "-", f"{results.cost_fuel:,.0f} {currency}"],
+        ]
+        table_data.append(
+            [
+                "Total",
+                f"{upfront_invest_total:,.0f} {currency}",
+                f"{results.epc_total:,.0f} {currency}",
             ]
-        if input_data.do_grid_optimization and input_data.do_es_design_optimization:
-            table_data.append(
-                [
-                    "Total",
-                    f"{upfront_invest_total:,.0f} USD",
-                    f"{results.epc_total:,.0f} USD",
-                ]
-            )
+        )
 
         economic_table = Table(table_data, colWidths=[200, 100, 100])
         economic_table.setStyle(table_style)
