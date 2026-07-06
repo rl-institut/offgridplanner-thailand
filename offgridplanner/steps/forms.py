@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from config.settings.base import DEFAULT_CURRENCY
 from offgridplanner.projects.helpers import FORM_FIELD_METADATA
-from offgridplanner.projects.widgets import BatteryDesignWidget
+from offgridplanner.projects.widgets import OptimizeComponentWidget
 from offgridplanner.steps.models import CustomDemand
 from offgridplanner.steps.models import EnergySystemDesign
 from offgridplanner.steps.models import GridDesign
@@ -60,7 +60,7 @@ class CustomModelForm(ModelForm):
 
             # Set the custom widget for the optimized/fixed capacity field
             if "settings_design" in field_name:
-                field.widget = BatteryDesignWidget(
+                field.widget = OptimizeComponentWidget(
                     attrs={
                         "value": str(self.initial[field_name]).lower(),
                         "component": field.db_column.split("__")[0],

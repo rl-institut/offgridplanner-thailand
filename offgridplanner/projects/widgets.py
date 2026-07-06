@@ -1,8 +1,8 @@
 from django.forms import RadioSelect
 
 
-class BatteryDesignWidget(RadioSelect):
-    template_name = "widgets/battery_design_widget.html"
+class OptimizeComponentWidget(RadioSelect):
+    template_name = "widgets/optimize_component_widget.html"
 
     class Media:
         js = "js/energy-system-design.js"
