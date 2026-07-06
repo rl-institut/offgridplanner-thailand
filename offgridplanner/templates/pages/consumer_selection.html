@@ -30,7 +30,9 @@
     <section class="dashboard" id="section">
       <div class="row">
         <div class="chart" style="height: auto">
-          <h2>{% translate 'Set Consumer Properties' %}</h2>
+          <h2>{% translate 'Set Consumer Properties' %}
+            <span class="icon icon-question" id="videoTutorialIcon" data-bs-toggle="tooltip" title="{% translate 'Click to watch video tutorial' %}" onclick="bootstrap.Tooltip.getInstance(this).hide(); document.getElementById('videoTutorial').style.display='block'"></span>
+          </h2>
           <table style="border-top: none; color: #5f7489; border-spacing: 0; margin-top: 1rem;">
             <tr>
               <th style="vertical-align: top; padding: 5px;">{% translate 'Consumer Type' %}</th>
@@ -337,6 +339,17 @@
       window.onload = function () {
         addDrawingToolsToConsumerMap();
         db_nodes_to_js({{proj_id}}, true);
+
+        // Click opens the video tutorial modal instead of toggling the tooltip, so the
+        // 'click' trigger from the shared tooltip init must be dropped for this icon
+        var videoTutorialIcon = document.getElementById('videoTutorialIcon');
+        if (videoTutorialIcon) {
+          var existingTooltip = bootstrap.Tooltip.getInstance(videoTutorialIcon);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+          new bootstrap.Tooltip(videoTutorialIcon, { trigger: 'hover' });
+        }
       };
     </script>
     <script src="{% statici18n LANGUAGE_CODE %}"></script>
