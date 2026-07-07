@@ -154,21 +154,21 @@ def prepare_data_for_export(  # noqa:PLR0913,PLR0915
     return input_df, energy_flow_df, results_df, nodes_df, links_df
 
 
-def figure_caption(text):
-    return Paragraph(
-        text,
-        ParagraphStyle(
-            "FigureCaption",
-            fontSize=8,
-            alignment=TA_CENTER,
-            spaceAfter=24,
-            fontName="Helvetica-Oblique",
-        ),
-    )
-
-
 class PdfReportBuilder:
     """Builds the off-grid planning PDF report from a project's data and pre-rendered chart images."""
+
+    @staticmethod
+    def _figure_caption(text):
+        return Paragraph(
+            text,
+            ParagraphStyle(
+                "FigureCaption",
+                fontSize=8,
+                alignment=TA_CENTER,
+                spaceAfter=24,
+                fontName="Helvetica-Oblique",
+            ),
+        )
 
     def __init__(self, proj_id, img_dict):
         self.proj_id = proj_id
@@ -660,7 +660,7 @@ class PdfReportBuilder:
 
         self.elements.append(self.img_dict.get("map"))
         self.elements.append(
-            figure_caption("Figure: Distribution Grid of the Off-Grid System")
+            self._figure_caption("Figure: Distribution Grid of the Off-Grid System")
         )
 
         connected_text = f"Out of the total {results.n_consumers} selected consumers, "
@@ -695,7 +695,7 @@ class PdfReportBuilder:
         self.elements.append(Paragraph(sankey_text, self.body_style))
         self.elements.append(self.img_dict.get("sankeyDiagram"))
         self.elements.append(
-            figure_caption(
+            self._figure_caption(
                 "Figure: Sankey Diagram Representing the Energy Flow in the System"
             )
         )
@@ -707,7 +707,7 @@ class PdfReportBuilder:
         self.elements.append(Paragraph(additional_diagrams_text, self.body_style))
         self.elements.append(self.img_dict.get("energyFlows"))
         self.elements.append(
-            figure_caption("Figure: Energy Flows with 1-Hour Resolution")
+            self._figure_caption("Figure: Energy Flows with 1-Hour Resolution")
         )
 
     def _build_section_2_3_economic(self):
@@ -736,7 +736,7 @@ class PdfReportBuilder:
 
         self.elements.append(self.img_dict.get("lcoeBreakdown"))
         self.elements.append(
-            figure_caption("Figure: Levelized Cost of Electricity Breakdown")
+            self._figure_caption("Figure: Levelized Cost of Electricity Breakdown")
         )
 
         economic_details_text = (
@@ -918,7 +918,7 @@ class PdfReportBuilder:
         ):
             self.elements.append(self.img_dict.get("demandTs"))
             self.elements.append(
-                figure_caption("Figure: Demand Coverage of the Off-Grid System")
+                self._figure_caption("Figure: Demand Coverage of the Off-Grid System")
             )
 
         self.elements.append(PageBreak())
@@ -945,7 +945,9 @@ class PdfReportBuilder:
 
         self.elements.append(self.img_dict.get("demandCoverage"))
         self.elements.append(
-            figure_caption("Figure: Range by Renewable and Non-Renewable Resources")
+            self._figure_caption(
+                "Figure: Range by Renewable and Non-Renewable Resources"
+            )
         )
 
     def _build_section_3_tool_description(self):
