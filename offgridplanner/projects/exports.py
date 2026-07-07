@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pandas as pd
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.shortcuts import get_object_or_404
 from reportlab.graphics import renderPDF
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.enums import TA_JUSTIFY
@@ -23,6 +24,10 @@ from reportlab.platypus import Spacer
 from reportlab.platypus import Table
 from reportlab.platypus import TableStyle
 from svglib.svglib import svg2rlg
+
+from offgridplanner.optimization.processing import PreProcessor
+from offgridplanner.projects.helpers import collect_project_dataframes
+from offgridplanner.projects.models import Project
 
 
 def format_first_col(df):
@@ -163,11 +168,15 @@ def figure_caption(text):
 
 
 class PdfReportBuilder:
-    """Builds the off-grid planning PDF report from project dataframes and pre-rendered chart images."""
+    """Builds the off-grid planning PDF report from a project's data and pre-rendered chart images."""
 
-    def __init__(self, img_dict, dataframes, currency):
+    def __init__(self, proj_id, img_dict):
+        self.proj_id = proj_id
+        self.project = get_object_or_404(Project, id=proj_id)
+        self.currency = self.project.currency
         self.img_dict = img_dict
-        self.currency = currency
+
+        dataframes = collect_project_dataframes(proj_id)
         self.energy_flow_df = dataframes["energy_flow_df"]
         self.input_df = dataframes["input_parameters_df"]
         self.results_df = dataframes["results_df"]
@@ -179,8 +188,8 @@ class PdfReportBuilder:
 
     def build(self):
         """
-        Public orchestrator. Returns a tuple (doc, buffer) matching the previous
-        module-level create_pdf_report's return value.
+        Public orchestrator. Returns a tuple (doc, buffer): the ReportLab
+        document object and a BytesIO buffer containing the rendered PDF.
         """
         self._compute_raw_kpis()
         self._prepare_dataframes()
@@ -201,6 +210,8 @@ class PdfReportBuilder:
         renames its columns (mirrors offgridplanner/steps/views.py:simulation_results).
         """
         energy_flow_df = self.energy_flow_df
+        if "demand" not in energy_flow_df.columns:
+            energy_flow_df["demand"] = PreProcessor(self.proj_id).demand.to_numpy()
         self.demand_ts = energy_flow_df["demand"].copy()
         lhv = self.energy_system_design["fuel_cell_parameters_fuel_lhv"].iloc[0]
         h2_production_kwh = (
@@ -421,14 +432,14 @@ class PdfReportBuilder:
             ["1. Overview of Project Parameters", "&nbsp;&nbsp;1"],
             ["2. Results", "&nbsp;&nbsp;2"],
             [f"{indent}2.1 Summary of Results", "&nbsp;&nbsp;2"],
-            [f"{indent}2.2 Technical Results", "&nbsp;&nbsp;3"],
-            [f"{indent}2.3 Economic Results", "&nbsp;&nbsp;5"],
-            [f"{indent}2.4 Demand Results", "&nbsp;&nbsp;7"],
-            [f"{indent}2.5 Environmental Results", "&nbsp;&nbsp;8"],
-            ["3. Tool Description", "&nbsp;&nbsp;9"],
-            [f"{indent}3.1 Demand Estimation", "&nbsp;&nbsp;9"],
-            [f"{indent}3.2 Grid Design Optimization", "&nbsp;&nbsp;10"],
-            [f"{indent}3.3 Energy System Optimization", "&nbsp;&nbsp;10"],
+            [f"{indent}2.2 Technical Results", "&nbsp;&nbsp;2"],
+            [f"{indent}2.3 Economic Results", "&nbsp;&nbsp;6"],
+            [f"{indent}2.4 Demand Results", "&nbsp;&nbsp;8"],
+            [f"{indent}2.5 Environmental Results", "&nbsp;&nbsp;10"],
+            ["3. Tool Description", "&nbsp;&nbsp;11"],
+            [f"{indent}3.1 Demand Estimation", "&nbsp;&nbsp;11"],
+            [f"{indent}3.2 Grid Design Optimization", "&nbsp;&nbsp;11"],
+            [f"{indent}3.3 Energy System Optimization", "&nbsp;&nbsp;11"],
         ]
 
         self.planning_steps = []
@@ -1024,21 +1035,6 @@ class PdfReportBuilder:
         )
         buffer.seek(0)
         return doc, buffer
-
-
-def create_pdf_report(img_dict: dict, dataframes: dict, currency: str):
-    """
-    Generates a PDF report based on the provided data and images.
-
-    Parameters:
-        img_dict (dict): Dictionary containing image objects.
-        dataframes (dict): Dict of dataframes containing project data.
-        currency (str): Currency that the project is set to.
-
-    Returns:
-        tuple: A tuple containing the PDF document object and a BytesIO buffer.
-    """
-    return PdfReportBuilder(img_dict, dataframes, currency).build()
 
 
 def project_data_df_to_xlsx(  # noqa:PLR0913

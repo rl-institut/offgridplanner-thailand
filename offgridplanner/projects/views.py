@@ -38,8 +38,7 @@ from config.settings.base import EXAMPLE_PROJECT_PATH
 from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.models import Nodes
 from offgridplanner.optimization.models import Simulation
-from offgridplanner.optimization.processing import PreProcessor
-from offgridplanner.projects.exports import create_pdf_report
+from offgridplanner.projects.exports import PdfReportBuilder
 from offgridplanner.projects.exports import project_data_df_to_xlsx
 from offgridplanner.projects.helpers import collect_project_dataframes
 from offgridplanner.projects.helpers import from_nested_dict
@@ -263,12 +262,9 @@ def get_project_data(project):
 @user_owns_project
 @require_http_methods(["POST"])
 def download_pdf_report(request, proj_id):  # noqa:PLR0915
-    project = get_object_or_404(Project, id=proj_id)
-    dataframes = collect_project_dataframes(proj_id)
+    options = get_object_or_404(Project, id=proj_id).options
     data = json.loads(request.body)
     images = data.get("images", [])  # TODO check format and set default
-    input_parameters_df = dataframes["input_parameters_df"]
-    energy_flow_df = dataframes["energy_flow_df"]
     if not images or not isinstance(images, list):
         raise HTTPException(status_code=400, detail="No images data provided")
     image_dict = {}
@@ -277,9 +273,9 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
         image_data = image.get("data")
         if not plot_id or not image_data:
             continue
-        if plot_id == "map" and not input_parameters_df["do_grid_optimization"].iloc[0]:
+        if plot_id == "map" and not options.do_grid_optimization:
             continue
-        if not input_parameters_df["do_es_design_optimization"].iloc[0]:
+        if not options.do_es_design_optimization:
             if plot_id in [
                 "optimalSizes",
                 "sankeyDiagram",
@@ -328,9 +324,7 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
             final_height = height_inch * scale * inch
             img = Image(image_io, width=final_width, height=final_height)
             image_dict[plot_id] = img
-    if "demand" not in energy_flow_df.columns:
-        energy_flow_df["demand"] = PreProcessor(proj_id).demand.to_numpy()
-    doc, buffer = create_pdf_report(image_dict, dataframes, currency=project.currency)
+    doc, buffer = PdfReportBuilder(proj_id, image_dict).build()
 
     buffer.seek(0)  # ensure we're at the start
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
