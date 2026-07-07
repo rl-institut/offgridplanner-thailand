@@ -27,6 +27,7 @@ from svglib.svglib import svg2rlg
 
 from offgridplanner.optimization.processing import PreProcessor
 from offgridplanner.projects.helpers import collect_project_dataframes
+from offgridplanner.projects.helpers import compute_derived_hydrogen_kpis
 from offgridplanner.projects.models import Project
 
 
@@ -207,45 +208,21 @@ class PdfReportBuilder:
         """
         These KPIs aren't persisted on the Results model, so they have to be
         derived from the raw energy flow time series before _prepare_dataframes
-        renames its columns (mirrors offgridplanner/steps/views.py:simulation_results).
+        renames its columns. compute_derived_energy_kpis is shared with
+        offgridplanner/steps/views.py:simulation_results.
         """
         energy_flow_df = self.energy_flow_df
         if "demand" not in energy_flow_df.columns:
             energy_flow_df["demand"] = PreProcessor(self.proj_id).demand.to_numpy()
         self.demand_ts = energy_flow_df["demand"].copy()
+
         lhv = self.energy_system_design["fuel_cell_parameters_fuel_lhv"].iloc[0]
-        h2_production_kwh = (
-            energy_flow_df["hydrogen_bus_to_h2_storage"].sum()
-            if "hydrogen_bus_to_h2_storage" in energy_flow_df
-            else 0
-        )
-        self.h2_production_kg = h2_production_kwh / lhv if lhv else 0
-        self.operation_hours_battery = (
-            (
-                energy_flow_df["dc_bus_to_battery"].abs()
-                + energy_flow_df["battery_to_dc_bus"].abs()
-            )
-            .round(2)
-            .astype(bool)
-            .sum()
-            if "dc_bus_to_battery" in energy_flow_df
-            else 0
-        )
-        self.operation_hours_electrolyzer = (
-            energy_flow_df["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
-            if "dc_bus_to_electrolyzer" in energy_flow_df
-            else 0
-        )
-        self.operation_hours_fuel_cell = (
-            energy_flow_df["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
-            if "fuel_cell_to_dc_bus" in energy_flow_df
-            else 0
-        )
-        self.surplus_total_kwh = (
-            energy_flow_df["dc_bus_to_surplus"].sum()
-            if "dc_bus_to_surplus" in energy_flow_df
-            else 0
-        )
+        derived_kpis = compute_derived_hydrogen_kpis(energy_flow_df, lhv)
+        self.h2_production_kg = derived_kpis["h2_production_kg"]
+        self.operation_hours_battery = derived_kpis["operation_hours_battery"]
+        self.operation_hours_electrolyzer = derived_kpis["operation_hours_electrolyzer"]
+        self.operation_hours_fuel_cell = derived_kpis["operation_hours_fuel_cell"]
+        self.surplus_total_kwh = derived_kpis["surplus_total_kwh"]
 
     def _prepare_dataframes(self):
         (

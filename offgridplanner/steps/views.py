@@ -25,6 +25,7 @@ from offgridplanner.optimization.supply.demand_estimation import PUBLIC_SERVICE_
 from offgridplanner.projects.forms import OptionForm
 from offgridplanner.projects.forms import ProjectForm
 from offgridplanner.projects.helpers import OUTPUT_KPIS
+from offgridplanner.projects.helpers import compute_derived_hydrogen_kpis
 from offgridplanner.projects.helpers import get_param_from_metadata
 from offgridplanner.projects.helpers import group_form_by_component
 from offgridplanner.projects.helpers import reorder_dict
@@ -376,33 +377,11 @@ def simulation_results(request, proj_id=None):
 
     # Calculate results not saved directly to db
     energy_flows = project.energyflow.df
-    lhv = project.energysystemdesign.fuel_cell_parameters_fuel_lhv
-    h2_production_kwh = energy_flows.hydrogen_bus_to_h2_storage.sum()
-    h2_production_kg = h2_production_kwh / lhv
-    operation_hours = pd.Series(
-        {
-            "battery": (
-                (
-                    energy_flows["dc_bus_to_battery"].abs()
-                    + energy_flows["battery_to_dc_bus"].abs()
-                )
-                .round(2)
-                .astype(bool)
-                .sum()
-            ),
-            "electrolyzer": (
-                energy_flows["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
-            ),
-            "fuel_cell": (
-                energy_flows["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
-            ),
-        }
+    derived_kpis = compute_derived_hydrogen_kpis(
+        energy_flows, project.energysystemdesign.fuel_cell_parameters_fuel_lhv
     )
-    # Add misc KPIs to output
-    for comp in operation_hours.index:
-        results_df.loc[f"operation_hours_{comp}"] = operation_hours.loc[comp]
-    results_df.loc["surplus_total_kwh"] = energy_flows.dc_bus_to_surplus.sum()
-    results_df.loc["h2_production_kg"] = h2_production_kg
+    for kpi, value in derived_kpis.items():
+        results_df.loc[kpi] = value
     results_df = results_df.astype(float)
     output_kpis = copy.deepcopy(OUTPUT_KPIS)
     for kpi in output_kpis:

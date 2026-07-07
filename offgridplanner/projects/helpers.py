@@ -53,6 +53,52 @@ def collect_project_dataframes(proj_id):
     return dataframes
 
 
+def compute_derived_hydrogen_kpis(energy_flow_df, fuel_cell_lhv):
+    """
+    Computes KPIs derived from the raw energy flow time series that aren't
+    persisted on the Results model: hydrogen production, component operation
+    hours, and total surplus. Shared by the results page and the PDF export.
+    """
+    h2_production_kwh = (
+        energy_flow_df["hydrogen_bus_to_h2_storage"].sum()
+        if "hydrogen_bus_to_h2_storage" in energy_flow_df
+        else 0
+    )
+    operation_hours_battery = (
+        (
+            energy_flow_df["dc_bus_to_battery"].abs()
+            + energy_flow_df["battery_to_dc_bus"].abs()
+        )
+        .round(2)
+        .astype(bool)
+        .sum()
+        if "dc_bus_to_battery" in energy_flow_df
+        else 0
+    )
+    operation_hours_electrolyzer = (
+        energy_flow_df["dc_bus_to_electrolyzer"].round(2).astype(bool).sum()
+        if "dc_bus_to_electrolyzer" in energy_flow_df
+        else 0
+    )
+    operation_hours_fuel_cell = (
+        energy_flow_df["fuel_cell_to_dc_bus"].round(2).astype(bool).sum()
+        if "fuel_cell_to_dc_bus" in energy_flow_df
+        else 0
+    )
+    surplus_total_kwh = (
+        energy_flow_df["dc_bus_to_surplus"].sum()
+        if "dc_bus_to_surplus" in energy_flow_df
+        else 0
+    )
+    return {
+        "h2_production_kg": h2_production_kwh / fuel_cell_lhv if fuel_cell_lhv else 0,
+        "operation_hours_battery": operation_hours_battery,
+        "operation_hours_electrolyzer": operation_hours_electrolyzer,
+        "operation_hours_fuel_cell": operation_hours_fuel_cell,
+        "surplus_total_kwh": surplus_total_kwh,
+    }
+
+
 def from_nested_dict(model_cls, nested_data):
     """
     Convert a nested dict back to {field_name: value} for a Django model.
