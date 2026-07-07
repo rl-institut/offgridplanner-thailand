@@ -323,7 +323,7 @@ class PdfReportBuilder:
         canvas.saveState()
         page_width, page_height = A4
         logo_height = 0.4 * inch
-        logo_y = page_height - 0.5 * inch
+        logo_y = page_height - 0.7 * inch
 
         left_logo_path = staticfiles_storage.path("assets/logos/LogoOffgridplanner.svg")
         left_drawing = svg2rlg(left_logo_path)
