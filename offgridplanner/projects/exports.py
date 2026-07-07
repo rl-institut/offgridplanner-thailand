@@ -2,7 +2,7 @@ import io
 from types import SimpleNamespace
 
 import pandas as pd
-from django.contrib.staticfiles.storage import staticfiles_storage
+from django.contrib.staticfiles.finders import find as find_static_file
 from django.shortcuts import get_object_or_404
 from reportlab.graphics import renderPDF
 from reportlab.lib.enums import TA_CENTER
@@ -325,7 +325,7 @@ class PdfReportBuilder:
         logo_height = 0.4 * inch
         logo_y = page_height - 0.7 * inch
 
-        left_logo_path = staticfiles_storage.path("assets/logos/LogoOffgridplanner.svg")
+        left_logo_path = find_static_file("assets/logos/LogoOffgridplanner.svg")
         left_drawing = svg2rlg(left_logo_path)
         scale = logo_height / left_drawing.height
         left_drawing.width *= scale
@@ -333,9 +333,7 @@ class PdfReportBuilder:
         left_drawing.scale(scale, scale)
         renderPDF.draw(left_drawing, canvas, doc.leftMargin, logo_y)
 
-        right_logo_path = staticfiles_storage.path(
-            "assets/logos/Green-H2Islands-Full-Logo.png"
-        )
+        right_logo_path = find_static_file("assets/logos/Green-H2Islands-Full-Logo.png")
         right_reader = ImageReader(right_logo_path)
         right_img_width, right_img_height = right_reader.getSize()
         right_width = logo_height * right_img_width / right_img_height
