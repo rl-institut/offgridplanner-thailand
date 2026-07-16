@@ -27,16 +27,7 @@
 <main>
   <section class="gd">
     <div>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="gd-sidebar">
-            <form method="post">
-              {% csrf_token %}
-
-              <div class="gd-sidebar__header">
-                <h2>Grid Properties
-                  </h2>
-      <form method="post" data-autosave-url="{% url 'steps:autosave_grid_design' proj_id %}">
+      <form method="post" hx-post="{% url 'steps:autosave_grid_design' proj_id %}" hx-trigger="input changed delay:1500ms" hx-indicator="#autosave-indicator" hx-swap="none" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
         {% csrf_token %}
               <div class="gd-sidebar__content" id="gd-accordion">
                 {% for component, fields in grouped_fields.items %}
