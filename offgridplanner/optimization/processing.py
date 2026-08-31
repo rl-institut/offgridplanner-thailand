@@ -577,7 +577,9 @@ class SupplyProcessor(OptimizationDataHandler):
             "battery": get_capacity("battery", "electricity_dc__battery"),
             "h2_storage": get_capacity("h2_storage", "hydrogen__h2_storage"),
             "fuel_cell": get_capacity("fuel_cell", "hydrogen__fuel_cell"),
-            "electrolyzer": get_capacity("electrolyzer", "electricity_dc__electrolyzer"),
+            "electrolyzer": get_capacity(
+                "electrolyzer", "electricity_dc__electrolyzer"
+            ),
         }
 
     def _calculate_costs(self):
