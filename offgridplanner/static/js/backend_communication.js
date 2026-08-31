@@ -203,7 +203,7 @@ async function check_optimization(project_id, token, time, model) {
                 shouldStop = true;
                 document.getElementById("loader").classList.remove("loader");
                 document.getElementById("loader").classList.add("error-cross");
-                document.getElementById("statusMsg").classList.add("There was an error fetching the optimization");
+                document.getElementById("statusMsg").innerHTML = res.results;
             }
         } else {
             if (response.status === 303 || response.status === 422) {
