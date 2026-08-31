@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Updated report contents ([#76](https://github.com/rl-institut/offgridplanner-thailand/pull/76))
+
 ### Changed
 - Minor changes to description and help texts across step pages ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
 
@@ -9,7 +12,7 @@
 - Fix link to about page ([#70](https://github.com/rl-institut/offgridplanner-thailand/pull/70))
 - Disable checking consumer country on import (was buggy for Thailand due to complex geometry) ([#75](https://github.com/rl-institut/offgridplanner-thailand/pull/75))
 - Fix non-zero LCOH values on zero H2-component scenarios ([#75](https://github.com/rl-institut/offgridplanner-thailand/pull/75))
-
+- Fix post-processing for simulation configurations excluding certain components ([#84](https://github.com/rl-institut/offgridplanner-thailand/pull/84))
 
 ## [v1.4.1-thai.6.0] – 2026-06-11
 ### Added
