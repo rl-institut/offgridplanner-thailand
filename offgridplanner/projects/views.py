@@ -8,7 +8,6 @@ from http.client import HTTPException
 from pathlib import Path
 
 # from jsonview.decorators import json_view
-import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -16,7 +15,6 @@ from django.db import transaction
 from django.db.models import Exists
 from django.db.models import OuterRef
 from django.db.models import Q
-from django.forms import model_to_dict
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
@@ -40,9 +38,7 @@ from config.settings.base import EXAMPLE_PROJECT_PATH
 from offgridplanner.optimization.models import Links
 from offgridplanner.optimization.models import Nodes
 from offgridplanner.optimization.models import Simulation
-from offgridplanner.optimization.processing import PreProcessor
-from offgridplanner.projects.exports import create_pdf_report
-from offgridplanner.projects.exports import prepare_data_for_export
+from offgridplanner.projects.exports import PdfReportBuilder
 from offgridplanner.projects.exports import project_data_df_to_xlsx
 from offgridplanner.projects.helpers import collect_project_dataframes
 from offgridplanner.projects.helpers import from_nested_dict
@@ -197,38 +193,18 @@ def project_delete(request, proj_id):
 @user_owns_project
 @require_http_methods(["GET"])
 def export_project_results(request, proj_id):
-    # TODO fix formatting and add units
     project = Project.objects.get(id=proj_id)
-    # TODO get this data over get_project_data instead
-    input_df = pd.Series(model_to_dict(project))
-    results_df = pd.Series(model_to_dict(project.simulation.results))
-    energy_system_design_df = pd.Series(model_to_dict(project.energysystemdesign))
-    energy_flow_df = project.energyflow.df
-    nodes_df = project.nodes.df
-    links_df = project.links.df
-    dataframes = {
-        "results": results_df,
-        "energy flow": energy_flow_df,
-        "user specified input parameters": input_df,
-        "nodes": nodes_df,
-        "links": links_df,
-        "energy system design": energy_system_design_df,
-    }
+    dataframes = collect_project_dataframes(proj_id)
 
-    prepared_data = prepare_data_for_export(dataframes)
-
-    excel_file = io.BytesIO()
-    with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-        workbook = writer.book
-        # format_right = workbook.add_format({"align": "right"})
-        # format_left = workbook.add_format({"align": "left"})
-
-        for sheet_name, df in zip(dataframes.keys(), prepared_data, strict=False):
-            df.astype(str).to_excel(writer, sheet_name=sheet_name, index=False)
-            worksheet = writer.sheets[sheet_name]
-            # set_column_width(worksheet, df, format_right if sheet_name != "results" else format_left)
-
-    excel_file.seek(0)
+    excel_file = project_data_df_to_xlsx(
+        dataframes["input_parameters_df"],
+        dataframes["energy_system_design_df"],
+        dataframes["energy_flow_df"],
+        dataframes["results_df"],
+        dataframes["nodes_df"],
+        dataframes["links_df"],
+        project.currency,
+    )
 
     response = StreamingHttpResponse(
         excel_file,
@@ -286,11 +262,9 @@ def get_project_data(project):
 @user_owns_project
 @require_http_methods(["POST"])
 def download_pdf_report(request, proj_id):  # noqa:PLR0915
-    dataframes = collect_project_dataframes(proj_id)
+    options = get_object_or_404(Project, id=proj_id).options
     data = json.loads(request.body)
     images = data.get("images", [])  # TODO check format and set default
-    input_parameters_df = dataframes["input_parameters_df"]
-    energy_flow_df = dataframes["energy_flow_df"]
     if not images or not isinstance(images, list):
         raise HTTPException(status_code=400, detail="No images data provided")
     image_dict = {}
@@ -299,9 +273,9 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
         image_data = image.get("data")
         if not plot_id or not image_data:
             continue
-        if plot_id == "map" and not input_parameters_df["do_grid_optimization"].iloc[0]:
+        if plot_id == "map" and not options.do_grid_optimization:
             continue
-        if not input_parameters_df["do_es_design_optimization"].iloc[0]:
+        if not options.do_es_design_optimization:
             if plot_id in [
                 "optimalSizes",
                 "sankeyDiagram",
@@ -350,9 +324,7 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
             final_height = height_inch * scale * inch
             img = Image(image_io, width=final_width, height=final_height)
             image_dict[plot_id] = img
-    if "demand" not in energy_flow_df.columns:
-        energy_flow_df["demand"] = PreProcessor(proj_id).demand
-    doc, buffer = create_pdf_report(image_dict, dataframes)
+    doc, buffer = PdfReportBuilder(proj_id, image_dict).build()
 
     buffer.seek(0)  # ensure we're at the start
     response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
@@ -366,6 +338,7 @@ def download_pdf_report(request, proj_id):  # noqa:PLR0915
 @user_owns_project
 @require_http_methods(["GET"])
 def download_excel_results(request, proj_id):
+    project = get_object_or_404(Project, id=proj_id)
     dataframes = collect_project_dataframes(proj_id)
     input_parameters_df = dataframes["input_parameters_df"]
     energy_flow_df = dataframes["energy_flow_df"]
@@ -381,6 +354,7 @@ def download_excel_results(request, proj_id):
         results_df,
         nodes_df,
         links_df,
+        project.currency,
     )
     return HttpResponse(
         excel_file,
