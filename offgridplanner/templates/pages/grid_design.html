@@ -26,7 +26,8 @@
 {% block progression_content %}
 <main>
   <section class="gd">
-    <div>
+    <div class="row">
+      <div class="col-md-4 gd-sidebar">
       <form method="post" hx-post="{% url 'steps:autosave_grid_design' proj_id %}" hx-trigger="input changed delay:1500ms" hx-indicator="#autosave-indicator" hx-swap="none" hx-headers='{"x-csrftoken": "{{ csrf_token }}"}'>
         {% csrf_token %}
               <div class="gd-sidebar__content" id="gd-accordion">
@@ -124,8 +125,7 @@
               </div>
               <input type="submit" id="submitFormBtn" hidden>
             </form>
-          </div>
-        </div>
+      </div>
         <div class="col-md-8">
           <div class="gd-map">
             <div class="gd-map__header">
@@ -146,7 +146,6 @@
           </div>
         </div>
       </div>
-    </div>
   </section>
   <div id="videoTutorial" class="modal" style="background-color: rgba(0,0,0,0.5); z-index: 999; text-align: left">
   <form class="modal-content" style="width: 700px; height: 520px;">
@@ -186,9 +185,6 @@
 </script>
 <script src="{% statici18n LANGUAGE_CODE %}"></script>
 <script src="{% static 'js/integrate_map.js' %}"></script>
-<script>
-  const csrfToken = '{{ csrf_token }}';
-</script>
 <script src="{% static 'js/pages/grid_design.js' %}"></script>
 <script src="{% static 'js/map_api.js' %}"></script>
 <script src="{% static 'js/backend_communication.js' %}"></script>

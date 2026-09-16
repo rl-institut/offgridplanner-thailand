@@ -172,29 +172,19 @@ def consumer_selection(request, proj_id=None):
 def demand_estimation(request, proj_id):
     # TODO demand import and export from this step still needs to be handled
     step_id = list(STEPS.keys()).index("demand_estimation") + 1
-    if proj_id is not None:
-        project = get_object_or_404(Project, id=proj_id)
-        options = project.options
-        custom_demand, _ = CustomDemand.objects.get_or_create(
-            project=project, defaults=get_param_from_metadata("default", "CustomDemand")
-        )
-        calibration_initial = custom_demand.calibration_option
-        calibration_active = calibration_initial is not None
-        # Pass the initial values for the customDemand shares to be able to use the dynamic reset button
-        household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
-        if custom_demand.uploaded_data:
-            uploaded_data = custom_demand.uploaded_data
-        else:
-            uploaded_data = {}
     project = get_object_or_404(Project, id=proj_id)
     options = project.options
     custom_demand, _ = CustomDemand.objects.get_or_create(
         project=project, defaults=get_param_from_metadata("default", "CustomDemand")
     )
     calibration_initial = custom_demand.calibration_option
-    calibration_active = custom_demand.calibration_option is not None
+    calibration_active = calibration_initial is not None
     # Pass the initial values for the customDemand shares to be able to use the dynamic reset button
     household_initial_shares = custom_demand.get_shares_dict(as_percentage=True)
+    if custom_demand.uploaded_data:
+        uploaded_data = custom_demand.uploaded_data
+    else:
+        uploaded_data = {}
 
     if request.method == "POST":
         form = CustomDemandForm(request.POST, instance=custom_demand)
@@ -213,22 +203,6 @@ def demand_estimation(request, proj_id):
             display_error = errors[0] if len(errors) == 1 else errors
             messages.add_message(request, messages.WARNING, display_error)
 
-        context = {
-            "household_initial_shares": household_initial_shares,
-            "calibration": {
-                "active": calibration_active,
-                "initial": calibration_initial,
-            },
-            "demand_increase": {
-                "active": custom_demand.annual_demand_increase,
-            },
-            "form": form,
-            "shares_tiers": CustomDemand().shares_tiers,
-            "opts_form": opts,
-            "proj_id": proj_id,
-            "step_id": step_id,
-            "step_list": STEP_LIST_RIBBON,
-        }
         if display_error:
             messages.add_message(request, messages.WARNING, display_error)
         else:
@@ -238,19 +212,16 @@ def demand_estimation(request, proj_id):
         opts = OptionForm(instance=options)
 
     context = {
+        "household_initial_shares": household_initial_shares,
         "calibration": {
             "active": calibration_active,
             "initial": calibration_initial,
         },
-        "custom_demand_shares": [
-            "very_low",
-            "low",
-            "middle",
-            "high",
-            "very_high",
-        ],
-        "household_initial_shares": household_initial_shares,
+        "demand_increase": {
+            "active": custom_demand.annual_demand_increase,
+        },
         "form": form,
+        "shares_tiers": CustomDemand().shares_tiers,
         "opts_form": opts,
         "uploaded_data": uploaded_data,
         "proj_id": proj_id,
@@ -575,26 +546,6 @@ def steps(request, proj_id, step_id=None):
 @login_required
 @user_owns_project
 @require_http_methods(["POST"])
-def project_setup_autosave(request, proj_id):
-    with transaction.atomic():
-        project = get_object_or_404(Project, id=proj_id)
-        if project is None:
-            form = ProjectForm(request.POST)
-            opts_form = OptionForm(request.POST)
-        else:
-            form = ProjectForm(request.POST, instance=project)
-            opts_form = OptionForm(request.POST, instance=project.options)
-        if form.is_valid() and opts_form.is_valid():
-            opts = opts_form.save()
-            if project is None:
-                project = form.save(commit=False)
-                project.user = User.objects.get(email=request.user.email)
-                project.options = opts
-            project.save()
-            simulation, _ = Simulation.objects.get_or_create(project=project)
-        return JsonResponse({"message": "successfully autosaved"}, status=200)
-
-
 def autosave_project_setup(request, proj_id=None):
     _, _, _, success = _save_project_setup(request.user, proj_id, request.POST)
     if success:
