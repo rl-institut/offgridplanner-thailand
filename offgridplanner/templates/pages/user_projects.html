@@ -142,7 +142,7 @@
           <td>
             <span style="float:none;">
               <form action="{% url 'projects:project_duplicate' project.id %}"
-                    method="POST" style="display:contents">
+                    style="display:contents">
                 {% csrf_token %}
                 <button style="color:#1F567D;
                                 padding:4px"
