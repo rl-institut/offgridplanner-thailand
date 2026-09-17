@@ -757,6 +757,7 @@ map.on(L.Draw.Event.CREATED, function (event) {
                 drawMarker(lat, lng, 'consumer');
                 setTimeout(() => drawControl._toolbars.draw._modes.marker.handler.enable(), 100);
             }
+            if (typeof autosave_map_elements === 'function') autosave_map_elements();
 
         } else {
             drawnItems.addLayer(layer);
