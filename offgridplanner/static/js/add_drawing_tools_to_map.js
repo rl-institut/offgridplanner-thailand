@@ -63,6 +63,11 @@ map.on('draw:created', function (e) {
 map.on(L.Draw.Event.CREATED, function (event) {
         const layer = event.layer;
 
+        if (event.layerType === 'polyline') {
+            // Roads are handled by grid_design.js's own CREATED listener.
+            return;
+        }
+
         if (event.layerType === 'marker') {
             const latLng = layer.getLatLng();
             const lat = latLng.lat;
