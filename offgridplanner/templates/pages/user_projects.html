@@ -104,7 +104,7 @@
             </button></span>
         {% endif %}
         <span style="float:right; display:flex; gap:8px; align-items:center;">
-          <form action="{% url 'projects:project_import' %}" method="POST" enctype="multipart/form-data">
+          <form action="{% url 'projects:project_import' %}" method="POST" enctype="multipart/form-data" style="display:contents">
             {% csrf_token %}
             <input id="importFileInput" type="file" name="file" accept=".json" style="display:none;" onchange="this.form.submit()">
             <button type="button" class="btn btn--long" style="margin:0; white-space:nowrap; width:auto;" onclick="document.getElementById('importFileInput').click()">{% translate 'Import Project' %}</button>
@@ -142,7 +142,7 @@
           <td>
             <span style="float:none;">
               <form action="{% url 'projects:project_duplicate' project.id %}"
-                    method="POST">
+                    method="POST" style="display:contents">
                 {% csrf_token %}
                 <button style="color:#1F567D;
                                 padding:4px"
