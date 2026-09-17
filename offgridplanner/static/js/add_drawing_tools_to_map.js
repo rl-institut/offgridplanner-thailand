@@ -169,87 +169,6 @@ let drawControl = new L.Control.Draw({
 });
 
 
-const CustomMarkerControl = L.Control.extend({
-    options: {
-        position: 'topleft'
-    },
-
-    onAdd: function (map) {
-        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-        L.DomEvent.disableClickPropagation(container);
-
-        const link = L.DomUtil.create('a', 'leaflet-draw-draw-marker', container);
-        link.href = '#';
-        link.title = 'place power-house';
-
-        // add an image inside the link
-        const image = L.DomUtil.create('img', 'my-marker-icon', link);
-        image.src = '/static/icons/i_power_house_grey.svg';
-        image.alt = 'Marker';
-        image.style.width = '12px';
-        image.style.height = '12px';
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stop)
-            .on(link, 'click', function () {
-                isPowerHouseMarker = true;
-
-                // Disable any active drawing layer.
-                for (let type in drawControl._toolbars.draw._modes) {
-                    if (drawControl._toolbars.draw._modes[type].handler.enabled()) {
-                        drawControl._toolbars.draw._modes[type].handler.disable();
-                    }
-                }
-
-                new L.Draw.Marker(map, {icon: iconB}).enable();
-            });
-
-
-        return container;
-    }
-});
-
-
-
-L.Control.Trashbin = L.Control.extend({
-    options: {
-        position: 'topleft',
-    },
-
-    onAdd: function () {
-        const container = L.DomUtil.create('div', 'leaflet-control-trashbin leaflet-bar');
-        const link = L.DomUtil.create('a', '', container);
-        link.href = '#';
-        link.title = 'Clear all';
-        link.innerHTML = '🗑'; // Use the HTML entity for the trash bin icon (U+1F5D1)
-
-        L.DomEvent.on(link, 'click', L.DomEvent.stopPropagation)
-            .on(link, 'click', L.DomEvent.preventDefault)
-            .on(link, 'click', () => {
-                const modal = document.getElementById('msgBox');
-                const message = document.getElementById('responseMsg');
-                const confirmBtn = document.getElementById('confirmDelete');
-                const cancelBtn = document.getElementById('cancelDelete');
-                const okBtn = modal.querySelector('.deletebtn:not(#confirmDelete)');
-
-                message.innerHTML = gettext('Are you sure? This action will delete all consumers. To delete only selected, please use the button on the consumer properties bar.');
-                confirmBtn.style.display = 'inline-block';
-                cancelBtn.style.display = 'inline-block';
-                okBtn.style.display = 'none';
-
-                confirmBtn.onclick = () => {
-                    modal.style.display = 'none';
-                    customTrashBinAction();
-                };
-                cancelBtn.onclick = () => {
-                    modal.style.display = 'none';
-                };
-
-                modal.style.display = 'block';
-            });
-        return container;
-    },
-});
-
 function customTrashBinAction() {
     removeBoundaries();
     remove_marker_from_map();
@@ -257,8 +176,6 @@ function customTrashBinAction() {
     map_elements = [];
     selectedMarkers = [];
 }
-
-const trashbinControl = new L.Control.Trashbin();
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
 
@@ -300,27 +217,6 @@ function removeBoundaries() {
     drawnItems.clearLayers();
     roadsLayer.clearLayers();
     polygonCoordinates = [];
-}
-
-
-function make_roads_clickable() {
-    drawnItems.eachLayer(layer => {
-        layer.on('click', function () {
-            const road = road_elements.find(r => {
-                const latlngs = r.coordinates.map(c => [c[0], c[1]]);
-                const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
-                return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
-            });
-
-            if (!road) return;
-            road.is_clicked = !road.is_clicked;
-
-            layer.setStyle({
-                weight: road.is_clicked ? 4 : 2,
-                color: road.is_clicked ? '#9933ff' : '#cc99ff'
-            });
-        });
-    });
 }
 
 
