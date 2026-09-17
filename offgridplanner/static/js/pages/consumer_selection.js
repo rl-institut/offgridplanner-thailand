@@ -471,7 +471,7 @@ function updateConsumerDropdown() {
             if (details[0] !== undefined) {
                 const possibleKey = getKeyByValue(loadList, details[0]);
                 selectedKey = loadList.hasOwnProperty(possibleKey) ? possibleKey : undefined;
-            } else {d
+            } else {
                 selectedKey = undefined;
             }
         } else {
