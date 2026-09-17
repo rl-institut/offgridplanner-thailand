@@ -321,8 +321,9 @@ function update_map_elements() {
         marker._oldLat = marker.latitude;
         marker._oldLng = marker.longitude;
     });
-    count_consumers(false)
-}
+    count_consumers(false);
+    autosave_map_elements(consumerToDBUrl, map_elements);
+    }
 
 function resetMarkerIcon(marker) {
     // just resets the marker Icon based marker consumer_type
@@ -470,7 +471,7 @@ function updateConsumerDropdown() {
             if (details[0] !== undefined) {
                 const possibleKey = getKeyByValue(loadList, details[0]);
                 selectedKey = loadList.hasOwnProperty(possibleKey) ? possibleKey : undefined;
-            } else {d
+            } else {
                 selectedKey = undefined;
             }
         } else {
@@ -690,6 +691,7 @@ function delete_consumer() {
     });
     selectedMarkers = []
     count_consumers();
+    autosave_map_elements(consumerToDBUrl, map_elements);
 }
 
 
@@ -755,6 +757,7 @@ map.on(L.Draw.Event.CREATED, function (event) {
                 drawMarker(lat, lng, 'consumer');
                 setTimeout(() => drawControl._toolbars.draw._modes.marker.handler.enable(), 100);
             }
+            if (typeof autosave_map_elements === 'function') autosave_map_elements();
 
         } else {
             drawnItems.addLayer(layer);

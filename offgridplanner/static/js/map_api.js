@@ -1,3 +1,22 @@
+// autosave functionality
+let consumerSaveTimer = null;
+function autosave_map_elements(postUrl, mapElements) {
+    clearTimeout(consumerSaveTimer);
+    consumerSaveTimer = setTimeout(() => {
+        const indicator = document.getElementById('autosave-indicator');
+        indicator?.classList.add('visible');
+        fetch(postUrl, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({map_elements: mapElements, file_type: "db"})
+        })
+        .then(res => {
+            if (indicator) setTimeout(() => indicator.classList.remove('visible'), res.ok ? 2000 : 0);
+        })
+        .catch(() => { if (indicator) indicator.classList.remove('visible'); });
+    }, 1500);
+}
+
 // osm-roads
 function fetchOSMRoads(bbox) {
   const bboxStr = Array.isArray(bbox) ? bbox.join(",") : bbox;
@@ -91,7 +110,7 @@ async function db_roads_to_js(proj_id, clickable = false) {
         const data = await response.json();
 
         if (data !== null) {
-            road_elements = data.road_elements || [];
+            road_elements = data.map_elements || [];
             road_elements = road_elements.map(r => ({
                 ...r,
                 is_clicked: false
@@ -157,7 +176,7 @@ async function roads_to_db(href, file_type = "db") {
     const response = await fetch(roadsToDBUrl, {
         method: "POST",
         headers: {"Content-Type": "application/json", 'X-CSRFToken': csrfToken},
-        body: JSON.stringify({ road_elements: road_elements.map(({ layer, is_clicked, ...r }) => r), file_type: file_type })
+        body: JSON.stringify({ map_ements: road_elements.map(({ layer, is_clicked, ...r }) => r), file_type: file_type })
     });
 
     if (response.ok) {
@@ -299,7 +318,7 @@ async function remove_roads_inside_boundary({boundariesCoordinates} = {}) {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken,
             },
-            body: JSON.stringify({ boundary_coordinates: boundariesCoordinates, road_elements: road_elements.map(({ layer, is_clicked, ...r }) => r) }),
+            body: JSON.stringify({ boundary_coordinates: boundariesCoordinates, map_elements: road_elements.map(({ layer, is_clicked, ...r }) => r) }),
         });
 
         if (!response.ok) {
@@ -308,7 +327,7 @@ async function remove_roads_inside_boundary({boundariesCoordinates} = {}) {
 
         const res = await response.json();
 
-        road_elements = res.road_elements;
+        road_elements = res.map_elements;
         roadsLayer.clearLayers();
         put_roads_on_map(road_elements);
     } catch (error) {

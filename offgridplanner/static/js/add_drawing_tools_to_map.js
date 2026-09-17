@@ -51,6 +51,14 @@ var rectangleDrawer = new L.Draw.Rectangle(map, {
 
 let isPowerHouseMarker = false;
 
+map.on('draw:created', function (e) {
+    var layerType = e.layerType;
+    if (layerType === 'marker' || layerType === 'rectangle' || layerType === 'polygon') {
+        update_map_elements();
+    }
+});
+
+
 var myCustomMarker = L.Icon.extend({
     options: {
         shadowUrl: null,
@@ -104,6 +112,13 @@ let drawControl = new L.Control.Draw({
 });
 
 
+function customTrashBinAction() {
+    removeBoundaries();
+    remove_marker_from_map();
+    polygonCoordinates = [];
+    map_elements = [];
+    selectedMarkers = [];
+}
 
 const searchProvider = new GeoSearch.OpenStreetMapProvider();
 
@@ -145,27 +160,6 @@ function removeBoundaries() {
     drawnItems.clearLayers();
     roadsLayer.clearLayers();
     polygonCoordinates = [];
-}
-
-
-function make_roads_clickable() {
-    drawnItems.eachLayer(layer => {
-        layer.on('click', function () {
-            const road = road_elements.find(r => {
-                const latlngs = r.coordinates.map(c => [c[0], c[1]]);
-                const layerLatLngs = layer.getLatLngs().map(ll => [ll.lat, ll.lng]);
-                return JSON.stringify(latlngs) === JSON.stringify(layerLatLngs);
-            });
-
-            if (!road) return;
-            road.is_clicked = !road.is_clicked;
-
-            layer.setStyle({
-                weight: road.is_clicked ? 4 : 2,
-                color: road.is_clicked ? '#9933ff' : '#cc99ff'
-            });
-        });
-    });
 }
 
 

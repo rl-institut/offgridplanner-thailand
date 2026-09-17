@@ -55,9 +55,6 @@ async function update_sankey(ts=null) {
 
 
 async function plot_results() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const project_id = urlParams.get('project_id');
-
     // Initialize an array to hold fetch and plot promises
     const fetchAndPlotPromises = [];
 

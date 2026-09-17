@@ -334,9 +334,9 @@ def db_roads_to_js(request, proj_id=None):
     try:
         roads = Roads.objects.get(project=project)
         data = json.loads(roads.data) if isinstance(roads.data, str) else roads.data
-        return JsonResponse({"road_elements": data})
+        return JsonResponse({"map_elements": data})
     except Roads.DoesNotExist:
-        return JsonResponse({"road_elements": []})
+        return JsonResponse({"map_elements": []})
 
 
 @user_owns_project
@@ -400,9 +400,9 @@ def consumer_to_db(request, proj_id=None):
                 updated_nodes = df
             else:
                 # Keep pole data if exists (to avoid deleting poles on results display)
-                non_consumer_nodes = nodes.df[nodes.df.node_type != "consumer"][
-                    required_columns
-                ]
+                non_consumer_nodes = nodes.df[
+                    ~nodes.df.node_type.isin(["consumer", "power-house"])
+                ][required_columns]
                 updated_nodes = pd.concat([df, non_consumer_nodes])
             nodes.data = updated_nodes.to_json(
                 orient="records"
@@ -435,7 +435,7 @@ def roads_to_db(request, proj_id=None):
             raise PermissionDenied
 
         data = json.loads(request.body)
-        road_elements = data.get("road_elements", [])
+        road_elements = data.get("map_elements", [])
 
         if not road_elements:
             Roads.objects.filter(project=project).delete()
