@@ -44,6 +44,7 @@ map.on(L.Draw.Event.CREATED, function (event) {
         makeRoadLayerClickable(layer, road);
     }
     polygonCoordinates.push(layer.getLatLngs());
+    autosave_map_elements(roadsToDBUrl, road_elements.map(({ layer, is_clicked, ...r }) => r))
 });
 
 // Override: trash clears road drawings only, not consumer markers
@@ -52,6 +53,7 @@ function customTrashBinAction() {
         if (r.layer) roadsLayer.removeLayer(r.layer);
     });
     road_elements = road_elements.filter(r => !r.is_clicked);
+    autosave_map_elements(roadsToDBUrl, road_elements)
 }
 
 function selectAllRoads() {
