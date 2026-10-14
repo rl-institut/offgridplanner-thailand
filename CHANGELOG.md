@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- Fix new project button not working ([#89](https://github.com/rl-institut/offgridplanner-thailand/pull/89))
 
 ## [v1.5.1-thai.7.0] – 2026-09-17
 - Merge changes and bug fixes made in upstream repository ([#85](https://github.com/rl-institut/offgridplanner-thailand/pull/85))
